@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Thanh toán')
+
 @section('content')
 <div class="container my-4">
     <h1 class="mb-4">Thanh toán</h1>
@@ -13,12 +15,15 @@
             </ul>
         </div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
 
-    <form action="{{ route('checkout.placeOrder') }}" method="POST">
+    <form action="{{ route('checkout.placeOrder') }}" method="POST" id="checkout-form">
         @csrf
-        {{-- Input ẩn để lưu phí ship và tên dịch vụ --}}
         <input type="hidden" name="shipping_fee" id="shipping_fee_input" value="0">
-        <input type="hidden" name="shipping_service_name" id="shipping_service_name_input" value="">
 
         <div class="row">
             {{-- Cột thông tin giao hàng --}}
@@ -39,23 +44,25 @@
                         
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label for="province" class="form-label">Tỉnh/Thành phố</label>
+                                <label for="province" class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                <input type="hidden" name="city" id="province_name_input" value="{{ old('city', optional($user->profile)->province_name) }}">
                                 <select class="form-select" id="province" required></select>
-                                <input type="hidden" name="city" id="province_name" value="{{ old('city', optional($user->profile)->province_name) }}">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label for="district" class="form-label">Quận/Huyện</label>
+                                <label for="district" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                                <input type="hidden" name="district" id="district_name_input" value="{{ old('district', optional($user->profile)->district_name) }}">
+                                <input type="hidden" name="district_id" id="district_id_input" value="{{ old('district_id') }}">
                                 <select class="form-select" id="district" required></select>
-                                <input type="hidden" name="district" id="district_name" value="{{ old('district', optional($user->profile)->district_name) }}">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label for="ward" class="form-label">Phường/Xã</label>
+                                <label for="ward" class="form-label">Phường/Xã <span class="text-danger">*</span></label>
+                                <input type="hidden" name="ward" id="ward_name_input" value="{{ old('ward', optional($user->profile)->ward_name) }}">
+                                <input type="hidden" name="ward_code" id="ward_code_input" value="{{ old('ward_code') }}">
                                 <select class="form-select" id="ward" required></select>
-                                <input type="hidden" name="ward" id="ward_name" value="{{ old('ward', optional($user->profile)->ward_name) }}">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="address" class="form-label">Địa chỉ cụ thể (Số nhà, tên đường)</label>
+                            <label for="address" class="form-label">Địa chỉ cụ thể (Số nhà, tên đường) <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="address" name="address" value="{{ old('address') }}" required placeholder="Ví dụ: 123 Nguyễn Văn Linh">
                         </div>
                         
@@ -66,7 +73,7 @@
                     </div>
                 </div>
 
-                {{-- Phương thức vận chuyển --}}
+                {{-- Phương thức vận chuyển và thanh toán --}}
                 <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title">Phương thức vận chuyển</h5>
@@ -76,8 +83,6 @@
                         </div>
                     </div>
                 </div>
-
-                {{-- Phương thức thanh toán --}}
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Phương thức thanh toán</h5>
@@ -100,23 +105,47 @@
 
             {{-- Cột tóm tắt đơn hàng --}}
             <div class="col-lg-5">
-                <div class="card">
+                <div class="card sticky-top" style="top: 20px;">
                     <div class="card-body">
                         <h5 class="card-title">Đơn hàng của bạn</h5>
                         <hr>
                         @foreach($cartItems as $item)
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>{{ $item->variant->product->name }} x {{ $item->quantity }}</span>
-                                @php
-                                    $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
-                                @endphp
-                                <span>{{ number_format($price * $item->quantity) }} ₫</span>
-                            </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span>{{ $item->variant->product->name }} x {{ $item->quantity }}</span>
+                            <span>{{ number_format(($item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price) * $item->quantity) }} ₫</span>
+                        </div>
                         @endforeach
                         <hr>
+                        
+                        <div id="voucher-section">
+                            @if($voucherCode)
+                                <div id="applied-voucher-info" class="d-flex justify-content-between align-items-center text-success">
+                                    <span>Mã đã áp dụng: <strong>{{ $voucherCode }}</strong></span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="remove-voucher-btn">Gỡ</button>
+                                </div>
+                            @else
+                                <div id="voucher-form">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Nhập mã giảm giá" id="voucher-code-input">
+                                        <button class="btn btn-primary" type="button" id="apply-voucher-btn">Áp dụng</button>
+                                    </div>
+                                </div>
+                                <div id="applied-voucher-info" class="d-flex justify-content-between align-items-center text-success d-none">
+                                    <span>Mã đã áp dụng: <strong id="applied-voucher-code"></strong></span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="remove-voucher-btn">Gỡ</button>
+                                </div>
+                            @endif
+                        </div>
+                        <div id="voucher-message" class="mt-2 small"></div>
+                        <hr>
+                        
                         <div class="d-flex justify-content-between">
                             <span>Tạm tính</span>
-                            <span id="subtotal-display">{{ number_format($totalPrice) }} ₫</span>
+                            <span id="subtotal-display" data-subtotal="{{ $subtotal }}">{{ number_format($subtotal) }} ₫</span>
+                        </div>
+                        <div id="discount-row" class="d-flex justify-content-between text-success {{ $discount > 0 ? '' : 'd-none' }}">
+                            <span>Giảm giá</span>
+                            <span id="discount-display">-{{ number_format($discount) }} ₫</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Phí vận chuyển</span>
@@ -125,10 +154,10 @@
                         <hr>
                         <div class="d-flex justify-content-between fw-bold fs-5">
                             <span>Tổng cộng</span>
-                            <span id="total-price-display">{{ number_format($totalPrice) }} ₫</span>
+                            <span id="total-price-display">{{ number_format($subtotal - $discount) }} ₫</span>
                         </div>
                         <div class="d-grid mt-3">
-                            <button type="submit" class="btn btn-primary btn-lg">Đặt hàng</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="place-order-btn">Đặt hàng</button>
                         </div>
                     </div>
                 </div>
@@ -146,142 +175,211 @@ document.addEventListener('DOMContentLoaded', function () {
     const districtSelect = document.getElementById('district');
     const wardSelect = document.getElementById('ward');
     const addressInput = document.getElementById('address');
-    const provinceNameInput = document.getElementById('province_name');
-    const districtNameInput = document.getElementById('district_name');
-    const wardNameInput = document.getElementById('ward_name');
+    const placeOrderBtn = document.getElementById('place-order-btn');
+    const provinceNameInput = document.getElementById('province_name_input');
+    const districtNameInput = document.getElementById('district_name_input');
+    const districtIdInput = document.getElementById('district_id_input');
+    const wardNameInput = document.getElementById('ward_name_input');
+    const wardCodeInput = document.getElementById('ward_code_input');
     const shippingOptionsContainer = document.getElementById('shipping-options-container');
     const shippingFeeDisplay = document.getElementById('shipping-fee-display');
     const totalPriceDisplay = document.getElementById('total-price-display');
-    const subtotal = {{ $totalPrice }};
+    const subtotalDisplay = document.getElementById('subtotal-display');
+    const subtotal = parseFloat(subtotalDisplay.dataset.subtotal);
     const shippingFeeInput = document.getElementById('shipping_fee_input');
-    const shippingServiceNameInput = document.getElementById('shipping_service_name_input');
+    const applyBtn = document.getElementById('apply-voucher-btn');
+    const removeBtn = document.getElementById('remove-voucher-btn');
+    const voucherInput = document.getElementById('voucher-code-input');
+    const voucherMsg = document.getElementById('voucher-message');
+    let currentDiscount = {{ $discount }};
 
-    // === LOGIC TÍNH PHÍ VẬN CHUYỂN ===
-    async function getShippingFee() {
-        const province = provinceNameInput.value;
-        const district = districtNameInput.value;
-        const ward = wardNameInput.value;
-        const address = addressInput.value;
+    const savedAddress = {
+        province: "{{ old('city', optional($user->profile)->province_name) }}",
+        district: "{{ old('district', optional($user->profile)->district_name) }}",
+        ward: "{{ old('ward', optional($user->profile)->ward_name) }}"
+    };
 
-        if (!province || !district || !ward || !address) {
-            resetShipping();
-            return;
-        }
-
-        shippingOptionsContainer.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>';
-
-        try {
-            const response = await fetch('{{ route("shipping.getFee") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ province, district, ward, address })
-            });
-
-            if (!response.ok) throw new Error('Network response was not ok.');
-            
-            const result = await response.json();
-
-            if (result.fee !== undefined) {
-                const fee = result.fee;
-                const serviceName = result.name;
-                shippingOptionsContainer.innerHTML = `<p><strong>${serviceName}:</strong> ${new Intl.NumberFormat('vi-VN').format(fee)} ₫</p>`;
-                updateTotal(fee, serviceName);
-            } else {
-                shippingOptionsContainer.innerHTML = `<p class="text-danger">${result.error || 'Không thể tính phí vận chuyển cho địa chỉ này.'}</p>`;
-                resetShipping();
-            }
-        } catch (error) {
-            console.error('Error fetching shipping fee:', error);
-            shippingOptionsContainer.innerHTML = '<p class="text-danger">Đã có lỗi xảy ra khi tính phí vận chuyển.</p>';
-            resetShipping();
-        }
+    // === CÁC HÀM TIỆN ÍCH ===
+    const formatCurrency = num => new Intl.NumberFormat('vi-VN').format(num) + ' ₫';
+    
+    // Hàm debounce để tránh gọi API liên tục
+    function debounce(func, delay = 300) {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
     }
 
-    function updateTotal(shippingFee = 0, serviceName = '') {
-        const total = subtotal + shippingFee;
-        shippingFeeDisplay.textContent = `${new Intl.NumberFormat('vi-VN').format(shippingFee)} ₫`;
-        totalPriceDisplay.textContent = `${new Intl.NumberFormat('vi-VN').format(total)} ₫`;
-        shippingFeeInput.value = shippingFee;
-        shippingServiceNameInput.value = serviceName;
+    function updateFinalTotals() {
+        const shippingFee = parseFloat(shippingFeeInput.value) || 0;
+        const total = (subtotal - currentDiscount) + shippingFee;
+        shippingFeeDisplay.textContent = formatCurrency(shippingFee);
+        totalPriceDisplay.textContent = formatCurrency(total > 0 ? total : 0);
+        const discountRow = document.getElementById('discount-row');
+        if (currentDiscount > 0) {
+            document.getElementById('discount-display').textContent = `-${formatCurrency(currentDiscount)}`;
+            discountRow.classList.remove('d-none');
+        } else {
+            discountRow.classList.add('d-none');
+        }
     }
 
     function resetShipping() {
         shippingOptionsContainer.innerHTML = '<p class="text-muted">Vui lòng điền đầy đủ thông tin địa chỉ để tính phí vận chuyển.</p>';
-        updateTotal(0, '');
+        shippingFeeInput.value = 0;
+        updateFinalTotals();
     }
 
-    // === LOGIC CHỌN ĐỊA CHỈ (Sử dụng API của GHTK) ===
-    const oldProvince = provinceNameInput.value;
-    const oldDistrict = districtNameInput.value;
-    const oldWard = wardNameInput.value;
-
-    async function fetchAddressData(url) {
+    async function fetchApi(url) {
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Network response was not ok');
-            // API công cộng của GHTK trả về mảng trực tiếp, không có key 'data'
+            if (!response.ok) return [];
             return await response.json();
         } catch (error) {
-            console.error('Failed to fetch address data:', error); 
+            console.error('Lỗi fetch API:', error); 
             return [];
         }
     }
-
-    function renderAddressOptions(selectElement, data, placeholder, valueKey, textKey, selectedValue = "") {
+    
+    function renderOptions(selectElement, data, placeholder, valueKey, textKey, selectedText = "") {
         selectElement.innerHTML = `<option value="">${placeholder}</option>`;
         if (!Array.isArray(data)) return;
-
+        let selectedValue = null;
         data.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item[valueKey];
-            option.textContent = item[textKey];
-            if (item[textKey] === selectedValue) {
+            const option = new Option(item[textKey], item[valueKey]);
+            if (item[textKey] === selectedText) {
                 option.selected = true;
+                selectedValue = item[valueKey];
             }
-            selectElement.appendChild(option);
+            selectElement.add(option);
         });
         if (selectedValue) {
-             selectElement.dispatchEvent(new Event('change'));
+            selectElement.value = selectedValue;
+            selectElement.dispatchEvent(new Event('change'));
         }
     }
 
+    // === LOGIC TÍNH PHÍ VẬN CHUYỂN ===
+    const getShippingFee = debounce(async () => {
+        if (!districtSelect.value || !wardSelect.value) {
+            resetShipping();
+            return;
+        }
+        shippingOptionsContainer.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>';
+        placeOrderBtn.disabled = true;
+        try {
+            const response = await fetch('{{ route("shipping.getFee") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                body: JSON.stringify({
+                    to_district_id: districtSelect.value,
+                    to_ward_code: wardSelect.value,
+                })
+            });
+            const result = await response.json();
+
+            if (result.success && result.data && typeof result.data.total !== 'undefined') {
+                const fee = result.data.total;
+                const serviceName = result.data.name || "Giao hàng nhanh";
+                shippingOptionsContainer.innerHTML = `<div class="form-check"><input class="form-check-input" type="radio" name="shipping_option" checked><label class="form-check-label"><strong>${serviceName}:</strong> ${formatCurrency(fee)}</label></div>`;
+                shippingFeeInput.value = fee;
+            } else {
+                shippingOptionsContainer.innerHTML = `<p class="text-danger">${result.message || 'Không thể tính phí.'}</p>`;
+                shippingFeeInput.value = 0;
+            }
+        } catch (error) {
+            console.error('Lỗi tính phí:', error);
+            shippingOptionsContainer.innerHTML = '<p class="text-danger">Lỗi kết nối khi tính phí vận chuyển.</p>';
+            shippingFeeInput.value = 0;
+        } finally {
+             placeOrderBtn.disabled = false;
+             updateFinalTotals();
+        }
+    });
+
+    // === LOGIC CHỌN ĐỊA CHỈ ===
     async function loadProvinces() {
-        const provinces = await fetchAddressData('{{ route("address.provinces") }}');
-        renderAddressOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành phố', 'id', 'name', oldProvince);
+        const provinces = await fetchApi('{{ route("address.provinces") }}');
+        renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành phố', 'ProvinceID', 'ProvinceName', savedAddress.province);
     }
 
     provinceSelect.addEventListener('change', async function() {
-        provinceNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
-        districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        provinceNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+        renderOptions(districtSelect, [], 'Vui lòng chờ...', 'DistrictID', 'DistrictName');
+        renderOptions(wardSelect, [], 'Chọn Phường/Xã', 'WardCode', 'WardName');
         resetShipping();
         if (this.value) {
-            const districts = await fetchAddressData(`{{ route("address.districts") }}?province_id=${this.value}`);
-            renderAddressOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'id', 'name', oldDistrict);
+            const districts = await fetchApi(`{{ route("address.districts") }}?province_id=${this.value}`);
+            renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', savedAddress.district);
         }
     });
 
     districtSelect.addEventListener('change', async function() {
-        districtNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
-        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        districtNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+        districtIdInput.value = this.value;
+        renderOptions(wardSelect, [], 'Vui lòng chờ...', 'WardCode', 'WardName');
         resetShipping();
         if (this.value) {
-            const wards = await fetchAddressData(`{{ route("address.wards") }}?district_id=${this.value}`);
-            renderAddressOptions(wardSelect, wards, 'Chọn Phường/Xã', 'id', 'name', oldWard);
+            const wards = await fetchApi(`{{ route("address.wards") }}?district_id=${this.value}`);
+            renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', savedAddress.ward);
         }
     });
 
     wardSelect.addEventListener('change', function() {
-        wardNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
+        wardNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+        wardCodeInput.value = this.value;
         getShippingFee();
     });
     
-    addressInput.addEventListener('blur', getShippingFee);
+    // === LOGIC VOUCHER ===
+    if (applyBtn) {
+        applyBtn.addEventListener('click', async function() {
+            const code = voucherInput.value.trim();
+            if (!code) return;
+            this.disabled = true; this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            const response = await fetch('{{ route("voucher.apply") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                body: JSON.stringify({ code: code })
+            });
+            const result = await response.json();
+            voucherMsg.className = result.success ? 'text-success small' : 'text-danger small';
+            voucherMsg.textContent = result.message;
+            if (result.success) {
+                currentDiscount = result.discount;
+                document.getElementById('voucher-form').classList.add('d-none');
+                document.getElementById('applied-voucher-code').textContent = code;
+                document.getElementById('applied-voucher-info').classList.remove('d-none');
+                updateFinalTotals();
+            }
+            this.disabled = false; this.innerHTML = 'Áp dụng';
+        });
+    }
 
+    if(removeBtn) {
+        removeBtn.addEventListener('click', async function() {
+             const response = await fetch('{{ route("voucher.remove") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+            });
+            const result = await response.json();
+            if (result.success) {
+                currentDiscount = 0;
+                voucherInput.value = '';
+                voucherMsg.textContent = '';
+                document.getElementById('voucher-form').classList.remove('d-none');
+                document.getElementById('applied-voucher-info').classList.add('d-none');
+                updateFinalTotals();
+            }
+        });
+    }
+
+    // === KHỞI TẠO ===
     loadProvinces();
+    updateFinalTotals();
 });
 </script>
 @endsection

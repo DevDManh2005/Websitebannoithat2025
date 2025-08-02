@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
-use App\Models\Inventory; // <-- Thêm dòng này
+use App\Models\Inventory;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,8 +26,8 @@ class CartController extends Controller
         $totalPrice = 0;
         foreach ($cartItems as $item) {
             $price = $item->variant->sale_price > 0 && $item->variant->sale_price < $item->variant->price
-                   ? $item->variant->sale_price
-                   : $item->variant->price;
+                ? $item->variant->sale_price
+                : $item->variant->price;
             $totalPrice += $price * $item->quantity;
         }
 
@@ -39,12 +39,15 @@ class CartController extends Controller
      */
     public function add(Request $request)
     {
+        // === SỬA ĐỔI QUAN TRỌNG Ở ĐÂY ===
         $request->validate([
-            'variant_id' => 'required|exists:product_variants,id',
+            'product_variant_id' => 'required|exists:product_variants,id', // Sửa từ 'variant_id'
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $variantId = $request->variant_id;
+        $variantId = $request->product_variant_id; // Sửa từ 'variant_id'
+        // === KẾT THÚC SỬA ĐỔI ===
+        
         $quantityToAdd = $request->quantity;
         $userId = Auth::id();
 
@@ -56,8 +59,8 @@ class CartController extends Controller
 
         // Lấy số lượng hiện có trong giỏ hàng
         $cartItem = Cart::where('user_id', $userId)
-                        ->where('product_variant_id', $variantId)
-                        ->first();
+                          ->where('product_variant_id', $variantId)
+                          ->first();
         
         $currentQuantityInCart = $cartItem ? $cartItem->quantity : 0;
 
@@ -91,11 +94,9 @@ class CartController extends Controller
         $newQuantity = $request->quantity;
         $cartItem = Cart::where('id', $cartId)->where('user_id', Auth::id())->firstOrFail();
         
-        // Tìm kho hàng tương ứng
         $inventory = Inventory::where('product_variant_id', $cartItem->product_variant_id)->first();
         $stock = $inventory ? $inventory->quantity : 0;
 
-        // KIỂM TRA TỒN KHO
         if ($newQuantity > $stock) {
             return back()->with('error', "Rất tiếc, sản phẩm này chỉ còn {$stock} sản phẩm trong kho.");
         }

@@ -61,7 +61,7 @@
                             </div>
                         </div>
                         
-                        {{-- Hidden inputs for location names --}}
+                        {{-- Thêm các input ẩn để lưu tên địa chỉ --}}
                         <input type="hidden" name="province_name" id="province_name" value="{{ old('province_name', optional($user->profile)->province_name) }}">
                         <input type="hidden" name="district_name" id="district_name" value="{{ old('district_name', optional($user->profile)->district_name) }}">
                         <input type="hidden" name="ward_name" id="ward_name" value="{{ old('ward_name', optional($user->profile)->ward_name) }}">
@@ -69,15 +69,18 @@
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <label for="province" class="form-label">Tỉnh/Thành phố</label>
-                                <select class="form-select" id="province"></select>
+                                {{-- Thêm name="province_id" để gửi ID đi --}}
+                                <select class="form-select" id="province" name="province_id"></select>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="district" class="form-label">Quận/Huyện</label>
-                                <select class="form-select" id="district"></select>
+                                {{-- Thêm name="district_id" để gửi ID đi --}}
+                                <select class="form-select" id="district" name="district_id"></select>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="ward" class="form-label">Phường/Xã</label>
-                                <select class="form-select" id="ward"></select>
+                                {{-- Thêm name="ward_code" để gửi mã đi --}}
+                                <select class="form-select" id="ward" name="ward_code"></select>
                             </div>
                         </div>
 
@@ -102,71 +105,75 @@ document.addEventListener('DOMContentLoaded', function () {
     const provinceSelect = document.getElementById('province');
     const districtSelect = document.getElementById('district');
     const wardSelect = document.getElementById('ward');
+
     const provinceNameInput = document.getElementById('province_name');
     const districtNameInput = document.getElementById('district_name');
     const wardNameInput = document.getElementById('ward_name');
     
-    const oldProvinceName = "{{ old('province_name', optional($user->profile)->province_name) }}";
-    const oldDistrictName = "{{ old('district_name', optional($user->profile)->district_name) }}";
-    const oldWardName = "{{ old('ward_name', optional($user->profile)->ward_name) }}";
+    // Lấy tên địa chỉ cũ đã lưu trong DB để chọn lại
+    const savedAddress = {
+        province: "{{ old('province_name', optional($user->profile)->province_name) }}",
+        district: "{{ old('district_name', optional($user->profile)->district_name) }}",
+        ward: "{{ old('ward_name', optional($user->profile)->ward_name) }}"
+    };
 
-    async function fetchAddressData(url) {
+    async function fetchApi(url) {
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Network response was not ok');
-            const result = await response.json();
-            if (Array.isArray(result)) {
-                return result;
-            }
-            return [];
+            if (!response.ok) return [];
+            return await response.json();
         } catch (error) {
-            console.error('Failed to fetch address data:', error);
+            console.error('Lỗi fetch API:', error); 
             return [];
         }
     }
-
-    function renderAddressOptions(selectElement, data, placeholder, valueKey, textKey, selectedValue = "") {
+    
+    function renderOptions(selectElement, data, placeholder, valueKey, textKey, selectedText = "") {
         selectElement.innerHTML = `<option value="">${placeholder}</option>`;
         if (!Array.isArray(data)) return;
 
+        let selectedValue = null;
         data.forEach(item => {
             const option = new Option(item[textKey], item[valueKey]);
-            if (item[textKey] === selectedValue) {
+            if (item[textKey] === selectedText) {
                 option.selected = true;
+                selectedValue = item[valueKey];
             }
             selectElement.add(option);
         });
-        if (selectedValue && selectElement.value) {
+        
+        if (selectedValue) {
+            selectElement.value = selectedValue;
             selectElement.dispatchEvent(new Event('change'));
         }
     }
 
     async function loadProvinces() {
-        const provinces = await fetchAddressData('{{ route("address.provinces") }}');
-        renderAddressOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành phố', 'id', 'name', oldProvinceName);
+        const provinces = await fetchApi('{{ route("address.provinces") }}');
+        renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành phố', 'ProvinceID', 'ProvinceName', savedAddress.province);
     }
 
     provinceSelect.addEventListener('change', async function() {
-        provinceNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
-        districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        provinceNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : "";
+        renderOptions(districtSelect, [], 'Vui lòng chờ...', 'DistrictID', 'DistrictName');
+        renderOptions(wardSelect, [], 'Chọn Phường/Xã', 'WardCode', 'WardName');
         if (this.value) {
-            const districts = await fetchAddressData(`{{ route("address.districts") }}?province_id=${this.value}`);
-            renderAddressOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'id', 'name', oldDistrictName);
+            const districts = await fetchApi(`{{ route("address.districts") }}?province_id=${this.value}`);
+            renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', savedAddress.district);
         }
     });
 
     districtSelect.addEventListener('change', async function() {
-        districtNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
-        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        districtNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : "";
+        renderOptions(wardSelect, [], 'Vui lòng chờ...', 'WardCode', 'WardName');
         if (this.value) {
-            const wards = await fetchAddressData(`{{ route("address.wards") }}?district_id=${this.value}`);
-            renderAddressOptions(wardSelect, wards, 'Chọn Phường/Xã', 'id', 'name', oldWardName);
+            const wards = await fetchApi(`{{ route("address.wards") }}?district_id=${this.value}`);
+            renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', savedAddress.ward);
         }
     });
 
     wardSelect.addEventListener('change', function() {
-        wardNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
+        wardNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : "";
     });
 
     loadProvinces();

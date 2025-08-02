@@ -31,4 +31,17 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'ghn' => [
+        'token'            => env('GHN_TOKEN'),
+        'shop_id'          => env('GHN_SHOP_ID'),
+        'api_url'          => env('GHN_API_URL'),
+        'pick_name'        => env('GHN_PICK_NAME'),
+        'pick_tel'         => env('GHN_PICK_TEL'),
+        'pick_address'     => env('GHN_PICK_ADDRESS'),
+        'pick_province'    => env('GHN_PICK_PROVINCE'),
+        'pick_district'    => env('GHN_PICK_DISTRICT'),
+        'pick_ward_code'   => env('GHN_PICK_WARD_CODE'),
+        'pick_district_id' => env('GHN_PICK_DISTRICT_ID'),
+    ],
+
 ];

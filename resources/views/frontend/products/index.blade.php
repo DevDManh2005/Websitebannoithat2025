@@ -1,81 +1,65 @@
 @extends('layouts.app')
 
+@section('title', 'Tất cả sản phẩm')
+
 @section('content')
-<div class="container my-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url('/') }}">Trang chủ</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ $category->name }}</li>
-        </ol>
-    </nav>
-
+<div class="container my-5">
     <div class="row">
+        {{-- Cột bên trái: Bộ lọc --}}
         <div class="col-lg-3">
-            <h4>Bộ lọc</h4>
-            <hr>
-            {{-- Nơi dành cho các bộ lọc sản phẩm sau này --}}
+            @include('frontend.components.filter-sidebar', [
+                'categories' => $categories,
+                'brands' => $brands,
+                'max_price' => $max_price
+            ])
         </div>
+
+        {{-- Cột bên phải: Danh sách sản phẩm --}}
         <div class="col-lg-9">
-            <h1 class="mb-4">{{ $category->name }}</h1>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @forelse($products as $product)
-                    <div class="col">
-                        <div class="card h-100 shadow-sm position-relative">
-                            @php
-                                $primaryImage = $product->images->first();
-                                $mainVariant = $product->variants->first();
-                                $isWishlisted = in_array($product->id, $wishlistProductIds);
-                                
-                                // Xử lý đường dẫn ảnh
-                                $imageUrl = $primaryImage->image_url ?? 'https://via.placeholder.com/300x200';
-                                if ($primaryImage && !Str::startsWith($primaryImage->image_url, 'http')) {
-                                    $imageUrl = asset('storage/' . $primaryImage->image_url);
-                                }
-                            @endphp
+            <h1 class="fw-bold mb-3">Tất cả sản phẩm</h1>
 
-                            <button class="btn btn-outline-danger btn-sm rounded-circle position-absolute top-0 end-0 m-2 toggle-wishlist-btn {{ $isWishlisted ? 'active' : '' }}"
-                                    data-product-id="{{ $product->id }}"
-                                    title="Thêm vào danh sách yêu thích">
-                                <i class="fas fa-heart"></i>
-                            </button>
+            {{-- Thanh sắp xếp và thông tin --}}
+            <div class="d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded">
+                <span class="text-muted small">Hiển thị {{ $products->firstItem() }}-{{ $products->lastItem() }} trong tổng số {{ $products->total() }} sản phẩm</span>
+                <form action="{{ url()->current() }}" method="GET" id="sort-form">
+                    {{-- Giữ lại các tham số lọc hiện tại khi sắp xếp --}}
+                    @foreach(request()->except(['sort', 'page']) as $key => $value)
+                        @if(is_array($value))
+                            @foreach($value as $v)
+                                <input type="hidden" name="{{ $key }}[]" value="{{ $v }}">
+                            @endforeach
+                        @else
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endif
+                    @endforeach
+                    <select class="form-select form-select-sm" name="sort" style="width: auto;" onchange="document.getElementById('sort-form').submit();">
+                        <option value="latest" @selected(request('sort') == 'latest')>Mới nhất</option>
+                        <option value="price_asc" @selected(request('sort') == 'price_asc')>Giá: Thấp đến cao</option>
+                        <option value="price_desc" @selected(request('sort') == 'price_desc')>Giá: Cao đến thấp</option>
+                    </select>
+                </form>
+            </div>
 
-                            <a href="{{ route('product.show', $product->slug) }}">
-                                <img src="{{ $imageUrl }}" class="card-img-top" alt="{{ $product->name }}">
-                            </a>
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <a href="{{ route('product.show', $product->slug) }}" class="text-decoration-none text-dark">{{ Str::limit($product->name, 50) }}</a>
-                                </h5>
-                                <p class="card-text text-danger fw-bold">
-                                    @if($mainVariant)
-                                        @if($mainVariant->sale_price > 0 && $mainVariant->sale_price < $mainVariant->price)
-                                            <span class="text-muted text-decoration-line-through">{{ number_format($mainVariant->price) }} ₫</span>
-                                            {{ number_format($mainVariant->sale_price) }} ₫
-                                        @else
-                                            {{ number_format($mainVariant->price) }} ₫
-                                        @endif
-                                    @else
-                                        Liên hệ
-                                    @endif
-                                </p>
-                            </div>
+            {{-- Lưới sản phẩm --}}
+            @if($products->isNotEmpty())
+                <div class="row g-4">
+                    @foreach($products as $product)
+                        <div class="col-6 col-md-4">
+                            @include('frontend.components.product-card', ['product' => $product])
                         </div>
-                    </div>
-                @empty
-                    <div class="col-12">
-                        <p class="text-center">Chưa có sản phẩm nào trong danh mục này.</p>
-                    </div>
-                @endforelse
-            </div>
+                    @endforeach
+                </div>
 
-            <div class="mt-4 d-flex justify-content-center">
-                {{ $products->links() }}
-            </div>
+                {{-- Phân trang --}}
+                <div class="d-flex justify-content-center mt-5">
+                    {{ $products->links() }}
+                </div>
+            @else
+                <div class="text-center py-5">
+                    <p>Không tìm thấy sản phẩm nào phù hợp với tiêu chí của bạn.</p>
+                </div>
+            @endif
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-@include('frontend.partials.wishlist-script')
 @endsection

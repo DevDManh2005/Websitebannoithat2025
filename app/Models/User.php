@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\UserProfile;   // ← thêm import
+use App\Models\UserProfile; 
 
 /**
  * Class User
@@ -85,4 +85,27 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Product::class, 'wishlists', 'user_id', 'product_id')->withTimestamps();
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    // Kiểm tra xem user đã mua sản phẩm này chưa
+    public function hasPurchasedProduct(int $productId): bool
+    {
+        return $this->orders()
+            ->where('status', 'delivered')
+            ->whereHas('items.variant.product', function ($query) use ($productId) {
+                $query->where('id', $productId);
+            })
+            ->exists();
+    }
+
+    // Kiểm tra xem user đã đánh giá sản phẩm này chưa
+    public function hasReviewedProduct(int $productId): bool
+    {
+        return $this->reviews()->where('product_id', $productId)->exists();
+    }
+    
 }

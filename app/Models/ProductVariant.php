@@ -13,6 +13,7 @@ class ProductVariant extends Model
         'price',
         'sale_price',
         'is_main_variant',
+        'weight',
     ];
 
     protected $casts = [
@@ -20,6 +21,7 @@ class ProductVariant extends Model
         'is_main_variant' => 'boolean',
         'price' => 'decimal:2',
         'sale_price' => 'decimal:2',
+        'weight' => 'integer',
     ];
 
     public function product()

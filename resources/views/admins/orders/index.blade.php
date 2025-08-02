@@ -1,4 +1,4 @@
-@extends('admins.layouts.app') {{-- Giả sử bạn có layout cho admin --}}
+@extends('admins.layouts.app')
 
 @section('title', 'Quản lý Đơn hàng')
 
@@ -33,7 +33,6 @@
                 </li>
             </ul>
 
-            {{-- Thông báo --}}
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
@@ -62,19 +61,17 @@
                                 <td>{{ number_format($order->final_amount) }} ₫</td>
                                 <td>
                                     @php
-                                        $badgeClass = '';
-                                        $statusText = '';
-                                        switch ($order->status) {
-                                            case 'pending': $badgeClass = 'bg-warning text-dark'; $statusText = 'Chờ xử lý'; break;
-                                            case 'processing': $badgeClass = 'bg-info text-dark'; $statusText = 'Đang xử lý'; break;
-                                            case 'shipped_to_shipper': $badgeClass = 'bg-secondary'; $statusText = 'Đã giao cho shipper'; break;
-                                            case 'shipping': $badgeClass = 'bg-primary'; $statusText = 'Đang giao'; break;
-                                            case 'delivered': $badgeClass = 'bg-success'; $statusText = 'Đã giao'; break;
-                                            case 'cancelled': $badgeClass = 'bg-danger'; $statusText = 'Đã hủy'; break;
-                                            default: $badgeClass = 'bg-secondary'; $statusText = 'Không xác định'; break;
-                                        }
+                                        $statusConfig = [
+                                            'pending' => ['class' => 'bg-warning text-dark', 'text' => 'Chờ xử lý'],
+                                            'processing' => ['class' => 'bg-info text-dark', 'text' => 'Đang xử lý'],
+                                            'shipped_to_shipper' => ['class' => 'bg-secondary', 'text' => 'Đã giao cho shipper'],
+                                            'shipping' => ['class' => 'bg-primary', 'text' => 'Đang giao'],
+                                            'delivered' => ['class' => 'bg-success', 'text' => 'Đã giao'],
+                                            'cancelled' => ['class' => 'bg-danger', 'text' => 'Đã hủy'],
+                                        ];
+                                        $status = $statusConfig[$order->status] ?? ['class' => 'bg-light text-dark', 'text' => 'Không xác định'];
                                     @endphp
-                                    <span class="badge {{ $badgeClass }}">{{ $statusText }}</span>
+                                    <span class="badge {{ $status['class'] }}">{{ $status['text'] }}</span>
                                 </td>
                                 <td>
                                     <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-info btn-sm">Xem</a>
@@ -89,7 +86,7 @@
                 </table>
             </div>
             <div class="d-flex justify-content-center">
-                {{ $orders->links() }}
+                {{ $orders->appends(request()->query())->links() }}
             </div>
         </div>
     </div>

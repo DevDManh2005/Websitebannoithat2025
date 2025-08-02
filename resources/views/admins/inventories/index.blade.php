@@ -4,7 +4,6 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
@@ -64,14 +63,8 @@
                                 </td>
                                 <td><span class="badge bg-info">{{ $inventory->quantity }}</span></td>
                                 <td>
-                                    @if($inventory->location)
-                                        {{ $inventory->location->address ?: '' }}
-                                        {{ $inventory->location->ward_name ? ', ' . $inventory->location->ward_name : '' }}
-                                        {{ $inventory->location->district_name ? ', ' . $inventory->location->district_name : '' }}
-                                        {{ $inventory->location->city_name ? ', ' . $inventory->location->city_name : '' }}
-                                    @else
-                                        N/A
-                                    @endif
+                                    {{-- ĐÃ ĐƯỢC ĐƠN GIẢN HÓA --}}
+                                    {{ optional($inventory->location)->address ?? 'N/A' }}
                                 </td>
                                 <td class="text-end">
                                     <a href="{{ route('admin.inventories.show', $inventory->id) }}" class="btn btn-sm btn-info">Xem</a>

@@ -22,20 +22,20 @@
                         <dd class="col-sm-8">{{ $inventory->product?->name ?? 'N/A' }}</dd>
                         <dt class="col-sm-4">Biến thể:</dt>
                         <dd class="col-sm-8">
-                             @if($inventory->variant)
-                                <strong>{{ $inventory->variant->sku }}</strong>
-                                @if(!empty($inventory->variant->attributes))
-                                    @php
-                                        $attributeParts = [];
-                                        foreach($inventory->variant->attributes as $key => $value) {
-                                            $attributeParts[] = ucfirst($key) . ': ' . $value;
-                                        }
-                                    @endphp
-                                    <br><small class="text-muted">({{ implode(', ', $attributeParts) }})</small>
+                                @if($inventory->variant)
+                                    <strong>{{ $inventory->variant->sku }}</strong>
+                                    @if(!empty($inventory->variant->attributes))
+                                        @php
+                                            $attributeParts = [];
+                                            foreach($inventory->variant->attributes as $key => $value) {
+                                                $attributeParts[] = ucfirst($key) . ': ' . $value;
+                                            }
+                                        @endphp
+                                        <br><small class="text-muted">({{ implode(', ', $attributeParts) }})</small>
+                                    @endif
+                                @else
+                                    <span class="text-muted">Không áp dụng</span>
                                 @endif
-                            @else
-                                <span class="text-muted">Không áp dụng</span>
-                            @endif
                         </dd>
                         <dt class="col-sm-4">Số lượng hiện tại:</dt>
                         <dd class="col-sm-8"><h4><span class="badge bg-primary">{{ $inventory->quantity }}</span></h4></dd>
@@ -46,15 +46,10 @@
             <div class="card mb-4">
                 <div class="card-header"><h5 class="card-title mb-0">Vị trí Lưu trữ</h5></div>
                 <div class="card-body">
+                    {{-- ĐÃ ĐƯỢC ĐƠN GIẢN HÓA --}}
                     <dl class="row">
-                         <dt class="col-sm-4">Địa chỉ:</dt>
-                        <dd class="col-sm-8">{{ $inventory->location?->address ?? 'N/A' }}</dd>
-                        <dt class="col-sm-4">Phường/Xã:</dt>
-                        <dd class="col-sm-8">{{ $inventory->location?->ward_name ?? 'N/A' }}</dd>
-                        <dt class="col-sm-4">Quận/Huyện:</dt>
-                        <dd class="col-sm-8">{{ $inventory->location?->district_name ?? 'N/A' }}</dd>
-                        <dt class="col-sm-4">Tỉnh/Thành phố:</dt>
-                        <dd class="col-sm-8">{{ $inventory->location?->city_name ?? 'N/A' }}</dd>
+                         <dt class="col-sm-4">Địa chỉ kho:</dt>
+                         <dd class="col-sm-8">{{ optional($inventory->location)->address ?? 'Chưa cập nhật' }}</dd>
                     </dl>
                 </div>
             </div>
@@ -75,11 +70,11 @@
                                             @elseif($transaction->type === 'export')
                                                 <span class="badge bg-danger">Xuất</span>
                                             @else
-                                                 <span class="badge bg-warning text-dark">Điều chỉnh</span>
+                                                <span class="badge bg-warning text-dark">Điều chỉnh</span>
                                             @endif
                                         </td>
                                         <td>
-                                             @if($transaction->type === 'import')
+                                            @if($transaction->type === 'import')
                                                 <strong class="text-success">+{{ $transaction->quantity }}</strong>
                                             @else
                                                 <strong class="text-danger">-{{ $transaction->quantity }}</strong>

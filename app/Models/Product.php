@@ -10,7 +10,6 @@ class Product extends Model
     protected $fillable = [
         'name',
         'slug',
-        'category_id',
         'brand_id',
         'supplier_id',
         'description',
@@ -20,9 +19,9 @@ class Product extends Model
     ];
 
     /** Quan hệ */
-    public function category()
+    public function categories()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class);
     }
 
     public function brand()
@@ -69,5 +68,20 @@ class Product extends Model
     public function inventories()
     {
         return $this->hasMany(Inventory::class);
+    }
+
+      public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    public function approvedReviews()
+    {
+        return $this->reviews()->where('status', 'approved');
+    }
+
+    public function getAverageRatingAttribute(): float
+    {
+        return round($this->approvedReviews()->avg('rating'), 1);
     }
 }

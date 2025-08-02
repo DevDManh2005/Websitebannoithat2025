@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Thông tin tài khoản')
+
 @section('content')
 <div class="container my-4">
     <h2>Thông tin tài khoản</h2>
@@ -152,73 +154,78 @@ document.addEventListener('DOMContentLoaded', function () {
     const provinceSelect = document.getElementById('province');
     const districtSelect = document.getElementById('district');
     const wardSelect = document.getElementById('ward');
+
     const provinceNameInput = document.getElementById('province_name');
     const districtNameInput = document.getElementById('district_name');
     const wardNameInput = document.getElementById('ward_name');
     
-    const oldProvince = provinceNameInput.value;
-    const oldDistrict = districtNameInput.value;
-    const oldWard = wardNameInput.value;
+    const savedAddress = {
+        province: provinceNameInput.value,
+        district: districtNameInput.value,
+        ward: wardNameInput.value
+    };
 
-    async function fetchAddressData(url) {
+    async function fetchApi(url) {
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('Network response was not ok');
-            const result = await response.json();
-            if (Array.isArray(result)) {
-                return result;
-            }
-            return [];
+            if (!response.ok) return [];
+            return await response.json();
         } catch (error) {
-            console.error('Failed to fetch address data:', error); 
+            console.error('Lỗi fetch API:', error); 
             return [];
         }
     }
-
-    function renderAddressOptions(selectElement, data, placeholder, valueKey, textKey, selectedValue = "") {
+    
+    function renderOptions(selectElement, data, placeholder, valueKey, textKey, selectedText = "") {
         selectElement.innerHTML = `<option value="">${placeholder}</option>`;
         if (!Array.isArray(data)) return;
 
+        let selectedValue = null;
         data.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item[valueKey];
-            option.textContent = item[textKey];
-            if (item[textKey] === selectedValue) {
+            const option = new Option(item[textKey], item[valueKey]);
+            if (item[textKey] === selectedText) {
                 option.selected = true;
+                selectedValue = item[valueKey];
             }
-            selectElement.appendChild(option);
+            selectElement.add(option);
         });
-        if (selectedValue && selectElement.value) {
-             selectElement.dispatchEvent(new Event('change'));
+        
+        if (selectedValue) {
+            selectElement.value = selectedValue;
+            selectElement.dispatchEvent(new Event('change'));
         }
     }
 
     async function loadProvinces() {
-        const provinces = await fetchAddressData('{{ route("address.provinces") }}');
-        renderAddressOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành phố', 'id', 'name', oldProvince);
+        const provinces = await fetchApi('{{ route("address.provinces") }}');
+        renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành phố', 'ProvinceID', 'ProvinceName', savedAddress.province);
     }
 
     provinceSelect.addEventListener('change', async function() {
-        provinceNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
-        districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        provinceNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : "";
+        
+        renderOptions(districtSelect, [], 'Vui lòng chờ...', 'DistrictID', 'DistrictName');
+        renderOptions(wardSelect, [], 'Chọn Phường/Xã', 'WardCode', 'WardName');
+        
         if (this.value) {
-            const districts = await fetchAddressData(`{{ route("address.districts") }}?province_id=${this.value}`);
-            renderAddressOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'id', 'name', oldDistrict);
+            const districts = await fetchApi(`{{ route("address.districts") }}?province_id=${this.value}`);
+            renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', savedAddress.district);
         }
     });
 
     districtSelect.addEventListener('change', async function() {
-        districtNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
-        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        districtNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : "";
+
+        renderOptions(wardSelect, [], 'Vui lòng chờ...', 'WardCode', 'WardName');
+
         if (this.value) {
-            const wards = await fetchAddressData(`{{ route("address.wards") }}?district_id=${this.value}`);
-            renderAddressOptions(wardSelect, wards, 'Chọn Phường/Xã', 'id', 'name', oldWard);
+            const wards = await fetchApi(`{{ route("address.wards") }}?district_id=${this.value}`);
+            renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', savedAddress.ward);
         }
     });
 
     wardSelect.addEventListener('change', function() {
-        wardNameInput.value = this.value ? this.options[this.selectedIndex].text : "";
+        wardNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : "";
     });
 
     loadProvinces();
