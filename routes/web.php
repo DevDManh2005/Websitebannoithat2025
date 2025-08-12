@@ -62,9 +62,13 @@ Route::get('/reset', fn() => view('auth.reset'))->name('reset.form');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset.password');
 Route::get('/payment/vnpay-callback', [PaymentController::class, 'vnpayCallback'])->name('payment.vnpayCallback');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+// Return URL cho user quay về (đã đúng với APP_URL/ENV)
+Route::get('/payment/vnpay-return', [PaymentController::class, 'vnpayReturn'])
+    ->name('payment.vnpay.return');
 
-
-
+// IPN URL: phải trùng EXACT với portal và cho phép cả GET lẫn POST
+Route::match(['GET','POST'], '/payment/vnpay-ipn', [PaymentController::class, 'vnpayIpn'])
+    ->name('payment.vnpay.ipn');
 
 /*
 |--------------------------------------------------------------------------
@@ -81,8 +85,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/gio-hang', [CartController::class, 'index'])->name('cart.index');
     Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/gio-hang/mua-ngay', [CartController::class, 'buyNow'])->name('cart.buyNow'); // THÊM DÒNG NÀY
     Route::patch('/gio-hang/cap-nhat/{cartId}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/gio-hang/xoa/{cartId}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::patch('/gio-hang/toggle-select', [CartController::class, 'toggleSelect'])->name('cart.toggleSelect');
+    Route::delete('/gio-hang/xoa-muc-chon', [CartController::class, 'removeSelected'])->name('cart.removeSelected');
 
     Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/dat-hang', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
@@ -94,7 +101,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/products/{product}/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');
 
     Route::get('/payment/vnpay/create/{order}', [PaymentController::class, 'createVnpayPayment'])->name('payment.vnpay.create');
-
     Route::post('/shipping/fee', [ShippingController::class, 'getFee'])->name('shipping.getFee');
     Route::post('/voucher/apply', [VoucherController::class, 'apply'])->name('voucher.apply');
     Route::post('/voucher/remove', [VoucherController::class, 'remove'])->name('voucher.remove');
@@ -141,6 +147,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('brands', BrandController::class);
     Route::resource('suppliers', SupplierController::class);
     Route::resource('products', AdminProductController::class);
+    Route::get('/products/{product}/variants-inventory', [AdminProductController::class, 'getVariantsWithInventory'])->name('products.variants.inventory');
     Route::resource('inventories', InventoryController::class);
     Route::resource('vouchers', AdminVoucherController::class);
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');

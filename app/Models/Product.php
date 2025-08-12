@@ -44,6 +44,24 @@ class Product extends Model
         return $this->hasMany(ProductImage::class);
     }
 
+    /**
+     * Lấy ảnh đại diện của sản phẩm.
+     * Đây là mối quan hệ quan trọng để hiển thị ảnh trong đơn hàng.
+     */
+    public function primaryImage()
+    {
+        // Ưu tiên lấy ảnh có cờ is_primary = true.
+        return $this->hasOne(ProductImage::class)->where('is_primary', true)->withDefault(function ($productImage, $product) {
+            // Nếu không có ảnh nào được đánh dấu là primary,
+            // nó sẽ thử lấy ảnh đầu tiên trong danh sách làm ảnh mặc định.
+            $firstImage = $product->images()->first();
+            if ($firstImage) {
+                // Gán thuộc tính của ảnh đầu tiên cho đối tượng mặc định
+                $productImage->setRawAttributes($firstImage->getAttributes());
+            }
+        });
+    }
+
     public function wishlistedBy()
     {
         return $this->belongsToMany(User::class, 'wishlists', 'product_id', 'user_id');
@@ -62,7 +80,7 @@ class Product extends Model
     /** Scope lấy những bản ghi active */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('is_active', 1);
     }
 
     public function inventories()
@@ -70,7 +88,7 @@ class Product extends Model
         return $this->hasMany(Inventory::class);
     }
 
-      public function reviews()
+    public function reviews()
     {
         return $this->hasMany(ProductReview::class);
     }
@@ -83,5 +101,10 @@ class Product extends Model
     public function getAverageRatingAttribute(): float
     {
         return round($this->approvedReviews()->avg('rating'), 1);
+    }
+    
+    public function orderItems()
+    {
+        return $this->hasManyThrough(OrderItem::class, ProductVariant::class, 'product_id', 'product_variant_id');
     }
 }

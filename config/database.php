@@ -65,17 +65,15 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
+            'host' => env('DB_HOST', 'aws-0-ap-southeast-1.pooler.supabase.com'),
+            'port' => env('DB_PORT', 6543),
+            'database' => env('DB_DATABASE', 'postgres.vcqjpthswzxpoynbsphq'),
+            'username' => env('DB_USERNAME', 'postgres.vcqjpthswzxpoynbsphq'),
+            'password' => env('DB_PASSWORD', '112301005Manh'),
             'charset' => 'utf8',
             'prefix' => '',
-            'prefix_indexes' => true,
-            'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'schema' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'require'), // Thêm dòng này
         ],
 
         'sqlsrv' => [
@@ -125,7 +123,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [

@@ -18,43 +18,58 @@ class ShippingController extends Controller
     }
 
     public function getFee(Request $request)
-    {
-        $data = $request->validate([
-            'to_district_id' => 'required|integer',
-            'to_ward_code'   => 'required|string',
-        ]);
+{
+    $data = $request->validate([
+        'to_district_id' => 'required|integer',
+        'to_ward_code'   => 'required|string',
+    ]);
 
-        $cartItems = Cart::where('user_id', Auth::id())->with('variant')->get();
-        if ($cartItems->isEmpty()) {
-            return response()->json(['success' => false, 'message' => 'Giỏ hàng trống'], 400);
-        }
+    // chỉ lấy item đã chọn
+    $cartItems = Cart::where('user_id', Auth::id())
+        ->where('is_selected', true)
+        ->with('variant')
+        ->get();
 
-        $total_weight = 0;
-        $total_value = 0;
-        foreach ($cartItems as $item) {
-            $total_weight += ($item->variant->weight ?? 200) * $item->quantity;
-            $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
-            $total_value += $price * $item->quantity;
-        }
-
-        $result = $this->apiService->getShippingFee([
-            'to_district_id' => $data['to_district_id'],
-            'to_ward_code'   => $data['to_ward_code'],
-            'weight'         => $total_weight,
-            'value'          => $total_value,
-        ]);
-        
-        // Chuẩn hóa response trả về cho frontend
-        if ($result['success'] && $result['data']) {
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'total' => $result['data']['total'],
-                    'name'  => 'Giao hàng nhanh',
-                ]
-            ]);
-        }
-        
-        return response()->json($result);
+    if ($cartItems->isEmpty()) {
+        return response()->json(['success' => false, 'message' => 'Không có sản phẩm được chọn.'], 400);
     }
+
+    $total_weight = 0;
+    $total_value  = 0;
+
+    foreach ($cartItems as $item) {
+        $itemWeight = (int)($item->variant->weight ?? 200);
+        if ($itemWeight < 50) $itemWeight = 50;
+
+        $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
+
+        $total_weight += $itemWeight * $item->quantity;
+        $total_value  += max(0, $price) * $item->quantity;
+    }
+
+    if ($total_weight <= 0) $total_weight = 200;
+
+    $result = $this->apiService->getShippingFee([
+        'to_district_id' => $data['to_district_id'],
+        'to_ward_code'   => $data['to_ward_code'],
+        'weight'         => $total_weight,
+        'value'          => $total_value,
+    ]);
+
+    if ($result['success'] && !empty($result['data'])) {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total' => $result['data']['total'],
+                'name'  => $result['data']['name'] ?? 'Giao hàng',
+            ]
+        ]);
+    }
+
+    return response()->json([
+        'success' => false,
+        'message' => $result['message'] ?? 'Không thể tính phí vận chuyển cho địa chỉ này.'
+    ], 400);
+}
+
 }

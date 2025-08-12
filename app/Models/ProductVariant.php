@@ -29,9 +29,13 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function inventories()
+    /**
+     * SỬA LẠI QUAN HỆ: Chuyển từ hasMany 'inventories' sang hasOne 'inventory'.
+     * Mỗi biến thể chỉ có một bản ghi tồn kho.
+     */
+    public function inventory()
     {
-        return $this->hasMany(Inventory::class, 'product_variant_id');
+        return $this->hasOne(Inventory::class, 'product_variant_id');
     }
 
     public function getDisplayNameAttribute()

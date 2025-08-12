@@ -18,8 +18,13 @@ class Order extends Model
         'status',
         'note',
         'payment_method',
+        'is_paid','payment_method','payment_status','paid_at','payment_ref','status',
     ];
 
+    protected $casts = [
+        'is_paid' => 'boolean',
+        'paid_at' => 'datetime',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -46,7 +51,7 @@ class Order extends Model
      */
     public function isCancellable(): bool
     {
-       return in_array($this->status, ['pending', 'processing']);
+        return in_array($this->status, ['pending', 'processing']);
     }
 
     /**
@@ -56,5 +61,32 @@ class Order extends Model
     public function isReceivableByCustomer(): bool
     {
         return $this->status === 'delivered';
+    }
+    public static function getStatusText($status)
+    {
+        $statuses = [
+            'pending' => 'Chờ xử lý',
+            'processing' => 'Đang xử lý',
+            'shipped_to_shipper' => 'Đã giao shipper',
+            'shipping' => 'Đang giao',
+            'delivered' => 'Đã giao',
+            'received' => 'Đã nhận',
+            'cancelled' => 'Đã hủy',
+        ];
+        return $statuses[$status] ?? 'Không xác định';
+    }
+
+    public static function getStatusClass($status)
+    {
+        $classes = [
+            'pending' => 'bg-warning text-dark',
+            'processing' => 'bg-info text-dark',
+            'shipped_to_shipper' => 'bg-secondary',
+            'shipping' => 'bg-primary',
+            'delivered' => 'bg-success',
+            'received' => 'bg-success',
+            'cancelled' => 'bg-danger',
+        ];
+        return $classes[$status] ?? 'bg-secondary';
     }
 }

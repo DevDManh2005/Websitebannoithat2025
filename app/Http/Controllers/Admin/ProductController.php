@@ -79,11 +79,13 @@ class ProductController extends Controller
             $productData['is_active'] = $request->has('is_active');
             $productData['is_featured'] = $request->has('is_featured');
 
+            // 1. Tạo sản phẩm
             $product = Product::create($productData);
 
+            // 2. Gán nhiều danh mục
             $product->categories()->sync($data['categories']);
 
-            // Xử lý ảnh chính
+            // 3. Xử lý ảnh chính
             $mainImageUrl = null;
             if ($request->hasFile('main_image_file')) {
                 $mainImageUrl = $request->file('main_image_file')->store('products', 'public');
@@ -94,7 +96,7 @@ class ProductController extends Controller
                 $product->images()->create(['image_url' => $mainImageUrl, 'is_primary' => true]);
             }
 
-            // Xử lý ảnh phụ
+            // 4. Xử lý ảnh phụ
             if ($request->hasFile('images_files')) {
                 foreach ($request->file('images_files') as $file) {
                     $path = $file->store('products', 'public');
@@ -110,7 +112,7 @@ class ProductController extends Controller
                 }
             }
 
-            // Tạo biến thể
+            // 5. Tạo biến thể
             foreach ($data['variants'] as $variantData) {
                 $attributes = [];
                 foreach ($variantData['attributes'] as $attr) {
@@ -125,6 +127,13 @@ class ProductController extends Controller
                     'sale_price' => $variantData['sale_price'],
                     'weight' => $variantData['weight'],
                     'is_main_variant' => $variantData['is_main_variant'] ?? 0,
+                ]);
+
+                // 6. Tạo bản ghi kho hàng cho mỗi biến thể
+                Inventory::create([
+                    'product_id' => $product->id,
+                    'product_variant_id' => $variant->id,
+                    'quantity' => 0, // Mặc định số lượng là 0
                 ]);
             }
         });
@@ -160,11 +169,6 @@ class ProductController extends Controller
             'variants.*.sku' => 'required|string|max:255',
             'variants.*.weight' => 'required|integer|min:0',
             'variants.*.price' => 'required|numeric|min:0',
-            'variants.*.sale_price' => 'nullable|numeric|min:0',
-            'variants.*.is_main_variant' => 'nullable|boolean',
-            'variants.*.attributes' => 'required|array',
-            'variants.*.attributes.*.name' => 'required|string|max:255',
-            'variants.*.attributes.*.value' => 'required|string|max:255',
         ]);
 
         DB::transaction(function () use ($request, $product, $data) {
@@ -246,5 +250,15 @@ class ProductController extends Controller
         }
         $product->delete();
         return back()->with('success', 'Xóa sản phẩm thành công');
+    }
+
+    /**
+     * API để lấy danh sách biến thể và thông tin kho hàng của một sản phẩm.
+     */
+    public function getVariantsWithInventory(Product $product)
+    {
+        // Tải sẵn thông tin kho hàng và vị trí cho mỗi biến thể
+        $variants = $product->variants()->with(['inventory.location'])->get();
+        return response()->json($variants);
     }
 }

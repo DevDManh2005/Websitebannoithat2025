@@ -4,34 +4,41 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Brand;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
     /**
      * Hiển thị trang danh sách sản phẩm của một danh mục.
-     *
-     * @param  string  $slug
-     * @return \Illuminate\View\View
      */
     public function show(string $slug)
     {
-        $category = Category::where('slug', $slug)->active()->firstOrFail();
+        // Tìm danh mục hiện tại dựa trên slug
+        $currentCategory = Category::where('slug', $slug)->firstOrFail();
 
-        // Lấy ID các sản phẩm có trong wishlist của người dùng (nếu đã đăng nhập)
-        $wishlistProductIds = Auth::check() ? Auth::user()->wishlist()->pluck('products.id')->toArray() : [];
-
-        $products = $category->products()
+        // Lấy tất cả sản phẩm thuộc danh mục này và phân trang
+        $products = $currentCategory->products()
             ->active()
-            ->with([
-                'variants' => fn($query) => $query->where('is_main_variant', true),
-                'images' => fn($query) => $query->where('is_primary', true)
-            ])
-            ->latest()
+            ->with(['variants', 'images'])
             ->paginate(12);
+        
+        // --- LẤY DỮ LIỆU CHO BỘ LỌC ---
+        // Lấy tất cả danh mục cha để hiển thị trong bộ lọc
+        $filterCategories = Category::where('is_active', true)->whereNull('parent_id')->get();
+        // Lấy tất cả thương hiệu
+        $filterBrands = Brand::where('is_active', true)->get();
+        // Lấy giá cao nhất để làm giới hạn cho thanh trượt giá
+        $maxPrice = ProductVariant::max('price');
 
-        // Truyền cả ID của wishlist qua view để tối ưu việc kiểm tra
-        return view('frontend.products.index', compact('category', 'products', 'wishlistProductIds'));
+        // Sử dụng view products.index và truyền đầy đủ dữ liệu
+        return view('frontend.products.index', [
+            'products' => $products,
+            'currentCategory' => $currentCategory, // Truyền danh mục hiện tại để hiển thị tên
+            'categories' => $filterCategories,
+            'brands' => $filterBrands,
+            'max_price' => $maxPrice ?? 50000000
+        ]);
     }
 }

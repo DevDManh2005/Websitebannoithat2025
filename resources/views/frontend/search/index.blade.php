@@ -1,35 +1,69 @@
 @extends('layouts.app')
 
-@section('title', 'Kết quả tìm kiếm cho "' . e($query) . '"')
-
 @section('content')
-<div class="container my-5">
-    <div class="text-center mb-5">
-        <h1 class="fw-bold">Kết quả tìm kiếm</h1>
-        <p class="text-muted">Đã tìm thấy {{ $products->count() }} sản phẩm cho từ khóa: "<strong>{{ e($query) }}</strong>"</p>
-    </div>
 
-    @if($products->isNotEmpty())
-        <div class="row g-4">
+{{-- Banner đầu trang --}}
+<div class="search-banner mb-4 rounded overflow-hidden position-relative" style="height: 250px;">
+    <img src="https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg"
+        class="w-100 h-100 object-fit-cover" alt="Banner">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.4);">
+        <div class="container h-100 d-flex flex-column justify-content-center align-items-start text-white px-4" data-aos="fade-down">
+            <h2 class="fw-bold">Tìm kiếm sản phẩm</h2>
+            <p class="mb-0">Hiển thị kết quả cho: <em>{{ $query }}</em></p>
+        </div>
+    </div>
+</div>
+
+{{-- Nội dung kết quả tìm kiếm --}}
+<div class="container py-4">
+    <h4 class="mb-4">Kết quả tìm kiếm cho: <em>{{ $query }}</em></h4>
+
+    @if($products->count())
+        <div class="row">
             @foreach($products as $product)
-                <div class="col-6 col-md-4 col-lg-3">
-                    {{-- Sử dụng lại component thẻ sản phẩm --}}
-                    @include('frontend.components.product-card', ['product' => $product])
+                <div class="col-md-3 mb-4" data-aos="fade-up" data-aos-delay="{{ $loop->index * 100 }}">
+                    <div class="product-hover-wrapper h-100">
+                        @include('frontend.components.product-card', ['product' => $product])
+                    </div>
                 </div>
             @endforeach
         </div>
 
-        {{-- Phân trang (nếu bạn có phân trang trong controller) --}}
-        <div class="d-flex justify-content-center mt-5">
-            {{-- {{ $products->links() }} --}}
+        <div class="mt-4">
+            {{ $products->withQueryString()->links() }}
         </div>
     @else
-        <div class="text-center py-5">
-            <i class="bi bi-search fs-1 text-muted"></i>
-            <h4 class="mt-3">Không tìm thấy sản phẩm nào</h4>
-            <p class="text-muted">Vui lòng thử lại với một từ khóa khác.</p>
-            <a href="{{ route('home') }}" class="btn btn-primary mt-3">Quay lại trang chủ</a>
-        </div>
+        <p>Không tìm thấy sản phẩm nào phù hợp.</p>
     @endif
 </div>
+
+{{-- CSS và AOS --}}
+@push('styles')
+    <style>
+        .product-hover-wrapper {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-hover-wrapper:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-banner img {
+            object-fit: cover;
+        }
+    </style>
+@endpush
+
+{{-- Thêm AOS --}}
+@push('scripts')
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+    </script>
+@endpush
+
 @endsection

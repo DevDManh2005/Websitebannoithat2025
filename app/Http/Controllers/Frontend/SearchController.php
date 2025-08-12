@@ -12,8 +12,12 @@ class SearchController extends Controller
     {
         $query = $request->input('q');
         
+        // Chuyển từ khóa tìm kiếm về chữ thường
+        $lowerQuery = strtolower($query);
+
         // Tải sẵn các quan hệ để tối ưu và phân trang kết quả
-        $products = Product::where('name', 'like', "%{$query}%")
+        // SỬA ĐỔI: Sử dụng whereRaw để tìm kiếm không phân biệt hoa-thường
+        $products = Product::whereRaw('LOWER(name) LIKE ?', ["%{$lowerQuery}%"])
             ->active()
             ->with(['variants', 'images'])
             ->paginate(16);

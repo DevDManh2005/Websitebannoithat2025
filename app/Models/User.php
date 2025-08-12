@@ -17,6 +17,8 @@ use App\Models\UserProfile;
  * @property string      $password
  * @property bool        $is_active
  * @property string|null $remember_token
+ * @property int $role_id
+
  */
 class User extends Authenticatable
 {
@@ -92,20 +94,17 @@ class User extends Authenticatable
     }
 
     // Kiểm tra xem user đã mua sản phẩm này chưa
-    public function hasPurchasedProduct(int $productId): bool
-    {
-        return $this->orders()
-            ->where('status', 'delivered')
-            ->whereHas('items.variant.product', function ($query) use ($productId) {
-                $query->where('id', $productId);
-            })
-            ->exists();
-    }
+   public function hasReviewedProduct($productId)
+{
+    return $this->reviews()->where('product_id', $productId)->exists();
+}
 
-    // Kiểm tra xem user đã đánh giá sản phẩm này chưa
-    public function hasReviewedProduct(int $productId): bool
-    {
-        return $this->reviews()->where('product_id', $productId)->exists();
-    }
-    
+public function hasPurchasedProduct($productId)
+{
+    return $this->orders()
+        ->where('status', '!=', 'cancelled')
+        ->whereHas('items.variant', function ($query) use ($productId) {
+            $query->where('product_id', $productId);
+        })->exists();
+}
 }

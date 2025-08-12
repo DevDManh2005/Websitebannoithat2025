@@ -3,195 +3,781 @@
 @section('title', 'Trang Chủ - ' . ($settings['site_name'] ?? config('app.name')))
 
 @section('content')
-    {{-- 1. Hero Banner Slider --}}
-    <section class="hero-section bg-light">
-        <!-- Cấu trúc HTML cho Swiper Slider -->
+
+    {{-- 1. Phần Hero Banner Slider --}}
+    <section class="hero-section">
         <div class="swiper hero-slider">
             <div class="swiper-wrapper">
-                {{-- Lặp qua mỗi slide được gửi từ HomeController --}}
                 @forelse($slides as $slide)
-                <div class="swiper-slide">
-                    <div class="container">
-                        <div class="row align-items-center">
-                            {{-- Cột chứa nội dung chữ --}}
-                            <div class="col-lg-5 text-center text-lg-start">
-                                <div class="hero-slide-content">
+                    <div class="swiper-slide hero-slide"
+                         style="background-image: url('{{ asset('storage/' . $slide->image) }}')">
+                        <div class="hero-overlay">
+                            <div class="container h-100 d-flex justify-content-center align-items-center text-center">
+                                <div class="hero-slide-content text-white">
                                     @if($slide->subtitle)
-                                        <p class="text-uppercase text-muted small mb-2">{{ $slide->subtitle }}</p>
+                                        <p class="text-uppercase text-light small mb-2" data-aos="fade-down">{{ $slide->subtitle }}</p>
                                     @endif
-                                    <h1 class="hero-title">{{ $slide->title }}</h1>
+                                    <h1 class="hero-title display-4 fw-bold" data-aos="zoom-in">{{ $slide->title }}</h1>
                                     @if($slide->button_text && $slide->button_link)
-                                        <a href="{{ $slide->button_link }}" class="btn btn-outline-dark mt-4">{{ $slide->button_text }}</a>
+                                        <a href="{{ $slide->button_link }}" class="btn btn-light mt-4" data-aos="fade-up">{{ $slide->button_text }}</a>
                                     @endif
                                 </div>
                             </div>
-                            {{-- Cột chứa hình ảnh --}}
-                            <div class="col-lg-7">
-                                <img src="{{ asset('storage/' . $slide->image) }}" class="img-fluid hero-slide-image" alt="{{ $slide->title }}">
-                            </div>
                         </div>
                     </div>
-                </div>
                 @empty
-                {{-- Slide mặc định nếu không có slide nào trong DB --}}
-                <div class="swiper-slide">
-                     <div class="container">
-                        <div class="row align-items-center">
-                            <div class="col-lg-5 text-center text-lg-start">
-                                <div class="hero-slide-content">
-                                    <p class="text-uppercase text-muted small mb-2">{{ $settings['hero_subtitle'] ?? 'Khám phá bộ sưu tập nội thất tinh tế.' }}</p>
-                                    <h1 class="hero-title">{{ $settings['hero_title'] ?? 'Không Gian Sống Đẳng Cấp' }}</h1>
-                                    <a href="{{ $settings['hero_button_link'] ?? '#' }}" class="btn btn-outline-dark mt-4">{{ $settings['hero_button_text'] ?? 'Xem Chi Tiết' }}</a>
-                                </div>
-                            </div>
-                            <div class="col-lg-7">
-                                <img src="{{ asset('storage/' . ($settings['hero_banner'] ?? '')) }}" class="img-fluid hero-slide-image" alt="Banner">
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 @endforelse
             </div>
-            {{-- Nút điều hướng của Slider --}}
             <div class="swiper-button-next"></div>
             <div class="swiper-button-prev"></div>
         </div>
     </section>
 
-    {{-- 1.5. Features Section (BỔ SUNG MỚI) --}}
-    <section class="features-section py-4 border-bottom">
+    <br>
+
+    {{-- 2. Phần giới thiệu các đặc điểm nổi bật --}}
+    <section class="features-section py-0 border-bottom" data-aos="fade-up">
         <div class="container">
-            <div class="row">
-                <div class="col-6 col-lg-3 d-flex align-items-center mb-3 mb-lg-0">
-                    <i class="bi bi-tag fs-2 text-primary me-3"></i>
-                    <div>
-                        <h6 class="mb-0 fw-bold">Giá Trị Tuyệt Vời</h6>
-                        <p class="mb-0 text-muted small">Giá cả phù hợp với ngân sách</p>
+            <div class="row text-center">
+                <div class="col-6 col-lg-3 mb-4">
+                    <i class="bi bi-tag" style="font-size: 5.5rem;"></i>
+                    <h6 class="mt-3 fw-bold">Giá Trị Tuyệt Vời Mỗi Ngày</h6>
+                    <p class="text-muted small">Giá cả phù hợp với ngân sách của bạn</p>
+                </div>
+                <div class="col-6 col-lg-3 mb-4">
+                    <i class="bi bi-truck" style="font-size: 5.5rem;"></i>
+                    <h6 class="mt-3 fw-bold">Miễn Phí Vận Chuyển</h6>
+                    <p class="text-muted small">Giao hàng phổ biến trong 1 - 2 ngày</p>
+                </div>
+                <div class="col-6 col-lg-3 mb-4">
+                    <i class="bi bi-award" style="font-size: 5.5rem;"></i>
+                    <h6 class="mt-3 fw-bold">Dịch Vụ Khách Hàng Chuyên Nghiệp</h6>
+                    <p class="text-muted small">Đội ngũ của chúng tôi luôn sẵn sàng hỗ trợ 24/7</p>
+                </div>
+                <div class="col-6 col-lg-3 mb-4">
+                    <i class="bi bi-hand-thumbs-up" style="font-size: 5.5rem;"></i>
+                    <h6 class="mt-3 fw-bold">Lựa Chọn Không Thể Đánh Bại</h6>
+                    <p class="text-muted small">Mọi thứ trong nhà đều ở cùng một nơi</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 3. Phần giới thiệu Về Chúng Tôi --}}
+    <section class="about-section py-5" data-aos="fade-up">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h4 class="text-uppercase text-danger fw-bold mb-3">Về Chúng Tôi</h4>
+                    <h1 class="fw-bold mb-4">Giải pháp nội thất hoàn hảo cho không gian của bạn</h1>
+                    <p class="text-muted mb-5" style="font-size: 20px">
+                        ND Interior là đơn vị chuyên cung cấp các sản phẩm nội thất cao cấp dành cho nhà ở, biệt thự, căn hộ, văn phòng và showroom. Với sứ mệnh mang đến không gian sống và làm việc đẳng cấp, chúng tôi cam kết mang lại những sản phẩm chất lượng cao, thiết kế tinh tế, phù hợp với phong cách cá nhân của mỗi khách hàng.
+                    </p>
+                    <div class="row text-center">
+                        @foreach ([['1600', 'Sản phẩm hoàn thiện'], ['180', 'Mẫu mã đa dạng'], ['38', 'Đối tác uy tín toàn quốc']] as [$num, $label])
+                            <div class="col-4">
+                                <div class="p-3 rounded shadow-sm bg-light hover-shadow">
+                                    <h4 class="text-danger fw-bold counter" data-target="{{ $num }}">0</h4>
+                                    <p class="small text-muted mb-0">{{ $label }}</p>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
-                <div class="col-6 col-lg-3 d-flex align-items-center mb-3 mb-lg-0">
-                    <i class="bi bi-truck fs-2 text-primary me-3"></i>
-                    <div>
-                        <h6 class="mb-0 fw-bold">Miễn Phí Vận Chuyển</h6>
-                        <p class="mb-0 text-muted small">Cho đơn hàng trên 2 triệu</p>
+                <div class="col-lg-6 mt-4 mt-lg-0 d-flex justify-content-center">
+                    <img src="https://res.cloudinary.com/dfoxknyho/image/upload/v1754716482/img_mobile_about_xpylyh.jpg"
+                         alt="Nội thất" class="about-img img-fluid" data-aos="flip-left" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 4. Phần hiển thị đối tác --}}
+    @include('frontend.components.brand-carousel', ['brands' => \App\Models\Brand::active()->take(6)->get()])
+<br>
+    {{-- 5. Phần hiển thị danh mục sản phẩm --}}
+    <section class="home-category">
+        <div class="container">
+            <div class="row row-margin">
+                <div class="col-lg-3 col-md-3 col-12 col-padding d-md-block d-none" data-aos="fade-right">
+                    <div class="category-item category-item-large">
+                        <a class="category-thumb" href="/san-pham" title="Sản phẩm mới">
+                            <img src="https://res.cloudinary.com/dfoxknyho/image/upload/v1754716780/img_banner_1_pnlot5.png"
+                                 alt="Sản phẩm mới" loading="lazy">
+                            <div class="category-caption">
+                                <h3>SẢN PHẨM MỚI</h3>
+                                <p>20+ sản phẩm mới giá khuyến mãi</p>
+                                <span>Xem tất cả →</span>
+                            </div>
+                        </a>
                     </div>
                 </div>
-                <div class="col-6 col-lg-3 d-flex align-items-center">
-                    <i class="bi bi-award fs-2 text-primary me-3"></i>
-                    <div>
-                        <h6 class="mb-0 fw-bold">Dịch Vụ Chuyên Nghiệp</h6>
-                        <p class="mb-0 text-muted small">Đội ngũ hỗ trợ 24/7</p>
+                <div class="col-lg-9 col-md-9 col-12 col-padding">
+                    <div class="row row-margin">
+                        <div class="col-lg-5 col-md-5 col-5 col-padding" data-aos="fade-up">
+                            <div class="category-item">
+                                <a class="category-thumb" href="/danh-muc/van-phong" title="Văn phòng">
+                                    <img src="https://res.cloudinary.com/dfoxknyho/image/upload/v1754716814/img_banner_2_b3l33z.png"
+                                         alt="Văn phòng" loading="lazy">
+                                    <div class="category-caption">
+                                        <h3>Văn phòng</h3>
+                                        <p>Ghế, bàn làm việc, tủ sách, đèn….</p>
+                                        <span>Xem tất cả →</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-7 col-7 col-padding" data-aos="fade-up">
+                            <div class="category-item">
+                                <a class="category-thumb" href="/danh-muc/phong-khach" title="Phòng khách">
+                                    <img src="https://res.cloudinary.com/dfoxknyho/image/upload/v1754716849/img_banner_3_x2xjjr.png"
+                                         alt="Phòng khách" loading="lazy">
+                                    <div class="category-caption">
+                                        <h3>Phòng Khách</h3>
+                                        <p>Bàn, sofa, ghế đôn, đèn, tủ tivi, bàn bên…</p>
+                                        <span>Xem tất cả →</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-6 col-lg-3 d-flex align-items-center">
-                    <i class="bi bi-hand-thumbs-up fs-2 text-primary me-3"></i>
-                    <div>
-                        <h6 class="mb-0 fw-bold">Lựa Chọn Đẳng Cấp</h6>
-                        <p class="mb-0 text-muted small">Mọi thứ trong nhà ở cùng một nơi</p>
+                    <div class="row row-margin">
+                        <div class="col-lg-7 col-md-7 col-7 col-padding" data-aos="fade-up">
+                            <div class="category-item">
+                                <a class="category-thumb" href="/danh-muc/phong-ngu" title="Phòng ngủ">
+                                    <img src="https://res.cloudinary.com/dfoxknyho/image/upload/v1754716879/img_banner_4_oz4dkk.png"
+                                         alt="Phòng ngủ" loading="lazy">
+                                    <div class="category-caption">
+                                        <h3>Phòng ngủ</h3>
+                                        <p>Giường, tủ quần áo, gương, tủ đầu giường…</p>
+                                        <span>Xem tất cả →</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 col-md-5 col-5 col-padding" data-aos="fade-up">
+                            <div class="category-item">
+                                <a class="category-thumb" href="/danh-muc/phong-bep" title="Phòng bếp">
+                                    <img src="https://res.cloudinary.com/dfoxknyho/image/upload/v1754716907/img_banner_5_czta5t.png"
+                                         alt="Phòng bếp" loading="lazy">
+                                    <div class="category-caption">
+                                        <h3>Phòng bếp</h3>
+                                        <p>Bàn ăn, ghế, kệ…</p>
+                                        <span>Xem tất cả →</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    {{-- 2. Featured Products Section --}}
-    <section class="featured-products py-5">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="fw-bold">Sản phẩm nổi bật</h2>
-                <p class="text-muted">Những thiết kế được yêu thích nhất, dẫn đầu xu hướng.</p>
+{{-- 6. Phần ưu đãi đặc biệt với đồng hồ đếm ngược --}}
+<section class="special-offer-section-wrapper py-5">
+    <div class="container">
+        <div class="special-offer-content" data-aos="fade-up">
+            <div class="offer-header mb-4" data-aos="fade-down">
+                <div class="offer-timer-wrapper d-flex align-items-center">
+                    <div class="flash-label">
+                        <i class="bi bi-lightning-fill"></i>
+                        <div>
+                            <span>CHỈ CÒN:</span>
+                            <small>Nhanh Tay Kẻo Lỡ!</small>
+                        </div>
+                    </div>
+                    <div class="countdown d-flex align-items-center" id="countdown-timer">
+                        <div class="time-block" id="days-block">
+                            <span class="time-value fw-bold" id="days">00</span>
+                            <span class="time-label">Ngày</span>
+                        </div>
+                        <div class="time-block">
+                            <span class="time-value fw-bold" id="hours">00</span>
+                        </div>
+                        <span class="separator">:</span>
+                        <div class="time-block">
+                            <span class="time-value fw-bold" id="minutes">00</span>
+                        </div>
+                        <span class="separator">:</span>
+                        <div class="time-block">
+                            <span class="time-value fw-bold" id="seconds">00</span>
+                        </div>
+                    </div>
+                    <h3 class="offer-title ms-auto mb-0">Ưu đãi đặc biệt</h3>
+                </div>
             </div>
+            <div class="row row-cols-2 row-cols-md-4 g-4">
+                @foreach($specialOfferProducts as $index => $product)
+                    <div class="col" data-aos="zoom-in" data-aos-delay="{{ 100 + $index * 100 }}">
+                        @include('frontend.components.product-card', ['product' => $product])
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</section>
+
+    {{-- 7. Phần mã giảm giá (voucher) --}}
+    <section class="voucher-section py-5 bg-light">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0 text-danger" data-aos="fade-right">🎁 Mã Giảm Giá Dành Riêng Cho Bạn</h2>
+            </div>
+            @if($vouchers->isNotEmpty())
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+                    @foreach($vouchers as $voucher)
+                        <div class="col" data-aos="zoom-in" data-aos-delay="{{ $loop->index * 100 }}">
+                            @include('frontend.components.voucher-card', ['voucher' => $voucher])
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-ticket-perforated fs-1"></i>
+                    <h5 class="mt-3">Hiện chưa có mã giảm giá nào.</h5>
+                </div>
+            @endif
+        </div>
+    </section>
+
+    {{-- 8. Phần sản phẩm bán chạy theo danh mục --}}
+    <section class="py-5 bg-white best-seller-section" data-aos="fade-up">
+        <div class="container">
+            <h2 class="text-center fw-bold mb-4 text-primary-custom">🔥 Sản phẩm bán chạy theo danh mục</h2>
+            <ul class="nav nav-pills justify-content-center mb-4" id="categoryTabs">
+                @foreach($categories as $index => $category)
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold {{ $index === 0 ? 'active' : '' }}" id="tab-{{ $category->id }}"
+                                data-bs-toggle="pill" data-bs-target="#content-{{ $category->id }}" type="button" role="tab">
+                            {{ $category->name }}
+                        </button>
+                    </li>
+                @endforeach
+            </ul>
+            <div class="tab-content" id="categoryTabContent">
+                @foreach($categories as $index => $category)
+                    <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}" id="content-{{ $category->id }}"
+                         role="tabpanel">
+                        <div class="row">
+                            @forelse($category->products as $product)
+                                <div class="col-6 col-md-4 col-lg-3 mb-4">
+                                    @include('frontend.components.product-card', ['product' => $product])
+                                </div>
+                            @empty
+                                <div class="col-12 text-center text-muted py-4">
+                                    Không có sản phẩm nào trong danh mục này.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- 9. Phần quy trình làm việc --}}
+    <section class="py-5 bg-white" data-aos="fade-up">
+        <div class="container text-center">
+            <h4 class="text-danger fw-bold mb-2" data-aos="fade-up" data-aos-delay="100">Quy trình làm việc</h4>
+            <h2 class="fw-semibold mb-5" data-aos="fade-up" data-aos-delay="200">Cam kết chất lượng từ <span
+                    class="text-danger">Eterna Home</span></h2>
+            <div class="row justify-content-center">
+                @php
+                    $steps = [
+                        [ 'icon' => 'bi-house-door', 'title' => 'Tư vấn và chọn sản phẩm', 'desc' => 'Tư vấn chi tiết mẫu, giúp lựa chọn sản phẩm nội thất phù hợp với nhu cầu và không gian.' ],
+                        [ 'icon' => 'bi-file-earmark-check', 'title' => 'Đặt hàng và xác nhận', 'desc' => 'Xác nhận đơn hàng, kiểm tra thông tin và gửi báo giá chi tiết.' ],
+                        [ 'icon' => 'bi-truck', 'title' => 'Sản xuất và giao hàng', 'desc' => 'Sản xuất sản phẩm theo đơn hàng và giao tận nơi cho khách hàng.' ],
+                        [ 'icon' => 'bi-clipboard-check', 'title' => 'Kiểm tra và hỗ trợ', 'desc' => 'Kiểm tra chất lượng sản phẩm khi giao, hỗ trợ lắp đặt và bảo hành.' ],
+                    ];
+                @endphp
+                @foreach ($steps as $index => $step)
+                    <div class="col-6 col-md-3 mb-4" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+                        <div class="border rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                             style="width: 96px; height: 96px; border: 2px solid #A20E38;">
+                            <i class="bi {{ $step['icon'] }} fs-1 text-danger"></i>
+                        </div>
+                        <h6 class="fw-bold">{{ $step['title'] }}</h6>
+                        <p class="text-muted small">{{ $step['desc'] }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- 10. Phần lý do chọn Eterna Home --}}
+    <section class="py-5 why-choose-section bg-white" data-aos="fade-up">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h5 class="subtitle text-primary-custom">Vì sao chọn Eterna Home?</h5>
+                    <h2 class="section-title">Eterna Home luôn ưu tiên sự hài lòng khách hàng</h2>
+                    <p class="section-desc">
+                        Eterna Home cam kết chất lượng, thẩm mỹ và sự hài lòng. Với đội ngũ tư vấn giàu kinh nghiệm,
+                        sản phẩm thiết kế đạt cao cùng với hỗ trợ tận tâm, chúng tôi mang đến giải pháp nội thất hoàn hảo
+                        cho không gian của bạn.
+                    </p>
+                    <div class="feature-box" data-aos="fade-up" data-aos-delay="100">
+                        <div class="icon-circle text-primary-custom">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <div>
+                            <h6 class="feature-title">Chất lượng và thẩm mỹ vượt trội</h6>
+                            <p class="feature-text">
+                                Thiết kế tinh tế và sang trọng, đảm bảo sự hài hòa và đẳng cấp với chất liệu chọn lọc, bền
+                                đẹp và phù hợp với mọi không gian.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="feature-box" data-aos="fade-up" data-aos-delay="200">
+                        <div class="icon-circle text-primary-custom">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                        <div>
+                            <h6 class="feature-title">Dịch vụ chuyên nghiệp, tận tâm</h6>
+                            <p class="feature-text">
+                                Từ tư vấn đến lắp đặt, Eterna luôn phục vụ khách hàng với sự tận tâm, đảm bảo trải nghiệm
+                                mua sắm hoàn hảo.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6" data-aos="zoom-in-left" data-aos-delay="300">
+                    <div class="image-wrapper position-relative">
+                        <img src="https://res.cloudinary.com/dfoxknyho/image/upload/v1754716983/img_banner_whychoose_ebpgk2.jpg"
+                             alt="Eterna Home" loading="lazy" class="img-fluid rounded shadow"/>
+                        <div class="image-border"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 11. Phần câu hỏi thường gặp (FAQ) --}}
+    <section class="py-5 bg-white">
+        <div class="container">
             <div class="row g-4">
-                @forelse($featuredProducts as $product)
-                    <div class="col-6 col-md-4 col-lg-3">
-                        @include('frontend.components.product-card', ['product' => $product])
+                <div class="col-md-6" data-aos="fade-right">
+                    <h5 class="text-danger fw-bold">Faq's</h5>
+                    <h3 class="fw-bold mb-4">Câu hỏi thường gặp?</h3>
+                    <p>
+                        Tại <strong>Eterna Home</strong>, chúng tôi chuyên cung cấp các sản phẩm nội thất cao cấp, giúp
+                        khách hàng tạo nên không gian sống và làm việc lý tưởng. Với đội ngũ tư vấn giàu kinh nghiệm, chúng
+                        tôi cam kết mang đến sản phẩm chất lượng cao và dịch vụ hỗ trợ tận tâm.
+                    </p>
+                    <p>
+                        <strong>Eterna Home</strong> cung cấp đa dạng sản phẩm nội thất, từ hiện đại, tối giản đến tân cổ
+                        điển, phù hợp với nhiều phong cách và nhu cầu của khách hàng.
+                    </p>
+                    <p>
+                        Nếu bạn có bất kỳ thắc mắc nào về sản phẩm, quy trình mua sắm, giá cả, hoặc chính sách bảo hành, hãy
+                        xem ngay phần Câu hỏi thường gặp để biết thêm chi tiết hoặc liên hệ với chúng tôi để được tư vấn
+                        trực tiếp! 🚀
+                    </p>
+                    <a href="#" class="btn btn-danger mt-3 fw-bold">GỬI CÂU HỎI ?</a>
+                </div>
+                <div class="col-md-6" data-aos="fade-left">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq1-heading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#faq1" aria-expanded="false" aria-controls="faq1">
+                                    <i class="fas fa-question-circle text-danger me-2"></i>
+                                    Eterna Home cung cấp những sản phẩm nội thất nào?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" aria-labelledby="faq1-heading"
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <strong>Eterna Home</strong> cung cấp các sản phẩm nội thất cao cấp như bàn ghế, giường,
+                                    tủ, và kệ cho nhà ở, văn phòng.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq2-heading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">
+                                    <i class="fas fa-question-circle text-danger me-2"></i>
+                                    Eterna Home có hỗ trợ tư vấn chọn sản phẩm không?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" aria-labelledby="faq2-heading"
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Có, <strong>Eterna Home</strong> hỗ trợ tư vấn chọn sản phẩm tận tình.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq3-heading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">
+                                    <i class="fas fa-question-circle text-danger me-2"></i>
+                                    Thời gian giao hàng mất bao lâu?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" aria-labelledby="faq3-heading"
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Thời gian giao hàng từ 7 - 20 ngày, tùy đơn hàng và địa điểm.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq4-heading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
+                                    <i class="fas fa-question-circle text-danger me-2"></i>
+                                    Chính sách bảo hành sản phẩm như thế nào?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" aria-labelledby="faq4-heading"
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Bảo hành sản phẩm từ 12 – 24 tháng, hỗ trợ bảo trì dài hạn.
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                @empty
-                    <p class="text-center">Chưa có sản phẩm nổi bật nào.</p>
-                @endforelse
-            </div>
-        </div>
-    </section>
-    
-    {{-- 3. Latest Products Section --}}
-    <section class="latest-products py-5 bg-light">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="fw-bold">Hàng mới về</h2>
-                <p class="text-muted">Cập nhật những sản phẩm mới nhất trong bộ sưu tập của chúng tôi.</p>
-            </div>
-             <div class="row g-4">
-                @forelse($latestProducts as $product)
-                    <div class="col-6 col-md-4 col-lg-3">
-                        @include('frontend.components.product-card', ['product' => $product])
-                    </div>
-                @empty
-                    <p class="text-center">Chưa có sản phẩm nào.</p>
-                @endforelse
-            </div>
-            <div class="text-center mt-5">
-                <a href="#" class="btn btn-outline-primary">Xem tất cả sản phẩm</a>
+                </div>
             </div>
         </div>
     </section>
 
+    {{-- 12. Phần đánh giá từ khách hàng --}}
+    <section class="py-5 bg-white" data-aos="fade-up">
+        <div class="container">
+            <h2 class="text-center fw-bold mb-4 text-primary-custom">Khách hàng nói gì về Eterna Home</h2>
+            <div class="swiper review-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        @include('frontend.components.review-card', [ 'name' => 'Nguyễn Văn A', 'content' => 'Tôi rất hài lòng với sản phẩm và dịch vụ của Eterna Home. Giao hàng đúng hẹn và chất lượng tuyệt vời.', 'avatar' => 'https://i.pravatar.cc/100?img=1' ])
+                        @include('frontend.components.review-card', [ 'name' => 'Trần Thị B', 'content' => 'Thiết kế đẹp, chất liệu bền và sang trọng. Nhân viên tư vấn cực kỳ dễ thương.', 'avatar' => 'https://i.pravatar.cc/100?img=2' ])
+                        @include('frontend.components.review-card', [ 'name' => 'Lê Văn C', 'content' => 'Mua lần đầu nhưng rất ấn tượng. Sẽ quay lại ủng hộ tiếp!', 'avatar' => 'https://i.pravatar.cc/100?img=3' ])
+                    </div>
+                    <div class="swiper-slide">
+                        @include('frontend.components.review-card', [ 'name' => 'Phạm Thị D', 'content' => 'Mọi thứ từ tư vấn đến lắp đặt đều rất chuyên nghiệp. Tôi cực kỳ yên tâm khi lựa chọn.', 'avatar' => 'https://i.pravatar.cc/100?img=4' ])
+                        @include('frontend.components.review-card', [ 'name' => 'Đỗ Văn E', 'content' => 'Eterna Home thực sự xứng đáng với danh tiếng. Không gian sống của tôi được nâng tầm rõ rệt.', 'avatar' => 'https://i.pravatar.cc/100?img=5' ])
+                        @include('frontend.components.review-card', [ 'name' => 'Ngô Thị F', 'content' => 'Dịch vụ hậu mãi chu đáo, hỗ trợ nhanh chóng. Rất đáng tin cậy!', 'avatar' => 'https://i.pravatar.cc/100?img=6' ])
+                    </div>
+                    <div class="swiper-slide">
+                        @include('frontend.components.review-card', [ 'name' => 'Bùi Văn G', 'content' => 'Giao hàng nhanh, đóng gói cẩn thận. Mọi thứ đều vượt kỳ vọng!', 'avatar' => 'https://i.pravatar.cc/100?img=7' ])
+                        @include('frontend.components.review-card', [ 'name' => 'Hoàng Thị H', 'content' => 'Sản phẩm quá đẹp, không gian nhà tôi trông hiện đại hơn hẳn.', 'avatar' => 'https://i.pravatar.cc/100?img=8' ])
+                        @include('frontend.components.review-card', [ 'name' => 'Vũ Văn I', 'content' => 'Tôi đã giới thiệu Eterna Home cho nhiều người bạn. Ai cũng hài lòng.', 'avatar' => 'https://i.pravatar.cc/100?img=9' ])
+                    </div>
+                </div>
+                <div class="swiper-pagination mt-4"></div>
+            </div>
+        </div>
+    </section>
 @endsection
 
 @push('styles')
-<style>
-    .hero-section {
-        padding: 4rem 0;
-    }
-    .hero-slider .swiper-slide {
-        display: flex;
+    <style>
+        .hero-section { position: relative; height: 700px; }
+        .hero-slide { height: 700px; background-size: cover; background-position: center; position: relative; }
+        .hero-overlay { background: rgba(0, 0, 0, 0.4); width: 100%; height: 100%; }
+        .hero-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: bold; line-height: 1.2; }
+        .swiper-button-next, .swiper-button-prev {
+            width: 44px; height: 44px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            color: #ff6f61;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s ease;
+        }
+        .swiper-button-next:hover, .swiper-button-prev:hover { background-color: #fff; }
+        .swiper-button-next:after, .swiper-button-prev:after { font-size: 1.2rem; font-weight: bold; }
+        .hover-shadow { transition: all 0.3s ease; cursor: pointer; }
+        .hover-shadow:hover {
+            background-color: #ffe6e6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+            border: 1px solid #ffcccc;
+        }
+        .about-img {
+            width: 500px; height: 600px; object-fit: cover;
+            border-radius: 1rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .about-img:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+        }
+        .home-category .category-item {
+            position: relative; overflow: hidden;
+            border-radius: 12px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 10px;
+        }
+        .home-category .category-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+        }
+        .category-thumb img {
+            width: 100%; height: auto; display: block;
+            object-fit: cover; border-radius: 12px;
+        }
+        .category-caption {
+            position: absolute; top: 0; left: 0;
+            padding: 1.25rem; width: 100%; height: 100%;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6));
+            color: #fff;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            border-radius: 12px;
+            transition: background 0.3s;
+        }
+        .category-caption h3 { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.25rem; text-transform: capitalize; }
+        .category-caption p { margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .category-caption span { font-weight: 600; font-size: 0.85rem; color: #ff7205; transition: text-decoration 0.3s; }
+        .category-caption span:hover { text-decoration: underline; }
+        .special-offer-section .offer-header .countdown .time-box {
+            background-color: #990033; color: white;
+            padding: 0.5rem 0.75rem; border-radius: 0.5rem;
+            text-align: center; min-width: 48px;
+        }
+        .voucher-card:hover { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); transform: translateY(-3px); }
+        :root { --main-color: #A20E38; }
+        .best-seller-section .nav-pills .nav-link {
+            color: #555; border: 1px solid var(--main-color);
+            background-color: transparent; margin: 0 4px;
+            border-radius: 50px; transition: all 0.3s ease;
+        }
+        .best-seller-section .nav-pills .nav-link:hover { background-color: #f8e8ec; color: var(--main-color); }
+        .best-seller-section .nav-pills .nav-link.active { background-color: var(--main-color); color: #fff; }
+        .review-swiper .swiper-slide { display: flex; flex-direction: column; }
+        .review-card { background-color: #fffaf5; border-radius: 10px; height: 100%; }
+
+/* --- CSS TỐI ƯU CHO PHẦN ƯU ĐÃI ĐẶC BIỆT --- */
+@keyframes pulse-orange {
+    0% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3); }
+    50% { transform: scale(1.05); box-shadow: 0 6px 25px rgba(255, 153, 0, 0.5); }
+    100% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3); }
+}
+@keyframes blink {
+    50% { opacity: 0.5; }
+}
+
+.special-offer-section-wrapper {
+    /* SỬA LẠI Ở ĐÂY: Dùng ảnh nền của bạn và thêm lớp phủ màu tối */
+    background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://res.cloudinary.com/dfoxknyho/image/upload/v1754716939/pngtree-empty-wooden-table-top-on-a-blurred-background-of-a-modern-image_16376700_iwce5y.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Tạo hiệu ứng parallax khi cuộn */
+    padding: 4rem 0;
+    overflow: hidden;
+}
+
+.special-offer-content {
+    background-color: rgba(255, 255, 255, 0.95); /* Hơi trong suốt để thấy nền mờ */
+    backdrop-filter: blur(10px); /* Hiệu ứng kính mờ */
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 4px 15px rgba(0,0,0,0.1);
+    border-top: 4px solid #ff9900;
+}
+
+.special-offer-section-wrapper .offer-header {
+    background-color: #fffaf0;
+    border: 1px solid #eee;
+    border-radius: 50px;
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 1rem;
+}
+
+.special-offer-section-wrapper .offer-timer-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.special-offer-section-wrapper .flash-label {
+    background: linear-gradient(45deg, #ffc107, #ff9900);
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    animation: pulse-orange 2s infinite;
+}
+.special-offer-section-wrapper .flash-label i { font-size: 1.5rem; }
+.special-offer-section-wrapper .flash-label div { display: flex; flex-direction: column; line-height: 1.1; }
+.special-offer-section-wrapper .flash-label small { font-size: 0.7rem; font-weight: 500; opacity: 0.8; }
+
+.special-offer-section-wrapper .countdown {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.special-offer-section-wrapper .time-block {
+    background: linear-gradient(145deg, #e53935, #b71c1c);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 55px;
+    line-height: 1;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.2);
+}
+.special-offer-section-wrapper .time-block .time-value {
+    font-size: 2rem;
+    font-weight: 900;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+.special-offer-section-wrapper .time-block .time-label {
+    font-size: 0.6rem;
+    display: block;
+    text-transform: uppercase;
+    opacity: 0.8;
+    letter-spacing: 0.5px;
+}
+
+.special-offer-section-wrapper .separator {
+    font-size: 2rem;
+    color: #333;
+    font-weight: 700;
+    animation: blink 1s infinite step-end;
+}
+
+.special-offer-section-wrapper .offer-title {
+    font-weight: 800;
+    font-size: 1.5rem;
+    margin: 0 0 0 auto;
+    padding-right: 1.5rem;
+    white-space: nowrap;
+    background: linear-gradient(45deg, #b71c1c, #e53935);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+@media (max-width: 991px) {
+    .special-offer-section-wrapper .offer-header {
+        flex-direction: column;
+        border-radius: 12px;
         align-items: center;
-        min-height: 60vh;
     }
-    .hero-title {
-        font-size: clamp(2.5rem, 5vw, 4rem); /* Responsive font size */
-        font-weight: bold;
-        line-height: 1.2;
+    .special-offer-section-wrapper .offer-timer-wrapper {
+        flex-direction: column;
+        width: 100%;
     }
-    .hero-slide-image {
-        max-height: 60vh;
-        object-fit: contain;
+    .special-offer-section-wrapper .offer-title {
+        text-align: center;
+        padding-right: 0;
+        margin-top: 1rem;
+        margin-left: 0;
     }
-    .swiper-button-next, .swiper-button-prev {
-        width: 44px;
-        height: 44px;
-        background-color: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        color: #ff6f61; /* Màu cam giống trong ảnh */
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        transition: background-color 0.2s ease;
-    }
-    .swiper-button-next:hover, .swiper-button-prev:hover {
-        background-color: #fff;
-    }
-    .swiper-button-next:after, .swiper-button-prev:after {
-        font-size: 1.2rem;
-        font-weight: bold;
-    }
-</style>
+}
+    </style>
 @endpush
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Khởi tạo SwiperJS
-        const swiper = new Swiper('.hero-slider', {
-            loop: true, // Lặp lại slide
-            speed: 800, // Tốc độ chuyển slide
-            autoplay: {
-                delay: 5000, // Tự động chuyển sau 5 giây
-                disableOnInteraction: false,
-            },
-            // Kích hoạt nút điều hướng
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
+@push('scripts-page')
+    <script>
+    // 1. Khởi tạo Swiper cho Hero Slider
+    if (document.querySelector('.hero-slider')) {
+        const heroSwiper = new Swiper('.hero-slider', {
+            loop: true,
+            speed: 800,
+            autoplay: { delay: 5000, disableOnInteraction: false },
+            navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
         });
-    });
-</script>
+    }
+
+    // 2. Khởi tạo Swiper cho Review Section
+    if (document.querySelector('.review-swiper')) {
+        const reviewSwiper = new Swiper(".review-swiper", {
+            loop: true,
+            pagination: { el: ".swiper-pagination", clickable: true },
+            autoplay: { delay: 5500, disableOnInteraction: false },
+            breakpoints: {
+                768: { slidesPerView: 2, spaceBetween: 20 },
+                992: { slidesPerView: 3, spaceBetween: 30 }
+            }
+        });
+    }
+
+    // 3. Hiệu ứng đếm số
+    const counters = document.querySelectorAll('.counter');
+    if (counters.length > 0) {
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const el = entry.target;
+                const target = parseInt(el.dataset.target, 10);
+                const duration = 1500;
+                let start = 0;
+                const stepTime = Math.abs(Math.floor(duration / target)) || 1;
+                const timer = setInterval(() => {
+                    start += 1;
+                    el.innerText = start;
+                    if (start >= target) {
+                        el.innerText = target;
+                        clearInterval(timer);
+                    }
+                }, stepTime);
+                observer.unobserve(el);
+            });
+        }, { threshold: 0.5 });
+        counters.forEach(el => observer.observe(el));
+    }
+
+   // 4. Đồng hồ đếm ngược (800 giờ)
+const countdownContainer = document.getElementById("countdown-timer");
+if (countdownContainer) {
+    const daysBlock = document.getElementById("days-block");
+    const daysEl = document.getElementById("days");
+    const hoursEl = document.getElementById("hours");
+    const minutesEl = document.getElementById("minutes");
+    const secondsEl = document.getElementById("seconds");
+
+    // Thiết lập thời gian kết thúc là 400 giờ kể từ bây giờ
+    const endDate = new Date();
+    endDate.setHours(endDate.getHours() + 800);
+
+    const updateCountdown = () => {
+        const distance = endDate.getTime() - new Date().getTime();
+
+        if (distance <= 0) {
+            daysEl.innerText = '00';
+            hoursEl.innerText = '00';
+            minutesEl.innerText = '00';
+            secondsEl.innerText = '00';
+            clearInterval(countdownInterval);
+            return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // Chỉ hiển thị ô "Ngày" nếu còn hơn 1 ngày
+        if (days > 0) {
+            daysBlock.style.display = 'flex';
+            daysEl.innerText = String(days).padStart(2, '0');
+        } else {
+            daysBlock.style.display = 'none';
+        }
+
+        hoursEl.innerText = String(hours).padStart(2, '0');
+        minutesEl.innerText = String(minutes).padStart(2, '0');
+        secondsEl.innerText = String(seconds).padStart(2, '0');
+    };
+
+    const countdownInterval = setInterval(updateCountdown, 1000);
+    updateCountdown(); // Chạy ngay lần đầu để không bị trễ 1 giây
+}
+    </script>
 @endpush

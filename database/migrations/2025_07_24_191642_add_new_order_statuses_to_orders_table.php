@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB; // Import DB facade
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,16 +13,17 @@ return new class extends Migration
     public function up(): void
     {
         // Bước 1: Thay đổi cột 'status' thành VARCHAR tạm thời
-        // Điều này giúp loại bỏ ràng buộc ENUM cũ và cho phép cập nhật dữ liệu
-        DB::statement("ALTER TABLE orders MODIFY status VARCHAR(255) NOT NULL DEFAULT 'pending'");
+        DB::statement("ALTER TABLE orders ALTER COLUMN status TYPE VARCHAR(255) USING (status::VARCHAR)");
 
-        // Bước 2: Cập nhật dữ liệu cũ để tương thích với ENUM mới
-        // Chuyển tất cả các đơn hàng có trạng thái 'shipped' cũ thành 'shipped_to_shipper'
-        // Nếu có các trạng thái cũ khác cần chuyển đổi, hãy thêm các câu lệnh UPDATE tương ứng ở đây.
+        // Bước 2: Cập nhật dữ liệu cũ để tương thích với trạng thái mới
         DB::statement("UPDATE orders SET status = 'shipped_to_shipper' WHERE status = 'shipped'");
 
-        // Bước 3: Thay đổi cột 'status' trở lại ENUM với các giá trị mới
-        DB::statement("ALTER TABLE orders MODIFY status ENUM('pending', 'processing', 'shipped_to_shipper', 'shipping', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending'");
+        // Bước 3: Thay đổi cột 'status' thành NOT NULL với DEFAULT
+        DB::statement("ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending'");
+        DB::statement("ALTER TABLE orders ALTER COLUMN status SET NOT NULL");
+
+        // (Tùy chọn) Thêm constraint để giới hạn giá trị hợp lệ (thay thế ENUM)
+        DB::statement("ALTER TABLE orders ADD CONSTRAINT check_status CHECK (status IN ('pending', 'processing', 'shipped_to_shipper', 'shipping', 'delivered', 'cancelled'))");
     }
 
     /**
@@ -31,13 +32,16 @@ return new class extends Migration
     public function down(): void
     {
         // Bước 1 (Rollback): Thay đổi cột 'status' thành VARCHAR tạm thời
-        DB::statement("ALTER TABLE orders MODIFY status VARCHAR(255) NOT NULL DEFAULT 'pending'");
+        DB::statement("ALTER TABLE orders ALTER COLUMN status TYPE VARCHAR(255) USING (status::VARCHAR)");
 
-        // Bước 2 (Rollback): Cập nhật dữ liệu để hoàn nguyên về ENUM cũ
-        // Chuyển 'shipped_to_shipper' và 'shipping' trở lại 'shipped' cũ
+        // Bước 2 (Rollback): Cập nhật dữ liệu để hoàn nguyên về trạng thái cũ
         DB::statement("UPDATE orders SET status = 'shipped' WHERE status IN ('shipped_to_shipper', 'shipping')");
 
-        // Bước 3 (Rollback): Thay đổi cột 'status' trở lại ENUM cũ
-        DB::statement("ALTER TABLE orders MODIFY status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending'");
+        // Bước 3 (Rollback): Thay đổi cột 'status' thành NOT NULL với DEFAULT
+        DB::statement("ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending'");
+        DB::statement("ALTER TABLE orders ALTER COLUMN status SET NOT NULL");
+
+        // (Tùy chọn) Thêm constraint rollback với giá trị cũ
+        DB::statement("ALTER TABLE orders ADD CONSTRAINT check_status CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled'))");
     }
 };

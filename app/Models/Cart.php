@@ -18,6 +18,7 @@ class Cart extends Model
         'user_id',
         'product_variant_id',
         'quantity',
+        'is_selected', 
     ];
 
     /**

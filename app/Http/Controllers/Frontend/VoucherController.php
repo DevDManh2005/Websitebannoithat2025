@@ -36,7 +36,7 @@ class VoucherController extends Controller
         }
 
         $cartItems = Cart::where('user_id', Auth::id())->with('variant')->get();
-        $subtotal = $cartItems->sum(function($item) {
+        $subtotal = $cartItems->sum(callback: function($item) {
             if (!$item->variant) return 0;
             $price = $item->variant->sale_price > 0 && $item->variant->sale_price < $item->variant->price
                 ? $item->variant->sale_price

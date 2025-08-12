@@ -63,7 +63,7 @@ class SettingController extends Controller
             'MAIL_FROM_ADDRESS' => $data['mail_from_address'] ?? '',
             'MAIL_FROM_NAME' => $data['mail_from_name'] ?? 'Laravel',
         ]);
-        
+
         Artisan::call('config:clear');
         Artisan::call('cache:clear'); // Thêm xóa cache chung
 
@@ -74,16 +74,26 @@ class SettingController extends Controller
     {
         $envFilePath = app()->environmentFilePath();
         $content = file_get_contents($envFilePath);
+
         foreach ($data as $key => $value) {
             $key = strtoupper($key);
-            $escapedValue = '"' . addslashes($value) . '"';
-            
-            if (Str::contains($content, "^{$key}=", true)) {
-                 $content = preg_replace("/^{$key}=.*/m", "{$key}={$escapedValue}", $content);
+            // Đảm bảo giá trị chứa khoảng trắng được bao trong dấu ngoặc kép
+            $escapedValue = Str::contains($value, ' ') ? '"' . $value . '"' : $value;
+            $escapedKey = preg_quote("{$key}=", '/');
+
+            // Biểu thức chính quy để tìm key ở đầu dòng
+            $pattern = "/^{$escapedKey}.*/m";
+
+            // Kiểm tra xem key đã tồn tại trong file .env chưa
+            if (preg_match($pattern, $content)) {
+                // Nếu có, thay thế dòng đó
+                $content = preg_replace($pattern, "{$key}={$escapedValue}", $content);
             } else {
-                 $content .= "\n{$key}={$escapedValue}";
+                // Nếu không, thêm vào cuối file
+                $content .= "\n{$key}={$escapedValue}";
             }
         }
+
         file_put_contents($envFilePath, $content);
     }
 }

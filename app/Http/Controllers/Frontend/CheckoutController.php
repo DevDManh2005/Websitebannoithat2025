@@ -17,30 +17,48 @@ use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
+    /**
+     * Hiển thị trang thanh toán với các sản phẩm đã được chọn.
+     */
     public function index()
     {
         $user = Auth::user()->load('profile');
-        $cartItems = Cart::where('user_id', $user->id)->with('variant.product')->get();
+        
+        // SỬA LẠI TRUY VẤN: Chỉ lấy các sản phẩm đã được chọn trong giỏ hàng
+        $cartItems = Cart::where('user_id', $user->id)
+            ->where('is_selected', true) // DÒNG QUAN TRỌNG
+            ->with('variant.product')
+            ->get();
         
         if($cartItems->isEmpty()){
-            return redirect()->route('home')->with('error', 'Giỏ hàng của bạn đang trống.');
+            return redirect()->route('cart.index')->with('error', 'Bạn chưa chọn sản phẩm nào để thanh toán. Vui lòng quay lại giỏ hàng.');
         }
 
         $subtotal = $cartItems->sum(function ($item) {
-            $price = $item->variant->sale_price > 0 && $item->variant->sale_price < $item->variant->price
-                ? $item->variant->sale_price
-                : $item->variant->price;
+            $price = $item->variant->sale_price ?: $item->variant->price;
             return $price * $item->quantity;
         });
 
-        // Lấy thông tin voucher từ session nếu có
         $voucher = session()->get('voucher');
         $discount = $voucher['discount'] ?? 0;
         $voucherCode = $voucher['code'] ?? null;
 
-        return view('frontend.checkout.index', compact('user', 'cartItems', 'subtotal', 'discount', 'voucherCode'));
+        $total = $subtotal - $discount;
+        $total = $total < 0 ? 0 : $total;
+
+        return view('frontend.checkout.index', compact(
+            'user', 
+            'cartItems', 
+            'subtotal', 
+            'discount', 
+            'voucherCode',
+            'total'
+        ));
     }
 
+    /**
+     * Xử lý đặt hàng.
+     */
     public function placeOrder(Request $request)
     {
         $validated = $request->validate([
@@ -48,26 +66,32 @@ class CheckoutController extends Controller
             'phone'         => 'required|string|max:20',
             'city'          => 'required|string',
             'district'      => 'required|string',
-            'district_id'   => 'required|integer',
             'ward'          => 'required|string',
-            'ward_code'     => 'required|string',
             'address'       => 'required|string|max:255',
             'note'          => 'nullable|string',
             'shipping_fee'  => 'required|numeric|min:0',
-            'payment_method'=> 'required|in:cod,vnpay,momo',
+            'payment_method'=> 'required|in:cod,vnpay',
+            'province_id'   => 'required|integer',
+            'district_id'   => 'required|integer',
+            'ward_code'     => 'required|string',
         ]);
         
         $user = Auth::user();
-        $cartItems = Cart::where('user_id', $user->id)->with('variant')->get();
+        // SỬA LẠI TRUY VẤN: Chỉ xử lý các sản phẩm đã được chọn
+        $cartItems = Cart::where('user_id', $user->id)
+            ->where('is_selected', true)
+            ->with('variant')
+            ->get();
+
         if ($cartItems->isEmpty()) {
-            return redirect()->route('home')->with('error', 'Giỏ hàng của bạn đang trống.');
+            return redirect()->route('cart.index')->with('error', 'Không có sản phẩm nào được chọn để đặt hàng.');
         }
 
         $order = null;
         DB::beginTransaction();
         try {
             $subtotal = $cartItems->sum(function ($item) {
-                $price = $item->variant->sale_price > 0 ? $item->variant->sale_price : $item->variant->price;
+                $price = $item->variant->sale_price ?: $item->variant->price;
                 return $price * $item->quantity;
             });
             
@@ -75,17 +99,16 @@ class CheckoutController extends Controller
             $discount = $voucherData['discount'] ?? 0;
 
             $finalAmount = ($subtotal - $discount) + $validated['shipping_fee'];
-            // Đảm bảo tổng tiền không bao giờ âm
             $finalAmount = $finalAmount < 0 ? 0 : $finalAmount;
 
             $order = Order::create([
-                'user_id'      => $user->id,
-                'order_code'   => 'ORD-' . strtoupper(Str::random(10)),
-                'total_amount' => $subtotal,
-                'discount'     => $discount,
-                'final_amount' => $finalAmount,
-                'note'         => $validated['note'],
-                'status'       => 'pending',
+                'user_id'       => $user->id,
+                'order_code'    => 'ORD-' . strtoupper(Str::random(10)),
+                'total_amount'  => $subtotal,
+                'discount'      => $discount,
+                'final_amount'  => $finalAmount,
+                'note'          => $validated['note'],
+                'status'        => 'pending',
                 'payment_method' => $validated['payment_method'],
             ]);
 
@@ -94,8 +117,8 @@ class CheckoutController extends Controller
                     'order_id'           => $order->id,
                     'product_variant_id' => $cartItem->product_variant_id,
                     'quantity'           => $cartItem->quantity,
-                    'price'              => $cartItem->variant->sale_price > 0 ? $cartItem->variant->sale_price : $cartItem->variant->price,
-                    'subtotal'           => ($cartItem->variant->sale_price > 0 ? $cartItem->variant->sale_price : $cartItem->variant->price) * $cartItem->quantity,
+                    'price'              => $cartItem->variant->sale_price ?: $cartItem->variant->price,
+                    'subtotal'           => ($cartItem->variant->sale_price ?: $cartItem->variant->price) * $cartItem->quantity,
                 ]);
             }
 
@@ -119,10 +142,7 @@ class CheckoutController extends Controller
             ]);
 
             if ($voucherData) {
-                $voucher = Voucher::where('code', $voucherData['code'])->first();
-                if ($voucher) {
-                    $voucher->increment('used_count');
-                }
+                Voucher::where('code', $voucherData['code'])->first()?->increment('used_count');
             }
 
             DB::commit();
@@ -133,8 +153,9 @@ class CheckoutController extends Controller
             return back()->with('error', 'Đã có lỗi xảy ra khi tạo đơn hàng, vui lòng thử lại.')->withInput();
         }
         
+        // SỬA LẠI LOGIC XÓA: Chỉ xóa những sản phẩm đã được chọn (đã được đặt hàng)
+        Cart::where('user_id', $user->id)->where('is_selected', true)->delete();
         session()->forget('voucher');
-        Cart::where('user_id', $user->id)->delete();
         
         if ($validated['payment_method'] === 'vnpay') {
             return redirect()->route('payment.vnpay.create', ['order' => $order->id]);

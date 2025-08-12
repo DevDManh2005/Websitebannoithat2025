@@ -1,93 +1,272 @@
 @extends('layouts.app')
 
+@section('title', 'Giỏ hàng của bạn')
+
 @section('content')
-<div class="container my-4">
-    <h1 class="mb-4">Giỏ hàng của bạn</h1>
+    {{-- =================== HERO / BREADCRUMB =================== --}}
+    <section class="cart-hero position-relative overflow-hidden mb-5">
+        <img src="https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg" alt="Cart Banner" class="hero-bg">
+        <div class="hero-overlay"></div>
+        <div class="container position-relative" data-aos="fade-down">
+            <div class="row align-items-center" style="min-height: 220px;">
+                <div class="col-12 text-center">
+                    <h1 class="fw-bold text-white mb-2">Giỏ Hàng</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center mb-0">
+                            <li class="breadcrumb-item"><a class="hero-bc-link" href="{{ route('home') }}">Trang chủ</a></li>
+                            <li class="breadcrumb-item active text-white-50" aria-current="page">Giỏ hàng</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <div class="hero-bottom wave-sep"></div>
+    </section>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+    <div class="container my-5">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert" data-aos="fade-up">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert" data-aos="fade-up">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
-    @if($cartItems->isNotEmpty())
-        <div class="row">
-            {{-- Danh sách sản phẩm trong giỏ --}}
-            <div class="col-lg-8">
-                @foreach($cartItems as $item)
-                    <div class="card mb-3">
-                        <div class="row g-0">
-                            <div class="col-md-2">
-                                @php
-                                    $image = $item->variant->product->images->first();
-                                    $imageUrl = $image->image_url ?? 'https://via.placeholder.com/150';
-                                    if ($image && !Str::startsWith($image->image_url, 'http')) {
-                                        $imageUrl = asset('storage/' . $image->image_url);
-                                    }
-                                    $price = $item->variant->sale_price > 0 && $item->variant->sale_price < $item->variant->price
-                                           ? $item->variant->sale_price
-                                           : $item->variant->price;
-                                @endphp
-                                <img src="{{ $imageUrl }}" class="img-fluid rounded-start" alt="{{ $item->variant->product->name }}">
+        @if($cartItems->isNotEmpty())
+            <div class="row g-4">
+                {{-- =================== LEFT: ITEMS =================== --}}
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4" data-aos="fade-right">
+                        <div class="card-header bg-white p-3 p-md-4 rounded-top-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="select-all-items">
+                                    <label class="form-check-label fw-bold" for="select-all-items">
+                                        Chọn tất cả ({{ $cartItems->count() }} sản phẩm)
+                                    </label>
+                                </div>
+                                <form action="{{ route('cart.removeSelected') }}" method="POST" id="delete-selected-form" onsubmit="return confirm('Bạn có chắc muốn xóa các sản phẩm đã chọn?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" id="delete-selected-btn" class="btn btn-sm btn-outline-danger rounded-pill" disabled>
+                                        <i class="bi bi-trash me-1"></i> Xóa mục đã chọn
+                                    </button>
+                                </form>
                             </div>
-                            <div class="col-md-10">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ $item->variant->product->name }}</h5>
-                                    <p class="card-text">
-                                        <small class="text-muted">
+                        </div>
+
+                        <div class="card-body p-0">
+                            @foreach($cartItems as $item)
+                                <div class="cart-item-row d-flex align-items-center p-3 p-md-4 border-bottom">
+                                    <div class="form-check me-3 flex-shrink-0">
+                                        <input
+                                            class="form-check-input item-checkbox"
+                                            type="checkbox"
+                                            value="{{ $item->id }}"
+                                            data-price="{{ $item->variant->sale_price ?: $item->variant->price }}"
+                                            data-quantity="{{ $item->quantity }}"
+                                            {{ $item->is_selected ? 'checked' : '' }}>
+                                    </div>
+
+                                    <a href="{{ route('product.show', $item->variant->product->slug) }}" class="me-3 flex-shrink-0 d-block rounded-3 overflow-hidden img-hover-zoom" style="width:84px;height:84px;">
+                                        <img src="{{ optional($item->variant->product->primaryImage)->image_url_path ?? 'https://placehold.co/100x100' }}"
+                                             alt="{{ $item->variant->product->name }}" class="w-100 h-100 object-fit-cover">
+                                    </a>
+
+                                    <div class="flex-grow-1">
+                                        <a href="{{ route('product.show', $item->variant->product->slug) }}" class="text-dark fw-semibold text-decoration-none hover-underline text-truncate-2 d-block">
+                                            {{ $item->variant->product->name }}
+                                        </a>
+                                        <div class="text-muted xsmall mt-1">
                                             @foreach($item->variant->attributes as $key => $value)
-                                                {{ ucfirst($key) }}: {{ $value }}
+                                                <span class="me-2">{{ ucfirst($key) }}: <strong>{{ $value }}</strong></span>
                                             @endforeach
-                                        </small>
-                                    </p>
-                                    <p class="card-text fw-bold">{{ number_format($price) }} ₫</p>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        {{-- Form cập nhật số lượng --}}
+                                        </div>
+                                        <div class="mt-2">
+                                            <span class="text-danger fw-bold">{{ number_format($item->variant->sale_price ?: $item->variant->price) }} ₫</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center ms-3">
                                         <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex align-items-center">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control" style="width: 70px;">
-                                            <button type="submit" class="btn btn-outline-primary btn-sm ms-2">Cập nhật</button>
+                                            @csrf @method('PATCH')
+                                            <div class="input-group input-group-sm qty-group">
+                                                {{-- <button class="btn btn-outline-secondary" name="quantity" value="{{ max(1, $item->quantity - 1) }}" type="submit" title="Giảm">−</button> --}}
+                                                <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control text-center" style="width: 70px;" onchange="this.form.submit()">
+                                                {{-- <button class="btn btn-outline-secondary" name="quantity" value="{{ $item->quantity + 1 }}" type="submit" title="Tăng">+</button> --}}
+                                            </div>
                                         </form>
-                                        
-                                        {{-- Form xóa sản phẩm --}}
-                                        <form action="{{ route('cart.remove', $item->id) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                <i class="fas fa-trash"></i> Xóa
+
+                                        <form action="{{ route('cart.remove', $item->id) }}" method="POST" class="ms-2 ms-md-3">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-light btn-sm rounded-pill" title="Xóa sản phẩm">
+                                                <i class="bi bi-trash3"></i>
                                             </button>
                                         </form>
                                     </div>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
                     </div>
-                @endforeach
-            </div>
+                </div>
 
-            {{-- Tóm tắt đơn hàng --}}
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Tóm tắt đơn hàng</h5>
-                        <hr>
-                        <div class="d-flex justify-content-between">
-                            <span>Tạm tính</span>
-                            <strong>{{ number_format($totalPrice) }} ₫</strong>
-                        </div>
-                        <div class="d-grid mt-3">
-                            {{-- CẬP NHẬT LẠI ĐƯỜNG DẪN Ở ĐÂY --}}
-                            <a href="{{ route('checkout.index') }}" class="btn btn-primary">Tiến hành thanh toán</a>
+                {{-- =================== RIGHT: SUMMARY =================== --}}
+                <div class="col-lg-4" data-aos="fade-left">
+                    <div class="card border-0 shadow-sm rounded-4 sticky-order">
+                        <div class="card-body p-4 p-md-5">
+                            <h5 class="card-title fw-bold mb-3">Tóm tắt đơn hàng</h5>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Tạm tính (<span id="selected-items-count">0</span> sản phẩm)</span>
+                                <strong id="total-price-display">0 ₫</strong>
+                            </div>
+
+                            <div class="d-grid">
+                                <a href="{{ route('checkout.index') }}" class="btn btn-primary btn-lg rounded-pill" id="checkout-btn">Tiến hành thanh toán</a>
+                            </div>
+
+                            <div class="small text-muted mt-3">
+                                * Chỉ những sản phẩm bạn <strong>đã chọn</strong> mới được đưa sang bước thanh toán.
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    @else
-        <div class="text-center py-5">
-            <p>Giỏ hàng của bạn đang trống.</p>
-            <a href="{{ url('/') }}" class="btn btn-primary">Tiếp tục mua sắm</a>
-        </div>
-    @endif
-</div>
+        @else
+            <div class="text-center py-5 card border-0 shadow-sm rounded-4" data-aos="zoom-in">
+                <div class="card-body">
+                    <i class="bi bi-cart-x" style="font-size: 4rem; color: #ccc;"></i>
+                    <h5 class="mt-3">Giỏ hàng của bạn đang trống</h5>
+                    <p class="text-muted">Hãy khám phá thêm các sản phẩm tuyệt vời của chúng tôi!</p>
+                    <a href="{{ route('products.index') }}" class="btn btn-primary mt-2">Tiếp tục mua sắm</a>
+                </div>
+            </div>
+        @endif
+    </div>
 @endsection
+
+@push('styles')
+<style>
+/* ===== HERO (sáng + overlay) ===== */
+.cart-hero{ background:#fff; }
+.cart-hero .hero-bg{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.03);
+    filter: brightness(0.7);
+}
+.cart-hero .hero-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35)); }
+.wave-sep{
+    position:absolute; left:0; right:0; bottom:-1px; height:28px;
+    background: radial-gradient(36px 11px at 50% 0, #fff 98%, transparent 100%) repeat-x;
+    background-size:36px 18px;
+}
+.hero-bc-link{ color:#f8f9fa; text-decoration:none; }
+.hero-bc-link:hover{ text-decoration:underline; }
+
+/* ===== Brand tone ===== */
+.btn-primary{ background-color:#A20E38; border-color:#A20E38; }
+.btn-primary:hover{ background-color:#8b0c30; border-color:#8b0c30; }
+.rounded-4{ border-radius:1rem !important; }
+
+/* ===== Cart rows ===== */
+.cart-item-row{ transition: background .2s ease; }
+.cart-item-row:hover{ background:#fafbfc; }
+.img-hover-zoom img{ transition: transform .35s ease; }
+.img-hover-zoom:hover img{ transform: scale(1.06); }
+.hover-underline:hover{ text-decoration: underline; text-underline-offset: 2px; }
+.text-truncate-2{
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.xsmall{ font-size:.8rem; }
+
+/* ===== Quantity group ===== */
+.qty-group .btn{ min-width:2.2rem; }
+
+/* ===== Sticky Summary (không đè header) ===== */
+.sticky-order{
+    position: sticky;
+    top: var(--sticky-offset, 88px); /* sẽ được tính động bằng JS */
+    z-index: 1;
+}
+/* đề phòng cha bị overflow làm mất sticky */
+.container, .row{ overflow: visible; }
+</style>
+@endpush
+
+@push('scripts-page')
+<script>
+    // ===== Auto sticky offset theo chiều cao header (home/internal khác nhau)
+    (function(){
+        function updateStickyOffset(){
+            const header = document.querySelector('header.sticky-top, header.navbar-transparent, header');
+            const h = header ? header.offsetHeight : 72;
+            const gap = 16;
+            document.documentElement.style.setProperty('--sticky-offset', (h + gap) + 'px');
+        }
+        window.addEventListener('load', updateStickyOffset);
+        window.addEventListener('resize', updateStickyOffset);
+        setTimeout(updateStickyOffset, 300);
+    })();
+
+    // ===== Logic chọn / tính tiền
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    const selectAllCheckbox = document.getElementById('select-all-items');
+    const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+    const totalPriceDisplay = document.getElementById('total-price-display');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    const selectedItemsCount = document.getElementById('selected-items-count');
+    const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
+
+    let debounceTimer;
+    function syncSelected(ids){
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetch('{{ route("cart.toggleSelect") }}', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ items: ids })
+            }).catch(()=>{});
+        }, 350);
+    }
+
+    function updateTotalsAndUI() {
+        const selected = Array.from(document.querySelectorAll('.item-checkbox:checked'));
+        let total = 0;
+        selected.forEach(cb => total += parseFloat(cb.dataset.price) * parseFloat(cb.dataset.quantity));
+
+        totalPriceDisplay.textContent = formatCurrency(total);
+        selectedItemsCount.textContent = selected.length;
+
+        // Disable/enable actions
+        const disabled = selected.length === 0;
+        checkoutBtn.classList.toggle('disabled', disabled);
+        deleteSelectedBtn.disabled = disabled;
+
+        // Select-all state
+        if (checkboxes.length > 0) {
+            selectAllCheckbox.checked = selected.length === checkboxes.length && selected.length > 0;
+        }
+
+        // Sync to server (debounced)
+        syncSelected(selected.map(cb => cb.value));
+    }
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateTotalsAndUI();
+        });
+    }
+    checkboxes.forEach(cb => cb.addEventListener('change', updateTotalsAndUI));
+
+    // Init on load
+    updateTotalsAndUI();
+    </script>
+@endpush

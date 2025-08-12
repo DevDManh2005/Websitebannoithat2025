@@ -42,6 +42,8 @@ return [
         'pick_district'    => env('GHN_PICK_DISTRICT'),
         'pick_ward_code'   => env('GHN_PICK_WARD_CODE'),
         'pick_district_id' => env('GHN_PICK_DISTRICT_ID'),
+        'min_heavy_weight' => env('GHN_MIN_HEAVY_WEIGHT', 1000), // <— THÊM
     ],
+
 
 ];
