@@ -3,7 +3,6 @@
 @section('title', 'Chi tiết đơn hàng #' . $order->order_code)
 
 @section('content')
-    {{-- =================== HERO / BREADCRUMB =================== --}}
     <section class="order-hero position-relative overflow-hidden mb-5">
         <img src="https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg" alt="Order Banner" class="hero-bg">
         <div class="hero-overlay"></div>
@@ -24,72 +23,47 @@
         <div class="hero-bottom wave-sep"></div>
     </section>
 
-    {{-- ===== Helper: chuẩn hoá URL ảnh (URL tuyệt đối / storage / public) ===== --}}
     @php
         use Illuminate\Support\Facades\Storage;
         use Illuminate\Support\Str;
 
-        /** @var \Closure $resolveImage */
         $resolveImage = function ($product) {
-            // Ưu tiên ảnh primary, fallback ảnh đầu tiên
-            $img = optional($product->images)->firstWhere('is_primary', 1)
-                 ?? optional($product->images)->first();
-
+            $img = optional($product->images)->firstWhere('is_primary', 1) ?? optional($product->images)->first();
             $raw = $img->image_url ?? null;
-            if (!$raw) {
-                return 'https://via.placeholder.com/80';
-            }
-
-            // 1) Nếu là URL tuyệt đối -> dùng luôn
-            if (Str::startsWith($raw, ['http://', 'https://'])) {
-                return $raw;
-            }
-
-            // 2) Chuẩn hoá path: bỏ prefix "storage/" hoặc "public/"
+            if (!$raw) return 'https://via.placeholder.com/80';
+            if (Str::startsWith($raw, ['http://', 'https://'])) return $raw;
             $normalized = ltrim(str_replace(['storage/', 'public/'], '', $raw), '/');
-
-            // 3) Trả về URL public (symlink storage) — KHÔNG check exists để tránh rớt URL
-            // (Các trang khác của bạn cũng hiển thị OK mà không cần exists)
-            if ($normalized) {
-                return Storage::url($normalized); // /storage/...
-            }
-
-            // 4) Fallback: có thể file đang nằm sẵn trong /public
-            return asset($raw);
+            return $normalized ? Storage::url($normalized) : asset($raw);
         };
 
-        // Cờ thanh toán online (VNPAY)
-        $paidOnline = ($order->is_paid ?? false) && (($order->payment_method ?? '') === 'vnpay');
+        $isPaid   = (($order->payment_status ?? 'unpaid') === 'paid') || ($order->is_paid ?? false);
+        $isOnline = (($order->payment_method ?? '') === 'vnpay');
     @endphp
 
     <div class="container my-5">
-        {{-- Alerts --}}
         @if(session('success')) <div class="alert alert-success shadow-sm" data-aos="fade-up">{{ session('success') }}</div> @endif
         @if(session('error'))   <div class="alert alert-danger  shadow-sm" data-aos="fade-up">{{ session('error') }}</div> @endif
 
-        {{-- =================== ORDER HEADER =================== --}}
+        {{-- HEADER --}}
         <div class="card border-0 shadow-sm rounded-4 mb-4" data-aos="fade-right">
             <div class="card-body p-4 p-md-5">
                 @php
                     $statusConfig = [
-                        'pending'            => ['class' => 'bg-warning text-dark', 'text' => 'Đang chờ xử lý'],
-                        'processing'         => ['class' => 'bg-info text-dark',    'text' => 'Đang xử lý'],
-                        'shipped_to_shipper' => ['class' => 'bg-secondary',          'text' => 'Đã giao cho shipper'],
-                        'shipping'           => ['class' => 'bg-primary',            'text' => 'Đang giao'],
-                        'delivered'          => ['class' => 'bg-success',            'text' => 'Đã giao (Chờ bạn xác nhận)'],
-                        'received'           => ['class' => 'bg-success',            'text' => 'Đã nhận thành công'],
-                        'cancelled'          => ['class' => 'bg-danger',             'text' => 'Đã hủy'],
+                        'pending'    => ['class' => 'bg-warning text-dark', 'text' => 'Đang chờ xử lý'],
+                        'processing' => ['class' => 'bg-info text-dark',    'text' => 'Đang xử lý'],
+                        'shipping'   => ['class' => 'bg-primary',            'text' => 'Đang giao'],
+                        'delivered'  => ['class' => 'bg-success',            'text' => 'Đã giao (chờ xác nhận)'],
+                        'received'   => ['class' => 'bg-success',            'text' => 'Đã nhận thành công'],
+                        'cancelled'  => ['class' => 'bg-danger',             'text' => 'Đã hủy'],
                     ];
                     $status = $statusConfig[$order->status] ?? ['class' => 'bg-light text-dark', 'text' => 'Không xác định'];
 
-                    // timeline map
                     $steps = [
-                        'pending'            => 'Đặt hàng',
-                        'processing'         => 'Xác nhận',
-                        'shipped_to_shipper' => 'Bàn giao',
-                        'shipping'           => 'Đang giao',
-                        'delivered'          => 'Đã giao',
-                        'received'           => 'Hoàn tất',
+                        'pending'    => 'Đặt hàng',
+                        'processing' => 'Xác nhận',
+                        'shipping'   => 'Đang giao',
+                        'delivered'  => 'Đã giao',
+                        'received'   => 'Hoàn tất',
                     ];
                     $keys = array_keys($steps);
                     $currentIdx = array_search($order->status, $keys);
@@ -100,7 +74,7 @@
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-light text-dark fw-semibold rounded-3">Mã đơn: #{{ $order->order_code }}</span>
                             <span class="badge {{ $status['class'] }}">{{ $status['text'] }}</span>
-                            @if($paidOnline)
+                            @if($isPaid && $isOnline)
                                 <span class="badge bg-success">ĐÃ THANH TOÁN ONLINE</span>
                             @endif
                         </div>
@@ -108,7 +82,10 @@
                             <i class="bi bi-calendar3 me-1"></i>{{ optional($order->created_at)->format('d/m/Y H:i') }}
                             @if(optional($order->shipment)->tracking_code)
                                 <span class="ms-3"><i class="bi bi-truck me-1"></i>Mã vận đơn:
-                                    <span class="text-primary fw-semibold">{{ $order->shipment->tracking_code }}</span> (GHN)
+                                    <span class="text-primary fw-semibold">{{ $order->shipment->tracking_code }}</span>
+                                    @if(optional($order->shipment)->carrier_name)
+                                        <span class="text-muted">({{ $order->shipment->carrier_name }})</span>
+                                    @endif
                                 </span>
                             @endif
                         </small>
@@ -135,9 +112,8 @@
         </div>
 
         <div class="row g-4 g-lg-5">
-            {{-- =================== LEFT: ITEMS + ADDRESS =================== --}}
+            {{-- LEFT: ITEMS --}}
             <div class="col-lg-8">
-                {{-- Items --}}
                 <div class="card border-0 shadow-sm rounded-4 mb-4" data-aos="fade-right" data-aos-delay="50">
                     <div class="card-header bg-white border-0 px-4 pt-4">
                         <h5 class="mb-0 fw-bold">Sản phẩm trong đơn hàng</h5>
@@ -202,7 +178,7 @@
                             </div>
                             <div class="col-md-5">
                                 <div class="small text-muted">Vận chuyển</div>
-                                <div class="fw-semibold">{{ optional($order->shipment)->carrier_name ?? 'GHN' }}</div>
+                                <div class="fw-semibold">{{ optional($order->shipment)->carrier_name ?? 'GIAOHANG ETERNA' }}</div>
                                 @if(optional($order->shipment)->expected_date)
                                     <div class="xsmall text-muted">Dự kiến: {{ \Carbon\Carbon::parse($order->shipment->expected_date)->format('d/m/Y') }}</div>
                                 @endif
@@ -211,29 +187,20 @@
                                 <div class="small text-muted">Thanh toán</div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Phương thức</span>
-                                    <span class="fw-semibold">{{ $paidOnline ? 'VNPAY' : 'Thanh toán khi nhận (COD)' }}</span>
+                                    <span class="fw-semibold">{{ $isOnline ? 'VNPAY' : 'Thanh toán khi nhận (COD)' }}</span>
                                 </div>
                                 <div class="d-flex justify-content-between mt-2">
                                     <span class="text-muted">Trạng thái</span>
-                                    <span class="fw-semibold">
-                                        @if($paidOnline)
-                                            Đã thanh toán online
-                                            @if(!empty($order->paid_at))
-                                                <span class="text-muted xsmall">({{ \Carbon\Carbon::parse($order->paid_at)->format('d/m/Y H:i') }})</span>
-                                            @endif
-                                        @else
-                                            Chưa thanh toán
-                                        @endif
-                                    </span>
+                                    <span class="fw-semibold">{{ $isPaid ? 'Đã thanh toán' : 'Chưa thanh toán' }}</span>
                                 </div>
-                                @if($paidOnline && !empty($order->payment_ref))
+                                @if($isOnline && !empty($order->payment_ref))
                                     <div class="xsmall text-muted mt-1">
                                         Mã giao dịch VNPAY: <span class="text-primary">{{ $order->payment_ref }}</span>
                                     </div>
                                 @endif
 
-                                {{-- Nút thanh toán lại nếu chưa thanh toán và đơn còn hợp lệ --}}
-                                @if(!$paidOnline && in_array($order->status, ['pending','processing']))
+                                {{-- Link thanh toán lại nếu chọn VNPAY mà chưa trả & đơn còn hợp lệ --}}
+                                @if(!$isPaid && $isOnline && in_array($order->status, ['pending','processing']))
                                     <a href="{{ route('payment.vnpay.create', $order) }}" class="btn btn-primary w-100 rounded-pill mt-3">
                                         Thanh toán online (VNPAY)
                                     </a>
@@ -245,7 +212,7 @@
 
             </div>
 
-            {{-- =================== RIGHT: SUMMARY + ACTIONS =================== --}}
+            {{-- RIGHT: SUMMARY + ACTIONS --}}
             <div class="col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 sticky-lg-top" style="top: 96px;" data-aos="fade-left">
                     <div class="card-header bg-white border-0 px-4 pt-4">
@@ -273,20 +240,21 @@
                         </div>
 
                         <div class="d-grid gap-2 mt-4">
-                            @if(method_exists($order, 'isCancellable') && $order->isCancellable())
-                                <div class="alert alert-info small p-2">Nếu đã thanh toán online, vui lòng liên hệ Admin để được hoàn tiền sau khi hủy.</div>
+                            @if(in_array($order->status, ['pending', 'processing']))
+                                <div class="alert alert-info small p-2">Nếu đã thanh toán online, vui lòng liên hệ Admin để hỗ trợ hoàn tiền sau khi hủy.</div>
                                 <form action="{{ route('orders.cancel', $order) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
                                     @csrf
                                     <button type="submit" class="btn btn-danger w-100 rounded-pill">Hủy đơn hàng</button>
                                 </form>
-                            @elseif(method_exists($order, 'isReceivableByCustomer') && $order->isReceivableByCustomer())
-                                <form action="{{ route('orders.markAsReceived', $order) }}" method="POST" onsubmit="return confirm('Xác nhận bạn đã nhận được đúng và đủ sản phẩm?');">
+                            @elseif($order->status === 'delivered')
+                                <form action="{{ route('orders.receive', $order) }}" method="POST" onsubmit="return confirm('Xác nhận bạn đã nhận đủ hàng?');">
                                     @csrf
+                                    @method('PATCH')
                                     <button type="submit" class="btn btn-success w-100 rounded-pill">Đã nhận được hàng</button>
                                 </form>
-                            @elseif($order->status == 'received')
+                            @elseif($order->status === 'received')
                                 <div class="alert alert-success">Đã xác nhận nhận hàng. Cảm ơn bạn!</div>
-                            @elseif($order->status == 'cancelled')
+                            @elseif($order->status === 'cancelled')
                                 <div class="alert alert-secondary">Đơn hàng này đã được hủy.</div>
                             @else
                                 <div class="alert alert-light">Đơn hàng đang được xử lý, hiện chưa có hành động khả dụng.</div>
@@ -297,49 +265,24 @@
                     </div>
                 </div>
             </div>
-            {{-- /RIGHT --}}
         </div>
     </div>
+
 @endsection
 
 @push('styles')
 <style>
-/* ===== HERO sáng + overlay ===== */
 .order-hero{ background:#fff; }
-.order-hero .hero-bg{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.03);
-    filter: brightness(0.7);
-}
+.order-hero .hero-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.03); filter: brightness(0.7); }
 .order-hero .hero-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35)); }
-.wave-sep{
-    position:absolute; left:0; right:0; bottom:-1px; height:28px;
-    background: radial-gradient(36px 11px at 50% 0, #fff 98%, transparent 100%) repeat-x;
-    background-size:36px 18px;
-}
-.hero-bc-link{ color:#f8f9fa; text-decoration:none; }
-.hero-bc-link:hover{ text-decoration:underline; }
-
-/* ===== Card & text ===== */
-.rounded-4{ border-radius:1rem !important; }
-.border-dashed{ border-top:1px dashed #dee2e6; }
-.xsmall{ font-size:.825rem; }
-
-/* ===== Steps (timeline) ===== */
+.wave-sep{ position:absolute; left:0; right:0; bottom:-1px; height:28px; background: radial-gradient(36px 11px at 50% 0, #fff 98%, transparent 100%) repeat-x; background-size:36px 18px; }
+.hero-bc-link{ color:#f8f9fa; text-decoration:none; } .hero-bc-link:hover{ text-decoration:underline; }
+.rounded-4{ border-radius:1rem !important; } .border-dashed{ border-top:1px dashed #dee2e6; } .xsmall{ font-size:.825rem; }
 .order-steps{ display:flex; gap:1.25rem; flex-wrap:wrap; }
 .order-steps .step{ display:flex; align-items:center; gap:.5rem; color:#6c757d; }
-.order-steps .step .dot{
-    width:10px; height:10px; border-radius:50%; background:#ced4da; display:inline-block;
-}
-.order-steps .step.done{ color:#198754; font-weight:600; }
-.order-steps .step.done .dot{ background:#198754; }
-
-/* ===== Image hover ===== */
-.img-hover-zoom img{ transition: transform .35s ease; display:block; }
-.img-hover-zoom:hover img{ transform: scale(1.06); }
-
-/* ===== Sticky fix: chỉ sticky từ lg trở lên (Bootstrap) ===== */
-@media (max-width: 991.98px){
-    .sticky-lg-top{ position:static !important; }
-}
+.order-steps .step .dot{ width:10px; height:10px; border-radius:50%; background:#ced4da; display:inline-block; }
+.order-steps .step.done{ color:#198754; font-weight:600; } .order-steps .step.done .dot{ background:#198754; }
+.img-hover-zoom img{ transition: transform .35s ease; display:block; } .img-hover-zoom:hover img{ transform: scale(1.06); }
+@media (max-width: 991.98px){ .sticky-lg-top{ position:static !important; } }
 </style>
 @endpush

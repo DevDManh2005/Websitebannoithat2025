@@ -33,7 +33,7 @@
                             @php
                                 $user = Auth::user();
                                 $avatar_path = optional($user->profile)->avatar;
-                                $is_url = $avatar_path && Str::startsWith($avatar_path, 'http');
+                                $is_url = $avatar_path && \Illuminate\Support\Str::startsWith($avatar_path, 'http');
                                 $avatar_url = $is_url ? $avatar_path : ($avatar_path ? asset('storage/' . $avatar_path) : 'https://via.placeholder.com/150');
                             @endphp
                             <img src="{{ $avatar_url }}" alt="Avatar" class="profile-avatar rounded-circle mb-3">
@@ -61,12 +61,13 @@
                         <ul class="nav nav-pills nav-fill flex-nowrap overflow-auto gap-2">
                             @php
                                 $statuses = [
-                                    'all' => 'Tất cả',
-                                    'pending' => 'Chờ xử lý',
+                                    'all'        => 'Tất cả',
+                                    'pending'    => 'Chờ xử lý',
                                     'processing' => 'Đang xử lý',
-                                    'shipping' => 'Đang giao',
-                                    'delivered' => 'Hoàn thành',
-                                    'cancelled' => 'Đã hủy',
+                                    'shipping'   => 'Đang giao',
+                                    'delivered'  => 'Đã giao',
+                                    'received'   => 'Đã nhận',
+                                    'cancelled'  => 'Đã hủy',
                                 ];
                             @endphp
                             @foreach($statuses as $statusKey => $statusValue)
@@ -79,12 +80,8 @@
                     </div>
 
                     <div class="card-body p-0">
-                        @if(session('success'))
-                            <div class="alert alert-success mx-3 mt-3">{{ session('success') }}</div>
-                        @endif
-                        @if(session('error'))
-                            <div class="alert alert-danger mx-3 mt-3">{{ session('error') }}</div>
-                        @endif
+                        @if(session('success')) <div class="alert alert-success mx-3 mt-3">{{ session('success') }}</div> @endif
+                        @if(session('error'))   <div class="alert alert-danger mx-3 mt-3">{{ session('error') }}</div> @endif
 
                         @forelse($orders as $order)
                             <div class="order-item p-3 p-md-4 border-top">
@@ -130,6 +127,18 @@
                                 <div class="d-flex flex-wrap justify-content-end align-items-center gap-3">
                                     <span class="text-muted">Tổng tiền:</span>
                                     <strong class="fs-5 text-danger">{{ number_format($order->final_amount) }} ₫</strong>
+
+                                    {{-- Cho phép người dùng xác nhận "Đã nhận" khi đơn đã giao --}}
+                                    @if($order->status === 'delivered')
+                                        <form action="{{ route('orders.receive', $order) }}" method="POST" onsubmit="return confirm('Xác nhận bạn đã nhận đủ hàng?');">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-sm btn-success rounded-pill">
+                                                Xác nhận đã nhận hàng
+                                            </button>
+                                        </form>
+                                    @endif
+
                                     <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-primary rounded-pill">
                                         Xem chi tiết
                                     </a>
@@ -156,57 +165,31 @@
 
 @push('styles')
 <style>
-/* ===== HERO (sáng + overlay) ===== */
 .orders-hero{ background:#fff; }
-.orders-hero .hero-bg{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.03);
-    filter: brightness(0.7);
-}
+.orders-hero .hero-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.03); filter: brightness(0.7); }
 .orders-hero .hero-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35)); }
-.wave-sep{
-    position:absolute; left:0; right:0; bottom:-1px; height:28px;
-    background: radial-gradient(36px 11px at 50% 0, #fff 98%, transparent 100%) repeat-x;
-    background-size:36px 18px;
-}
+.wave-sep{ position:absolute; left:0; right:0; bottom:-1px; height:28px; background: radial-gradient(36px 11px at 50% 0, #fff 98%, transparent 100%) repeat-x; background-size:36px 18px; }
 .hero-bc-link{ color:#f8f9fa; text-decoration:none; }
 .hero-bc-link:hover{ text-decoration:underline; }
 
-/* ===== Profile menu ===== */
-.profile-avatar{
-    width: 100px; height: 100px; object-fit: cover;
-    border: 4px solid #fff; box-shadow: 0 0 15px rgba(0,0,0,0.12);
-}
-.profile-menu .list-group-item{
-    border: none; padding: .9rem 1.1rem; font-weight: 500; color: #495057;
-    border-radius: .6rem;
-}
+.profile-avatar{ width: 100px; height: 100px; object-fit: cover; border: 4px solid #fff; box-shadow: 0 0 15px rgba(0,0,0,0.12); }
+.profile-menu .list-group-item{ border: none; padding: .9rem 1.1rem; font-weight: 500; color: #495057; border-radius: .6rem; }
 .profile-menu .list-group-item + .list-group-item{ margin-top:.25rem; }
-.profile-menu .list-group-item.active{
-    background-color:#A20E38; color:#fff;
-}
+.profile-menu .list-group-item.active{ background-color:#A20E38; color:#fff; }
 .profile-menu .list-group-item:not(.active):hover{ background:#f8f9fa; }
 
-/* ===== Pills ===== */
 .nav-pills .nav-link{ color:#6c757d; font-weight:500; white-space:nowrap; }
-.nav-pills .nav-link.active{
-    background-color:#A20E38; color:#fff;
-    box-shadow: 0 2px 6px rgba(162,14,56,.25);
-}
+.nav-pills .nav-link.active{ background-color:#A20E38; color:#fff; box-shadow: 0 2px 6px rgba(162,14,56,.25); }
 
-/* ===== Order card ===== */
 .rounded-4{ border-radius:1rem !important; }
 .order-item{ background:#fff; transition: background .2s ease; }
 .order-item:not(:first-child){ border-top:1px solid #f0f2f4 !important; }
 .order-item:hover{ background:#fafbfc; }
 .order-hash{ border-radius: .6rem; }
 
-/* ===== Image hover ===== */
 .img-hover-zoom img{ transition: transform .35s ease; display:block; }
 .img-hover-zoom:hover img{ transform: scale(1.06); }
 
-/* Helpers */
-.text-truncate-2{
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
+.text-truncate-2{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 </style>
 @endpush

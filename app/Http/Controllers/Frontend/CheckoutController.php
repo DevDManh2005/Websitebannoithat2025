@@ -24,7 +24,7 @@ class CheckoutController extends Controller
     {
         $user = Auth::user()->load('profile');
         
-        // SỬA LẠI TRUY VẤN: Chỉ lấy các sản phẩm đã được chọn trong giỏ hàng
+        //Chỉ lấy các sản phẩm đã được chọn trong giỏ hàng
         $cartItems = Cart::where('user_id', $user->id)
             ->where('is_selected', true) // DÒNG QUAN TRỌNG
             ->with('variant.product')
@@ -77,7 +77,7 @@ class CheckoutController extends Controller
         ]);
         
         $user = Auth::user();
-        // SỬA LẠI TRUY VẤN: Chỉ xử lý các sản phẩm đã được chọn
+        // Chỉ xử lý các sản phẩm đã được chọn
         $cartItems = Cart::where('user_id', $user->id)
             ->where('is_selected', true)
             ->with('variant')
@@ -153,7 +153,7 @@ class CheckoutController extends Controller
             return back()->with('error', 'Đã có lỗi xảy ra khi tạo đơn hàng, vui lòng thử lại.')->withInput();
         }
         
-        // SỬA LẠI LOGIC XÓA: Chỉ xóa những sản phẩm đã được chọn (đã được đặt hàng)
+        // Chỉ xóa những sản phẩm đã được chọn (đã được đặt hàng)
         Cart::where('user_id', $user->id)->where('is_selected', true)->delete();
         session()->forget('voucher');
         

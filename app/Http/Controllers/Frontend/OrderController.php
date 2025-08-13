@@ -13,11 +13,15 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $query = Auth::user()->orders()->latest();
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
+
+        $status = $request->query('status', 'all');
+        if ($status !== 'all') {
+            $query->where('status', $status);
         }
+
         $orders = $query->paginate(10);
-        $currentStatus = $request->status ?? 'all';
+        $currentStatus = $status;
+
         return view('frontend.orders.index', compact('orders', 'currentStatus'));
     }
 
@@ -26,35 +30,65 @@ class OrderController extends Controller
         if ($order->user_id !== Auth::id()) {
             abort(404);
         }
+
         $order->load(['items.variant.product.images', 'shipment', 'payment']);
         return view('frontend.orders.show', compact('order'));
     }
 
+    /**
+     * Hủy đơn hàng (chỉ khi pending | processing).
+     */
     public function cancel(Order $order)
     {
         if ($order->user_id !== Auth::id()) {
             abort(403, 'Bạn không có quyền hủy đơn hàng này.');
         }
 
-        if (!$order->isCancellable()) {
-            return back()->with('error', 'Đơn hàng này không thể hủy được do trạng thái hiện tại.');
+        if (!in_array($order->status, ['pending', 'processing'], true)) {
+            return back()->with('error', 'Đơn hàng không thể hủy ở trạng thái hiện tại.');
         }
 
         $order->update(['status' => 'cancelled']);
-        return back()->with('success', 'Đơn hàng đã được hủy thành công.');
+    
+        return back()->with('success', 'Đã hủy đơn hàng thành công.');
     }
 
-    public function markAsReceived(Order $order)
+    /**
+     * Khách xác nhận đã nhận hàng (chỉ khi delivered).
+     * - Nếu COD: đánh dấu đã thanh toán.
+     */
+    public function receive(Order $order)
     {
         if ($order->user_id !== Auth::id()) {
-            abort(403);
-        }
-        
-        if (!$order->isReceivableByCustomer()) {
-            return back()->with('error', 'Đơn hàng này chưa thể xác nhận đã nhận.');
+            abort(403, 'Bạn không có quyền xác nhận đơn hàng này.');
         }
 
-        $order->update(['status' => 'received']);
-        return back()->with('success', 'Bạn đã xác nhận nhận hàng thành công!');
+        if ($order->status !== 'delivered') {
+            return back()->with('error', 'Đơn hàng chưa ở trạng thái có thể xác nhận đã nhận.');
+        }
+
+        DB::transaction(function () use ($order) {
+            // Đánh dấu đã nhận
+            $order->update(['status' => 'received']);
+
+            // Nếu COD mà chưa paid, coi như đã thu khi khách xác nhận
+            if (($order->payment_method ?? 'cod') === 'cod') {
+                $order->update([
+                    'is_paid'        => 1,
+                    'payment_status' => 'paid',
+                    'paid_at'        => now(),
+                    'payment_ref'    => $order->payment_ref ?: ('COD-USER-' . now()->format('YmdHis')),
+                ]);
+
+                if ($order->payment()->exists()) {
+                    $order->payment()->update([
+                        'status'    => 'paid',
+                        'updated_at'=> now(),
+                    ]);
+                }
+            }
+        });
+
+        return back()->with('success', 'Xác nhận đã nhận hàng thành công. Cảm ơn bạn!');
     }
 }

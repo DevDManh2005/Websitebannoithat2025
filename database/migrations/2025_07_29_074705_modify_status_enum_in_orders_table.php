@@ -7,38 +7,39 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        // Bước 1: Chuyển cột 'status' thành VARCHAR tạm thời (nếu cần)
-        DB::statement("ALTER TABLE orders ALTER COLUMN status TYPE VARCHAR(255) USING (status::VARCHAR)");
+        // Bước 1: Cập nhật dữ liệu bằng Query Builder (tương thích mọi DB)
+        DB::table('orders')
+            ->where('status', 'shipped')
+            ->update(['status' => 'shipped_to_shipper']);
 
-        // Bước 2: Cập nhật dữ liệu (nếu có trạng thái cũ cần chuyển đổi)
-        // Ví dụ: Chuyển 'shipped' thành 'shipped_to_shipper' nếu cần
-        DB::statement("UPDATE orders SET status = 'shipped_to_shipper' WHERE status = 'shipped'");
+        // Bước 2: Dùng Schema Builder để thay đổi thuộc tính cột (tương thích mọi DB)
+        Schema::table('orders', function (Blueprint $table) {
+            // Lệnh `change()` sẽ tự động tạo cú pháp đúng cho MySQL hoặc PostgreSQL
+            $table->string('status')->default('pending')->nullable(false)->change();
+        });
 
-        // Bước 3: Đặt NOT NULL và DEFAULT
-        DB::statement("ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending'");
-        DB::statement("ALTER TABLE orders ALTER COLUMN status SET NOT NULL");
-
-        // Bước 4: Xóa constraint cũ nếu tồn tại, sau đó thêm constraint mới
-        DB::statement("ALTER TABLE orders DROP CONSTRAINT IF EXISTS check_status");
+        // Bước 3: Cập nhật CHECK constraint một cách an toàn
+        DB::statement('ALTER TABLE orders DROP CONSTRAINT IF EXISTS check_status');
         DB::statement("ALTER TABLE orders ADD CONSTRAINT check_status CHECK (status IN ('pending', 'processing', 'shipped_to_shipper', 'shipping', 'delivered', 'cancelled'))");
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        // Bước 1 (Rollback): Chuyển cột 'status' thành VARCHAR tạm thời
-        DB::statement("ALTER TABLE orders ALTER COLUMN status TYPE VARCHAR(255) USING (status::VARCHAR)");
+        // Hoàn tác việc cập nhật dữ liệu
+        DB::table('orders')
+            ->whereIn('status', ['shipped_to_shipper', 'shipping'])
+            ->update(['status' => 'shipped']);
 
-        // Bước 2 (Rollback): Cập nhật dữ liệu về trạng thái cũ
-        DB::statement("UPDATE orders SET status = 'shipped' WHERE status IN ('shipped_to_shipper', 'shipping')");
-
-        // Bước 3: Đặt NOT NULL và DEFAULT
-        DB::statement("ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending'");
-        DB::statement("ALTER TABLE orders ALTER COLUMN status SET NOT NULL");
-
-        // Bước 4 (Rollback): Xóa constraint mới và thêm constraint cũ
-        DB::statement("ALTER TABLE orders DROP CONSTRAINT IF EXISTS check_status");
-        DB::statement("ALTER TABLE orders ADD CONSTRAINT check_status CHECK (status IN ('pending', 'processing', 'shipping', 'delivered', 'cancelled'))");
+        // Hoàn tác CHECK constraint
+        DB::statement('ALTER TABLE orders DROP CONSTRAINT IF EXISTS check_status');
+        DB::statement("ALTER TABLE orders ADD CONSTRAINT check_status CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled'))");
     }
 };

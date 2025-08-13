@@ -20,6 +20,10 @@ use App\Http\Controllers\Frontend\ProductReviewController;
 use App\Http\Controllers\Frontend\VoucherController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\SearchController;
+use App\Http\Controllers\Frontend\BlogController as FrontBlogController;
+use App\Http\Controllers\Frontend\BlogCommentController;
+use App\Http\Controllers\Frontend\BlogLikeController;
+
 // --- ADMIN CONTROLLERS ---
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\BrandController;
@@ -34,45 +38,54 @@ use App\Http\Controllers\Admin\ProductReviewController as AdminProductReviewCont
 use App\Http\Controllers\Admin\VoucherController as AdminVoucherController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SlideController;
+use App\Http\Controllers\Admin\BlogCategoryController as AdminBlogCategoryController;
+use App\Http\Controllers\Admin\BlogController as AdminBlogController;
+use App\Http\Controllers\Admin\UploadController;
+
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTES (Guest accessible)
+| PUBLIC ROUTES
 |--------------------------------------------------------------------------
 */
-
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
 Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])->name('category.show');
 Route::get('/san-pham/{slug}', [ProductController::class, 'show'])->name('product.show');
 Route::get('/san-pham', [ProductController::class, 'index'])->name('products.index');
+
 Route::get('/address/provinces', [AddressController::class, 'getProvinces'])->name('address.provinces');
 Route::get('/address/districts', [AddressController::class, 'getDistricts'])->name('address.districts');
 Route::get('/address/wards', [AddressController::class, 'getWards'])->name('address.wards');
-Route::get('/register', fn() => view('auth.register'))->name('register.form');
+
+Route::get('/register', fn () => view('auth.register'))->name('register.form');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
-Route::get('/verify', fn() => view('auth.verify'))->name('verify.form');
+Route::get('/verify', fn () => view('auth.verify'))->name('verify.form');
 Route::post('/verify-otp', [AuthController::class, 'verifyOTP'])->name('verify.otp');
 Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->name('resend.otp');
-Route::get('/login', fn() => view('auth.login'))->name('login.form');
+Route::get('/login', fn () => view('auth.login'))->name('login.form');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/forgot', fn() => view('auth.forgot'))->name('forgot.form');
+Route::get('/forgot', fn () => view('auth.forgot'))->name('forgot.form');
 Route::post('/forgot', [AuthController::class, 'forgot'])->name('forgot');
-Route::get('/reset', fn() => view('auth.reset'))->name('reset.form');
+Route::get('/reset', fn () => view('auth.reset'))->name('reset.form');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset.password');
-Route::get('/payment/vnpay-callback', [PaymentController::class, 'vnpayCallback'])->name('payment.vnpayCallback');
-Route::get('/search', [SearchController::class, 'index'])->name('search');
-// Return URL cho user quay về (đã đúng với APP_URL/ENV)
-Route::get('/payment/vnpay-return', [PaymentController::class, 'vnpayReturn'])
-    ->name('payment.vnpay.return');
 
-// IPN URL: phải trùng EXACT với portal và cho phép cả GET lẫn POST
-Route::match(['GET','POST'], '/payment/vnpay-ipn', [PaymentController::class, 'vnpayIpn'])
-    ->name('payment.vnpay.ipn');
+Route::get('/payment/vnpay-callback', [PaymentController::class, 'vnpayCallback'])->name('payment.vnpayCallback');
+Route::get('/payment/vnpay-return', [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
+Route::match(['GET', 'POST'], '/payment/vnpay-ipn', [PaymentController::class, 'vnpayIpn'])->name('payment.vnpay.ipn');
+
+Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+/* BLOG PUBLIC (prefix /bai-viet) */
+Route::prefix('bai-viet')->name('blog.')->group(function () {
+    Route::get('/', [FrontBlogController::class, 'index'])->name('index');
+    Route::get('/{slug}', [FrontBlogController::class, 'show'])->name('show');
+});
 
 /*
 |--------------------------------------------------------------------------
-| AUTHENTICATED ROUTES (User must be logged in)
+| AUTHENTICATED ROUTES
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
@@ -85,7 +98,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/gio-hang', [CartController::class, 'index'])->name('cart.index');
     Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
-    Route::post('/gio-hang/mua-ngay', [CartController::class, 'buyNow'])->name('cart.buyNow'); // THÊM DÒNG NÀY
+    Route::post('/gio-hang/mua-ngay', [CartController::class, 'buyNow'])->name('cart.buyNow');
     Route::patch('/gio-hang/cap-nhat/{cartId}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/gio-hang/xoa/{cartId}', [CartController::class, 'remove'])->name('cart.remove');
     Route::patch('/gio-hang/toggle-select', [CartController::class, 'toggleSelect'])->name('cart.toggleSelect');
@@ -93,10 +106,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/dat-hang', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
+
     Route::get('/don-hang', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/don-hang/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/don-hang/{order}/huy', [OrderController::class, 'cancel'])->name('orders.cancel');
-    Route::post('/don-hang/{order}/da-nhan', [OrderController::class, 'markAsReceived'])->name('orders.markAsReceived'); // <-- Sửa lại tên phương thức
+    Route::post('/don-hang/{order}/da-nhan', [OrderController::class, 'markAsReceived'])->name('orders.markAsReceived');
+    Route::patch('/don-hang/{order}/xac-nhan', [OrderController::class, 'receive'])->name('orders.receive');
 
     Route::post('/products/{product}/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');
 
@@ -104,16 +119,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/shipping/fee', [ShippingController::class, 'getFee'])->name('shipping.getFee');
     Route::post('/voucher/apply', [VoucherController::class, 'apply'])->name('voucher.apply');
     Route::post('/voucher/remove', [VoucherController::class, 'remove'])->name('voucher.remove');
-});
 
+    /* BLOG AUTH (comments, like) */
+    Route::prefix('bai-viet')->name('blog.')->group(function () {
+        // POST /bai-viet/{blog}/comments  (body: comment, parent_id?)
+        Route::post('/{blog}/comments', [BlogCommentController::class, 'store'])->name('comments.store');
+        // POST /bai-viet/{blog}/like
+        Route::post('/{blog}/like', [BlogLikeController::class, 'toggle'])->name('like.toggle');
+    });
+});
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN & STAFF ROUTES
+| ADMIN ROUTES
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', fn() => view('admins.dashboard'))->name('dashboard');
+    Route::get('/dashboard', fn () => view('admins.dashboard'))->name('dashboard');
 
     Route::resource('staffs', StaffController::class)->except(['show']);
     Route::resource('admins', AdminController::class)->except(['show']);
@@ -132,10 +154,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
         Route::patch('/{order}/update-status', [AdminOrderController::class, 'updateStatus'])->name('updateStatus');
         Route::patch('/{order}/update-shipping', [AdminOrderController::class, 'updateShippingInfo'])->name('updateShippingInfo');
-
-        // Đổi tên route cho đúng với GHN
-        Route::post('/{order}/create-ghn', [AdminOrderController::class, 'createGhnOrder'])->name('create-ghn');
-        Route::post('/{order}/cancel-ghn', [AdminOrderController::class, 'cancelGhnOrder'])->name('cancel-ghn');
+        Route::post('/{order}/ready-to-ship', [AdminOrderController::class, 'readyToShip'])->name('ready-to-ship');
+        Route::patch('/{order}/cod-paid', [AdminOrderController::class, 'markCodPaid'])->name('cod-paid');
     });
 
     Route::prefix('reviews')->name('reviews.')->group(function () {
@@ -143,6 +163,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/{review}/toggle-status', [AdminProductReviewController::class, 'toggleStatus'])->name('toggleStatus');
         Route::delete('/{review}', [AdminProductReviewController::class, 'destroy'])->name('destroy');
     });
+
     Route::resource('categories', AdminCategoryController::class);
     Route::resource('brands', BrandController::class);
     Route::resource('suppliers', SupplierController::class);
@@ -153,7 +174,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
     Route::resource('slides', SlideController::class);
+
+    // Blog admin
+    Route::resource('blog-categories', AdminBlogCategoryController::class)->except(['show']);
+    Route::resource('blogs', AdminBlogController::class)->except(['show']);
+    Route::post('/uploads/ckeditor', [UploadController::class, 'ckeditor'])->name('uploads.ckeditor');
+
 });
 
-// Staff Routes
-Route::middleware(['auth', 'role:staff'])->get('/staff/dashboard', fn() => view('staffs.dashboard'))->name('staff.dashboard');
+/* STAFF */
+Route::middleware(['auth', 'role:staff'])->get('/staff/dashboard', fn () => view('staffs.dashboard'))->name('staff.dashboard');
