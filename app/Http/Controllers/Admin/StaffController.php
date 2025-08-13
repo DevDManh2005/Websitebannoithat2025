@@ -7,17 +7,19 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Permission;
 use Illuminate\Support\Facades\Hash;
+use App\Support\RoutePermissionSync;
 
 class StaffController extends Controller
 {
     public function index()
     {
         $staffs = User::where('role_id', 2)
-                      ->with('permissions')
-                      ->paginate(10);
+            ->with(['directPermissions', 'role']) // thêm cái này
+            ->paginate(10);
 
         return view('admins.staffs.index', compact('staffs'));
     }
+
 
     public function create()
     {
@@ -46,20 +48,22 @@ class StaffController extends Controller
         ]);
 
         // Gán permissions
-        $staff->permissions()->sync($data['permissions'] ?? []);
-
+        $staff->directPermissions()->sync($data['permissions'] ?? []);
+        // AUTO-SYNC: đồng bộ mapping cho các quyền vừa gán (khu staff)
+        $perms = Permission::whereIn('id', $data['permissions'] ?? [])->get();
+        RoutePermissionSync::syncMany('staff', $perms);
         return redirect()->route('admin.staffs.index')
-                         ->with('success', 'Tạo tài khoản nhân viên thành công.');
+            ->with('success', 'Tạo tài khoản nhân viên thành công.');
     }
 
     public function edit($id)
     {
         $staff = User::where('role_id', 2)
-                     ->with('permissions')
-                     ->findOrFail($id);
+            ->with(['permissions', 'role.permissions'])
+            ->findOrFail($id);
 
         $modules  = Permission::all()->groupBy('module_name');
-        $assigned = $staff->permissions->pluck('id')->all();
+        $assigned = $staff->directPermissions->pluck('id')->all();
 
         return view('admins.staffs.edit', compact('staff', 'modules', 'assigned'));
     }
@@ -82,10 +86,12 @@ class StaffController extends Controller
         ]);
 
         // Cập nhật permissions
-        $staff->permissions()->sync($data['permissions'] ?? []);
-
+        $staff->directPermissions()->sync($data['permissions'] ?? []);
+        // AUTO-SYNC khu staff
+        $perms = Permission::whereIn('id', $data['permissions'] ?? [])->get();
+        RoutePermissionSync::syncMany('staff', $perms);
         return redirect()->route('admin.staffs.index')
-                         ->with('success', 'Cập nhật thông tin nhân viên thành công.');
+            ->with('success', 'Cập nhật thông tin nhân viên thành công.');
     }
 
     public function destroy($id)
@@ -94,6 +100,6 @@ class StaffController extends Controller
         $staff->delete();
 
         return redirect()->route('admin.staffs.index')
-                         ->with('success', 'Xóa nhân viên thành công.');
+            ->with('success', 'Xóa nhân viên thành công.');
     }
 }

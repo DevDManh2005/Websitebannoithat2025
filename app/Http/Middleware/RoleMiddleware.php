@@ -7,17 +7,24 @@ use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-   public function handle($request, Closure $next, $role)
-{
-    if (! Auth::check()) {
-        return redirect()->route('login.form');
-    }
+    public function handle($request, Closure $next, ...$roles)
+    {
+        if (! Auth::check()) {
+            return redirect()->route('login.form');
+        }
 
-    // Sử dụng trường 'name' (admin|staff|user), không phải slug
-    if (Auth::user()->role->name !== $role) {
-        abort(403, 'Bạn không có quyền truy cập.');
-    }
+        $userRole = Auth::user()->role->name ?? null;
 
-    return $next($request);
-}
+        // Nếu không truyền role nào -> chặn
+        if (empty($roles)) {
+            abort(403, 'Bạn không có quyền truy cập.');
+        }
+
+        // Hỗ trợ nhiều role: role:admin,staff
+        if (! in_array($userRole, $roles, true)) {
+            abort(403, 'Bạn không có quyền truy cập.');
+        }
+
+        return $next($request);
+    }
 }

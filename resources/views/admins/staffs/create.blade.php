@@ -1,52 +1,49 @@
 @extends('admins.layouts.app')
+@section('title','Thêm nhân viên')
 
 @section('content')
-    <div class="container">
-        <h1>Tạo nhân viên mới</h1>
+<h1 class="h4 mb-3">Thêm nhân viên</h1>
 
-        <form action="{{ route('admin.staffs.store') }}" method="POST">
-            @csrf
+@if($errors->any())
+  <div class="alert alert-danger">
+    <div class="fw-semibold mb-1">Vui lòng kiểm tra lại:</div>
+    <ul class="mb-0">
+      @foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach
+    </ul>
+  </div>
+@endif
 
-            <div class="mb-3">
-                <label class="form-label">Tên nhân viên</label>
-                <input type="text" name="name" class="form-control" value="{{ old('name') }}">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" value="{{ old('email') }}">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu</label>
-                <input type="password" name="password" class="form-control">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Xác nhận mật khẩu</label>
-                <input type="password" name="password_confirmation" class="form-control">
-            </div>
-
-            {{-- Phân quyền --}}
-            @php
-                $assigned = old('permissions', []);
-            @endphp
-            <div class="mb-3">
-                <label class="form-label">Phân quyền</label>
-                <select name="permissions[]" class="form-select" multiple>
-                    @foreach($modules as $moduleName => $perms)
-                        <optgroup label="{{ $moduleName }}">
-                            @foreach($perms as $permission)
-                                <option value="{{ $permission->id }}" {{ in_array($permission->id, $assigned) ? 'selected' : '' }}>
-                                    {{ $permission->action }}
-                                </option>
-                            @endforeach
-                        </optgroup>
-                    @endforeach
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-success">Tạo mới</button>
-        </form>
+<form action="{{ route('admin.staffs.store') }}" method="POST" class="card">
+  @csrf
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+        <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email <span class="text-danger">*</span></label>
+        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Nhập lại mật khẩu <span class="text-danger">*</span></label>
+        <input type="password" name="password_confirmation" class="form-control" required>
+      </div>
     </div>
+
+    <hr class="my-4">
+
+    <h6 class="mb-2">Phân quyền trực tiếp</h6>
+    @include('admins.staffs._permissions_matrix', ['modules' => $modules, 'assigned' => []])
+  </div>
+
+  <div class="card-footer d-flex gap-2">
+    <a href="{{ route('admin.staffs.index') }}" class="btn btn-light">Hủy</a>
+    <button class="btn btn-primary">Lưu</button>
+  </div>
+</form>
 @endsection
