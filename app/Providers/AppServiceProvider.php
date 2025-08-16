@@ -12,6 +12,7 @@ use App\Models\Cart;
 use App\Models\Setting;
 use App\Models\RoutePermission;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route as Rt;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,7 +46,9 @@ class AppServiceProvider extends ServiceProvider
                     ->orderBy('position')
                     ->with(['children' => $withChildren]);
             };
-
+            if (request()->routeIs('staff.*')) {
+                View::prependNamespace('admins', resource_path('views/staffs/admin-bridge'));
+            }
             $sharedCategories = Cache::remember('shared_categories_tree', now()->addDay(), function () use ($withChildren) {
                 return Category::whereNull('parent_id')
                     ->where('is_active', true)
@@ -101,6 +104,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('staffs.*', function ($view) {
             $menu = collect();
             $user = Auth::user();
+
             if ($user) {
                 $rolePerms   = optional($user->role)->permissions ?? collect();
                 $directPerms = method_exists($user, 'permissions') ? $user->permissions : collect();
@@ -111,15 +115,48 @@ class AppServiceProvider extends ServiceProvider
 
                 foreach ($viewable as $module) {
                     if (!isset($map[$module])) continue;
+
+                    // Chỉ giữ TÊN ROUTE, KHÔNG gọi route() ở Provider
+                    $routeName = $map[$module]['index'] ?? null;
+
                     $menu->push([
                         'label'  => $map[$module]['label'] ?? ucfirst($module),
-                        'icon'   => $map[$module]['icon']  ?? 'bi-circle',
-                        'route'  => $map[$module]['index'] ?? null,
+                        'icon'   => $map[$module]['icon']  ?? 'ri-circle-line',
+                        'route'  => Rt::has($routeName) ? $routeName : null, // tên route (hoặc null)
                         'active' => request()->routeIs('staff.' . $module . '.*'),
                     ]);
                 }
             }
+
             $view->with('staffMenu', $menu);
         });
+        // --- Bridge: khi đang ở khu staff.*, ưu tiên layout bridge ---
+        if (request()->routeIs('staff.*') || request()->is('staff/*')) {
+            \Illuminate\Support\Facades\View::replaceNamespace('admins', [
+                resource_path('views/staffs/admin-bridge'), // <— sẽ chứa layouts/app.blade.php “đội lốt” admin
+                resource_path('views/admins'),
+            ]);
+        } else {
+            \Illuminate\Support\Facades\View::replaceNamespace('admins', [
+                resource_path('views/admins'),
+            ]);
+        }
+        View::composer('*', function () {
+            if (request()->is('staff/*')) {
+                View::replaceNamespace('admins', [
+                    resource_path('views/staffs/admin-bridge'),
+                    resource_path('views/admins'),
+                ]);
+            } else {
+                View::replaceNamespace('admins', [
+                    resource_path('views/admins'),
+                ]);
+            }
+        });
+        if (request()->is('staff/*')) {
+            app('view')->getFinder()->prependLocation(
+                resource_path('views/staffs/admin-bridge')
+            );
+        }
     }
 }

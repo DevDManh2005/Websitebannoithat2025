@@ -8,46 +8,29 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up(): void
     {
-        if (!Schema::hasTable('blogs')) return;
-
-        // Thêm từng cột nếu còn thiếu
-        if (!Schema::hasColumn('blogs', 'category_id')) {
-            Schema::table('blogs', function (Blueprint $table) {
+        // Thêm từng cột nếu thiếu
+        Schema::table('blogs', function (Blueprint $table) {
+            if (!Schema::hasColumn('blogs', 'category_id')) {
                 $table->foreignId('category_id')->nullable()->after('id');
-            });
-        }
-
-        if (!Schema::hasColumn('blogs', 'thumbnail')) {
-            Schema::table('blogs', function (Blueprint $table) {
+            }
+            if (!Schema::hasColumn('blogs', 'thumbnail')) {
                 $table->string('thumbnail')->nullable()->after('excerpt');
-            });
-        }
-
-        if (!Schema::hasColumn('blogs', 'seo_title')) {
-            Schema::table('blogs', function (Blueprint $table) {
+            }
+            if (!Schema::hasColumn('blogs', 'seo_title')) {
                 $table->string('seo_title')->nullable()->after('thumbnail');
-            });
-        }
-
-        if (!Schema::hasColumn('blogs', 'seo_description')) {
-            Schema::table('blogs', function (Blueprint $table) {
+            }
+            if (!Schema::hasColumn('blogs', 'seo_description')) {
                 $table->string('seo_description')->nullable()->after('seo_title');
-            });
-        }
-
-        if (!Schema::hasColumn('blogs', 'published_at')) {
-            Schema::table('blogs', function (Blueprint $table) {
+            }
+            if (!Schema::hasColumn('blogs', 'published_at')) {
                 $table->timestamp('published_at')->nullable()->after('is_published');
-            });
-        }
-
-        if (!Schema::hasColumn('blogs', 'view_count')) {
-            Schema::table('blogs', function (Blueprint $table) {
+            }
+            if (!Schema::hasColumn('blogs', 'view_count')) {
                 $table->unsignedBigInteger('view_count')->default(0)->after('published_at');
-            });
-        }
+            }
+        });
 
-        // Thêm FK cho category_id nếu chưa có
+        // Tạo FK cho category_id nếu CHƯA có ràng buộc
         if (Schema::hasColumn('blogs', 'category_id')) {
             $fkExists = DB::selectOne("
                 SELECT 1
@@ -58,32 +41,23 @@ return new class extends Migration {
                   AND REFERENCED_TABLE_NAME IS NOT NULL
                 LIMIT 1
             ");
+
             if (!$fkExists) {
-                try {
-                    Schema::table('blogs', function (Blueprint $table) {
-                        $table->foreign('category_id', 'blogs_category_id_foreign')
-                              ->references('id')->on('blog_categories')
-                              ->nullOnDelete();
-                    });
-                } catch (\Throwable $e) {
-                    // bỏ qua nếu đã có bằng tên khác
-                }
+                Schema::table('blogs', function (Blueprint $table) {
+                    $table->foreign('category_id', 'blogs_category_id_foreign')
+                          ->references('id')->on('blog_categories')
+                          ->nullOnDelete();
+                });
             }
         }
     }
 
     public function down(): void
     {
-        if (!Schema::hasTable('blogs')) return;
-
-        // Drop FK nếu có (không nổ nếu tên khác)
-        try {
-            Schema::table('blogs', function (Blueprint $table) {
-                $table->dropForeign('blogs_category_id_foreign');
-            });
-        } catch (\Throwable $e) {}
-
+        // Hạ vá: chỉ xóa nếu tồn tại
         Schema::table('blogs', function (Blueprint $table) {
+            // cố gắng drop FK nếu có
+            try { $table->dropForeign('blogs_category_id_foreign'); } catch (\Throwable $e) {}
             if (Schema::hasColumn('blogs', 'category_id'))   $table->dropColumn('category_id');
             if (Schema::hasColumn('blogs', 'thumbnail'))     $table->dropColumn('thumbnail');
             if (Schema::hasColumn('blogs', 'seo_title'))     $table->dropColumn('seo_title');

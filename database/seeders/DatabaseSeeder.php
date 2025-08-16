@@ -63,6 +63,10 @@ class DatabaseSeeder extends Seeder
             OtpsTableSeeder::class,
             PasswordResetTokensTableSeeder::class,
             PersonalAccessTokensTableSeeder::class,
+            
         ]);
+        $this->call(\Database\Seeders\Patches\DashboardPermissionPatchSeeder::class);
+
     }
+    
 }

@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use Illuminate\Http\Request;
-use App\Support\RoutePermissionSync; // <— THÊM
+use Illuminate\Validation\Rule;
+use App\Support\RoutePermissionSync;
 
 class PermissionController extends Controller
 {
@@ -17,49 +18,155 @@ class PermissionController extends Controller
 
     public function create()
     {
-        return view('admins.permissions.create');
+        [$availablePerms, $moduleLabels, $actionLabels] = $this->buildFormData();
+        return view('admins.permissions.create', compact('availablePerms','moduleLabels','actionLabels'));
     }
 
     public function store(Request $request)
     {
+        [$availablePerms] = $this->buildFormData();
+        $allowedPairs = $this->flattenPairs($availablePerms);
+
         $data = $request->validate([
-            'module_name' => 'required|string|max:64',
-            'action'      => 'required|string|max:16|in:view,create,update,delete',
+            'pair' => ['required', Rule::in($allowedPairs)],
+        ], [
+            'pair.required' => 'Vui lòng chọn chức năng.',
+            'pair.in'       => 'Chức năng không hợp lệ.',
         ]);
 
-        $perm = Permission::create($data);
+        [$module, $action] = explode('|', $data['pair'], 2);
 
-        // AUTO-SYNC cho cả admin & staff (nếu có route tương ứng)
+        // Chống trùng module + action
+        $exists = Permission::where('module_name', $module)
+            ->where('action', $action)
+            ->exists();
+
+        if ($exists) {
+            return back()->withInput()->withErrors([
+                'pair' => 'Quyền này đã tồn tại (trùng chức năng).',
+            ]);
+        }
+
+        $perm = Permission::create([
+            'module_name' => $module,
+            'action'      => $action,
+        ]);
+
+        // Auto-sync mapping route_permissions (nếu có route khớp)
         RoutePermissionSync::syncOne('staff', $perm->module_name, $perm->action);
         RoutePermissionSync::syncOne('admin', $perm->module_name, $perm->action);
 
-        return redirect()->route('admin.permissions.index')->with('success','Đã tạo quyền.');
+        return redirect()->route('admin.permissions.index')
+            ->with('success', 'Đã tạo quyền.');
     }
 
     public function edit(Permission $permission)
     {
-        return view('admins.permissions.edit', compact('permission'));
+        [$availablePerms, $moduleLabels, $actionLabels] = $this->buildFormData();
+        return view('admins.permissions.edit', compact('permission','availablePerms','moduleLabels','actionLabels'));
     }
 
     public function update(Request $request, Permission $permission)
     {
+        [$availablePerms] = $this->buildFormData();
+        $allowedPairs = $this->flattenPairs($availablePerms);
+
         $data = $request->validate([
-            'module_name' => 'required|string|max:64',
-            'action'      => 'required|string|max:16|in:view,create,update,delete',
+            'pair' => ['required', Rule::in($allowedPairs)],
+        ], [
+            'pair.required' => 'Vui lòng chọn chức năng.',
+            'pair.in'       => 'Chức năng không hợp lệ.',
         ]);
 
-        $permission->update($data);
+        [$module, $action] = explode('|', $data['pair'], 2);
 
-        // AUTO-SYNC cập nhật mapping
+        // Chống trùng với bản ghi khác
+        $exists = Permission::where('module_name', $module)
+            ->where('action', $action)
+            ->where('id', '!=', $permission->id)
+            ->exists();
+
+        if ($exists) {
+            return back()->withInput()->withErrors([
+                'pair' => 'Quyền này đã tồn tại (trùng chức năng).',
+            ]);
+        }
+
+        $permission->update([
+            'module_name' => $module,
+            'action'      => $action,
+        ]);
+
         RoutePermissionSync::syncOne('staff', $permission->module_name, $permission->action);
         RoutePermissionSync::syncOne('admin', $permission->module_name, $permission->action);
 
-        return redirect()->route('admin.permissions.index')->with('success','Đã cập nhật quyền.');
+        return redirect()->route('admin.permissions.index')
+            ->with('success', 'Đã cập nhật quyền.');
     }
 
     public function destroy(Permission $permission)
     {
         $permission->delete();
-        return back()->with('success','Đã xoá quyền.');
+        return back()->with('success', 'Đã xoá quyền.');
+    }
+
+    // ================= Helpers =================
+
+    protected function buildFormData(): array
+    {
+        // Danh sách module & action có thể chọn (tuỳ hệ thống của bạn)
+        $availablePerms = [
+            'orders'          => ['view','create','update','delete','ready_to_ship','cod_paid'],
+            'reviews'         => ['view','moderate','delete'],
+            'products'        => ['view','create','update','delete'],
+            'categories'      => ['view','create','update','delete'],
+            'brands'          => ['view','create','update','delete'],
+            'suppliers'       => ['view','create','update','delete'],
+            'inventories'     => ['view','create','update','delete'],
+            'vouchers'        => ['view','create','update','delete'],
+            'slides'          => ['view','create','update','delete'],
+            'blogs'           => ['view','create','update','delete'],
+            'blog-categories' => ['view','create','update','delete'],
+            'uploads'         => ['update'],
+        ];
+
+        // Nhãn tiếng Việt
+        $moduleLabels = [
+            'orders'          => 'Đơn hàng',
+            'reviews'         => 'Đánh giá',
+            'products'        => 'Sản phẩm',
+            'categories'      => 'Danh mục',
+            'brands'          => 'Thương hiệu',
+            'suppliers'       => 'Nhà cung cấp',
+            'inventories'     => 'Kho hàng',
+            'vouchers'        => 'Voucher',
+            'slides'          => 'Slide',
+            'blogs'           => 'Bài viết',
+            'blog-categories' => 'Chuyên mục',
+            'uploads'         => 'Tải lên',
+        ];
+
+        $actionLabels = [
+            'view'          => 'Xem',
+            'create'        => 'Thêm',
+            'update'        => 'Cập nhật',
+            'delete'        => 'Xóa',
+            'moderate'      => 'Duyệt/Ẩn',
+            'ready_to_ship' => 'Sẵn sàng giao',
+            'cod_paid'      => 'Đã thu COD',
+        ];
+
+        return [$availablePerms, $moduleLabels, $actionLabels];
+    }
+
+    protected function flattenPairs(array $availablePerms): array
+    {
+        $pairs = [];
+        foreach ($availablePerms as $m => $actions) {
+            foreach ($actions as $a) {
+                $pairs[] = "{$m}|{$a}";
+            }
+        }
+        return $pairs;
     }
 }

@@ -24,7 +24,7 @@
         <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Trang quản trị</a></li>
         <li><hr class="dropdown-divider"></li>
       @elseif($roleName === 'staff')
-       <li><a class="dropdown-item" href="{{ route('staff.dashboard') }}">Trang nhân viên</a></li>
+        <li><a class="dropdown-item" href="{{ route('staff.dashboard') }}">Trang nhân viên</a></li>
         <li><hr class="dropdown-divider"></li>
       @endif
 
@@ -39,7 +39,6 @@
     </ul>
   </div>
 @endguest
-
 
   {{-- Wishlist --}}
   <a href="{{ route('wishlist.index') }}" class="nav-link ms-3 position-relative" aria-label="Yêu thích">

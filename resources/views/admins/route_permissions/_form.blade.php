@@ -1,30 +1,175 @@
-@csrf
-<div class="row g-3">
-  <div class="col-md-6">
-    <label class="form-label">Route name <span class="text-danger">*</span></label>
-    <select name="route_name" class="form-select" required>
-      <option value="">-- Chọn route --</option>
-      @foreach($routes as $name => $label)
-        <option value="{{ $name }}" @selected(old('route_name', $rp->route_name ?? '') === $name)>{{ $label }}</option>
+@php
+use Illuminate\Support\Str;
+
+/**
+ * Biến mong đợi từ controller (đều có fallback an toàn):
+ * - $routesByArea: [ 'admin' => ['admin.orders.index', ...], 'staff' => ['staff.orders.index', ...] ]
+ * - $availablePerms: [ 'orders' => ['view','create','update','delete','ready_to_ship','cod_paid'], ... ]
+ * - $moduleLabels: [ 'orders' => 'Đơn hàng', ... ]
+ * - $actionLabels: [ 'view' => 'Xem', 'create' => 'Thêm', ... ]
+ * - $routePermission (optional khi edit)
+ */
+$routesByArea    = $routesByArea    ?? [];
+$availablePerms  = $availablePerms  ?? [];
+$moduleLabels    = $moduleLabels    ?? [];
+$actionLabels    = $actionLabels    ?? [];
+
+$selectedRoute   = old('route_name', $routePermission->route_name ?? '');
+$selectedArea    = old('area', $routePermission->area ?? (Str::startsWith($selectedRoute, 'admin.') ? 'admin' : (Str::startsWith($selectedRoute, 'staff.') ? 'staff' : 'staff')));
+$selectedPair    = old('pair') ?? (isset($routePermission) ? ($routePermission->module_name.'|'.$routePermission->action) : '');
+$isActive        = old('is_active', isset($routePermission) ? (int)$routePermission->is_active : 1);
+
+$pairHasError    = $errors->has('pair') || $errors->has('module_name') || $errors->has('action');
+$routeHasError   = $errors->has('route_name');
+$areaHasError    = $errors->has('area');
+@endphp
+
+{{-- ROUTE NAME --}}
+<div class="mb-3">
+  <label class="form-label">Route <span class="text-danger">*</span></label>
+  @php
+    $hasPreset = count($routesByArea) > 0;
+  @endphp
+
+  @if($hasPreset)
+    <select id="route_name" name="route_name" class="form-select {{ $routeHasError ? 'is-invalid' : '' }}" required>
+      <option value="">— Chọn route —</option>
+      @foreach($routesByArea as $area => $routes)
+        <optgroup label="{{ strtoupper($area) }}">
+          @foreach($routes as $r)
+            <option value="{{ $r }}" @selected($selectedRoute === $r)>{{ $r }}</option>
+          @endforeach
+        </optgroup>
       @endforeach
     </select>
-    <div class="form-text">Chỉ hiển thị các route <code>admin.*</code> và <code>staff.*</code>.</div>
-  </div>
+  @else
+    <input type="text" id="route_name" name="route_name" class="form-control {{ $routeHasError ? 'is-invalid' : '' }}"
+           value="{{ $selectedRoute }}" placeholder="VD: staff.orders.index" required>
+  @endif
 
-  <div class="col-md-3">
-    <label class="form-label">Module <span class="text-danger">*</span></label>
-    <input type="text" name="module_name" class="form-control"
-           value="{{ old('module_name', $rp->module_name ?? '') }}" placeholder="vd: orders, products…" required>
-  </div>
-
-  <div class="col-md-3">
-    <label class="form-label">Action <span class="text-danger">*</span></label>
-    <input type="text" name="action" class="form-control"
-           value="{{ old('action', $rp->action ?? '') }}" placeholder="vd: view, create, update, delete…" required>
-  </div>
+  @if($routeHasError)
+    <div class="invalid-feedback d-block">{{ $errors->first('route_name') }}</div>
+  @endif
+  <div class="form-text">Chọn/thêm tên route (ví dụ: <code>staff.orders.index</code>, <code>admin.products.update</code>…)</div>
 </div>
 
-<div class="mt-3">
-  <button class="btn btn-primary">Lưu</button>
+{{-- AREA --}}
+<div class="mb-3">
+  <label class="form-label">Khu vực <span class="text-danger">*</span></label>
+  <select id="area" name="area" class="form-select {{ $areaHasError ? 'is-invalid' : '' }}" required>
+    <option value="staff" @selected($selectedArea==='staff')>Staff</option>
+    <option value="admin" @selected($selectedArea==='admin')>Admin</option>
+  </select>
+  @if($areaHasError)
+    <div class="invalid-feedback d-block">{{ $errors->first('area') }}</div>
+  @endif
+</div>
+
+{{-- CHỨC NĂNG (MODULE + ACTION) --}}
+<div class="mb-3">
+  <label class="form-label">Chức năng <span class="text-danger">*</span></label>
+  <select id="pair" name="pair" class="form-select {{ $pairHasError ? 'is-invalid' : '' }}" required>
+    <option value="">— Chọn chức năng —</option>
+    @foreach($availablePerms as $module => $actions)
+      @php $ml = $moduleLabels[$module] ?? Str::headline($module); @endphp
+      <optgroup label="{{ $ml }}">
+        @foreach($actions as $a)
+          @php $al = $actionLabels[$a] ?? Str::headline(str_replace('_',' ', $a)); @endphp
+          <option value="{{ $module }}|{{ $a }}" @selected($selectedPair === $module.'|'.$a)>
+            {{ $al.' '.$ml }}
+          </option>
+        @endforeach
+      </optgroup>
+    @endforeach
+  </select>
+  <div class="form-text">Ví dụ: <em>Thêm Sản phẩm</em>, <em>Xem Đơn hàng</em>, <em>Sẵn sàng giao Đơn hàng</em>…</div>
+
+  {{-- lỗi hiển thị ngay dưới select --}}
+  @if($errors->first('pair') || $errors->first('module_name') || $errors->first('action'))
+    <div class="invalid-feedback d-block">
+      {{ $errors->first('pair') ?? $errors->first('module_name') ?? $errors->first('action') }}
+    </div>
+  @endif
+</div>
+
+{{-- is_active --}}
+<div class="form-check form-switch mb-3">
+  <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" @checked((int)$isActive === 1)>
+  <label class="form-check-label" for="is_active">Kích hoạt</label>
+</div>
+
+{{-- Hidden sync xuống DB --}}
+<input type="hidden" name="module_name" id="module_name" value="{{ old('module_name', $routePermission->module_name ?? '') }}">
+<input type="hidden" name="action" id="action" value="{{ old('action', $routePermission->action ?? '') }}">
+
+<div class="d-flex justify-content-between align-items-center mt-3">
   <a href="{{ route('admin.route-permissions.index') }}" class="btn btn-light">Hủy</a>
+  <button class="btn btn-primary">{{ isset($routePermission) ? 'Cập nhật' : 'Lưu' }}</button>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const routeSel = document.getElementById('route_name');
+  const areaSel  = document.getElementById('area');
+  const pairSel  = document.getElementById('pair');
+  const modInput = document.getElementById('module_name');
+  const actInput = document.getElementById('action');
+
+  function syncPairToHidden(){
+    const v = pairSel.value || '';
+    if(!v.includes('|')) { modInput.value=''; actInput.value=''; return; }
+    const parts = v.split('|');
+    modInput.value = parts[0] || '';
+    actInput.value = parts[1] || '';
+  }
+
+  function guessActionFromRest(rest){
+    const s = (rest || '').toLowerCase();
+    if (['index','show'].includes(s)) return 'view';
+    if (['create','store'].includes(s)) return 'create';
+    if (['edit','update'].includes(s)) return 'update';
+    if (['destroy','delete','remove'].includes(s)) return 'delete';
+    if (s.includes('toggle') || s.includes('status') || s.includes('approve')) return 'update';
+    if (s.includes('ready') || s.includes('ship')) return 'ready_to_ship';
+    if (s.includes('cod') && (s.includes('paid') || s.includes('pay'))) return 'cod_paid';
+    if (s.includes('moderate')) return 'moderate';
+    if (s.includes('view') || s.includes('list') || s.includes('detail')) return 'view';
+    return '';
+  }
+
+  function onRouteChanged(){
+    const v = (routeSel && routeSel.value) ? routeSel.value : (routeSel ? routeSel.value : '');
+    if(!v) return;
+
+    // đoán area theo prefix
+    if (v.startsWith('admin.')) areaSel.value = 'admin';
+    else if (v.startsWith('staff.')) areaSel.value = 'staff';
+
+    // tách module + rest để thử preselect pair
+    const parts = v.split('.');
+    if (parts.length >= 3){
+      const module = parts[1];
+      const rest   = parts[2] || '';
+      const guessed = guessActionFromRest(rest);
+
+      if(module && guessed){
+        const candidate = module + '|' + guessed;
+        const opt = [...pairSel.options].find(o => o.value === candidate);
+        if (opt) {
+          pairSel.value = candidate;
+          syncPairToHidden();
+          return;
+        }
+      }
+    }
+    // nếu không đoán được thì không đổi selection
+  }
+
+  if (pairSel) pairSel.addEventListener('change', syncPairToHidden);
+  if (routeSel) routeSel.addEventListener('change', onRouteChanged);
+
+  // Prefill khi edit
+  syncPairToHidden();
+  onRouteChanged();
+});
+</script>

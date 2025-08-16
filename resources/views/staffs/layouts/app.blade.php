@@ -1,221 +1,204 @@
+@php
+    // $staffMenu được inject sẵn từ AppServiceProvider (View::composer('staffs.*', ...))
+    $menu    = $staffMenu ?? collect();
+    $appName = config('app.name', 'Staff Panel');
+    $user    = \Illuminate\Support\Facades\Auth::user();
+@endphp
 <!doctype html>
 <html lang="vi">
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Staff • EternaHome</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@yield('title', 'Bảng điều khiển') — {{ $appName }}</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    {{-- Bootstrap + Icons (CDN) --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-  <style>
-    :root {
-      --side: 240px
-    }
+    <style>
+        :root { --sidebar-width: 240px; }
+        body { min-height: 100vh; }
+        .layout {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+        }
+        .sidebar {
+            background: #0f172a; /* slate-900 */
+            color: #cbd5e1;      /* slate-300 */
+            min-height: 100vh;
+        }
+        .sidebar .brand {
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+        .sidebar a.nav-link {
+            color: #cbd5e1;
+            border-radius: .5rem;
+        }
+        .sidebar a.nav-link:hover { background: rgba(255,255,255,.08); color:#fff; }
+        .sidebar a.nav-link.active { background: #2563eb; color:#fff; }
+        .content {
+            background: #f8fafc; /* slate-50 */
+            min-height: 100vh;
+        }
+        .page-header {
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+        }
+        .chip {
+            display:inline-block; padding:.25rem .5rem; border-radius:999px;
+            background:#fee2e2; color:#b91c1c; font-size:.775rem; margin:.125rem;
+        }
+        @media (max-width: 991.98px) {
+            :root { --sidebar-width: 0; }
+            .layout { grid-template-columns: 1fr; }
+            .sidebar {
+                position: fixed; inset: 0 auto 0 0; width: 280px; transform: translateX(-100%);
+                z-index: 1040; transition: .2s ease;
+            }
+            .sidebar.show { transform: translateX(0); }
+            .sidebar-backdrop {
+                position: fixed; inset:0; background: rgba(15,23,42,.45); z-index:1039; display:none;
+            }
+            .sidebar-backdrop.show { display:block; }
+        }
+    </style>
 
-    body {
-      background: #f7f8fb
-    }
-
-    .sidebar {
-      width: var(--side);
-      min-height: 100vh;
-      background: #fff;
-      border-right: 1px solid #eef0f4
-    }
-
-    .sidebar .brand {
-      font-weight: 700
-    }
-
-    .sidebar .nav-link {
-      border-radius: .6rem;
-      color: #334155;
-      font-weight: 500
-    }
-
-    .sidebar .nav-link.active,
-    .sidebar .nav-link:hover {
-      background: #eef2ff;
-      color: #4338ca
-    }
-
-    .content {
-      margin-left: var(--side);
-      min-height: 100vh
-    }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      background: #fff;
-      border-bottom: 1px solid #eef0f4
-    }
-
-    .card.clean {
-      border: 0;
-      border-radius: 1rem;
-      box-shadow: 0 8px 26px rgba(15, 23, 42, .06)
-    }
-
-    .chip {
-      display: inline-block;
-      padding: .25rem .6rem;
-      border-radius: 999px;
-      background: #fff1f2;
-      color: #be123c;
-      border: 1px dashed #fecdd3;
-      font-size: .85rem;
-      margin: .25rem .35rem .35rem 0
-    }
-  </style>
-
-  @yield('styles')
+    @stack('styles')
 </head>
-
 <body>
-  @php
-  // Helper an toàn: chỉ tạo link khi route staff.* tồn tại
-  $r = fn($name, $params = []) => \Illuminate\Support\Facades\Route::has($name) ? route($name, $params) : '#';
-  $is = fn($pattern) => request()->routeIs($pattern) ? 'active' : '';
-  $mods = collect($viewableModules ?? []);
-@endphp
 
-  <aside class="sidebar position-fixed p-3">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <a href="{{ $r('staff.dashboard') }}" class="text-decoration-none brand">EternaHome</a>
-      <i class="ri-shield-user-line fs-4 text-primary"></i>
-    </div>
+<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
-    <nav class="nav flex-column gap-1">
-      <a class="nav-link {{ $is('staff.dashboard') }}" href="{{ $r('staff.dashboard') }}">
-        <i class="ri-dashboard-3-line me-2"></i> Bảng điều khiển
-      </a>
+<div class="layout">
+    {{-- SIDEBAR --}}
+    <aside id="sidebar" class="sidebar p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <a class="brand text-decoration-none" href="{{ route('staff.dashboard') }}">
+                {{ $appName }} • Staff
+            </a>
+            <button class="btn btn-sm btn-outline-light d-lg-none" type="button" id="btnCloseSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
 
-      @if($mods->contains('orders'))
-      <a class="nav-link {{ $is('staff.orders.*') }}" href="{{ $r('staff.orders.index') }}">
-      <i class="ri-bill-line me-2"></i> Đơn hàng
-      </a>
-    @endif
+        <nav class="nav flex-column gap-1">
+            <a class="nav-link {{ request()->routeIs('staff.dashboard') ? 'active' : '' }}"
+               href="{{ route('staff.dashboard') }}">
+                <i class="bi bi-speedometer2 me-2"></i> Bảng điều khiển
+            </a>
 
-      @if($mods->contains('products'))
-      <a class="nav-link {{ $is('staff.products.*') }}" href="{{ $r('staff.products.index') }}">
-      <i class="ri-price-tag-3-line me-2"></i> Sản phẩm
-      </a>
-    @endif
+            {{-- Menu động từ $staffMenu --}}
+            @foreach($menu as $item)
+                @php
+                    $routeVal = $item['route'] ?? null;
 
-      @if($mods->contains('inventories'))
-      <a class="nav-link {{ $is('staff.inventories.*') }}" href="{{ $r('staff.inventories.index') }}">
-      <i class="ri-archive-2-line me-2"></i> Tồn kho
-      </a>
-    @endif
+                    // Resolve tên route/URL an toàn (không dùng "use" trong Blade)
+                    $href = '#';
+                    if ($routeVal) {
+                        if (\Illuminate\Support\Facades\Route::has($routeVal)) {
+                            $href = route($routeVal);
+                        } elseif (\Illuminate\Support\Str::startsWith($routeVal, ['http://', 'https://', '/'])) {
+                            $href = $routeVal;
+                        } else {
+                            $href = url($routeVal);
+                        }
+                    }
 
-      @if($mods->contains('categories'))
-      <a class="nav-link {{ $is('staff.categories.*') }}" href="{{ $r('staff.categories.index') }}">
-      <i class="ri-folder-2-line me-2"></i> Danh mục
-      </a>
-    @endif
+                    $active = ($item['active'] ?? false) ? 'active' : '';
+                    $icon   = $item['icon'] ?? 'bi-circle';
+                    $label  = $item['label'] ?? 'Mục';
+                @endphp
 
-      @if($mods->contains('brands'))
-      <a class="nav-link {{ $is('staff.brands.*') }}" href="{{ $r('staff.brands.index') }}">
-      <i class="ri-vip-crown-line me-2"></i> Thương hiệu
-      </a>
-    @endif
+                <a class="nav-link {{ $active }}" href="{{ $href }}">
+                    <i class="bi {{ $icon }} me-2"></i> {{ $label }}
+                </a>
+            @endforeach
 
-      @if($mods->contains('suppliers'))
-      <a class="nav-link {{ $is('staff.suppliers.*') }}" href="{{ $r('staff.suppliers.index') }}">
-      <i class="ri-team-line me-2"></i> Nhà cung cấp
-      </a>
-    @endif
+            {{-- Tuỳ chọn: mục “Quyền” nếu đã cấp --}}
+            @perm('permissions','view')
+                <a class="nav-link {{ request()->routeIs('staff.permissions.*') ? 'active' : '' }}"
+                   href="{{ route('staff.permissions.index') }}">
+                    <i class="bi bi-shield-check me-2"></i> Quyền
+                </a>
+            @endperm
+            @perm('route_permissions','view')
+                <a class="nav-link {{ request()->routeIs('staff.route-permissions.*') ? 'active' : '' }}"
+                   href="{{ route('staff.route-permissions.index') }}">
+                    <i class="bi bi-diagram-3 me-2"></i> Route ↔ Permission
+                </a>
+            @endperm
+        </nav>
+    </aside>
 
-      @if($mods->contains('vouchers'))
-      <a class="nav-link {{ $is('staff.vouchers.*') }}" href="{{ $r('staff.vouchers.index') }}">
-      <i class="ri-ticket-2-line me-2"></i> Voucher
-      </a>
-    @endif
+    {{-- MAIN --}}
+    <main class="content">
+        {{-- Topbar --}}
+        <div class="bg-white py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary d-lg-none" id="btnOpenSidebar" type="button">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="h5 mb-0">@yield('title','Bảng điều khiển')</h1>
+            </div>
 
-      @if($mods->contains('reviews'))
-      <a class="nav-link {{ $is('staff.reviews.*') }}" href="{{ $r('staff.reviews.index') }}">
-      <i class="ri-star-smile-line me-2"></i> Đánh giá
-      </a>
-    @endif
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted d-none d-sm-inline">Xin chào, {{ $user?->name }}</span>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" type="button">
+                        <i class="bi bi-person-circle"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ route('profile.show') }}">Tài khoản</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                @csrf
+                                <button class="dropdown-item" type="submit">Đăng xuất</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-      @if($mods->contains('slides'))
-      <a class="nav-link {{ $is('staff.slides.*') }}" href="{{ $r('staff.slides.index') }}">
-      <i class="ri-slideshow-2-line me-2"></i> Slides
-      </a>
-    @endif
+        {{-- Content --}}
+        <div class="container-fluid py-3">
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <div class="fw-semibold mb-1">Có lỗi xảy ra:</div>
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+                    </ul>
+                </div>
+            @endif
 
-      @if($mods->contains('blog-categories') || $mods->contains('blogs'))
-      <div class="mt-3 small text-uppercase text-secondary fw-bold ms-2">Blog</div>
-      @if($mods->contains('blog-categories'))
-      <a class="nav-link {{ $is('staff.blog-categories.*') }}" href="{{ $r('staff.blog-categories.index') }}">
-      <i class="ri-price-tag-2-line me-2"></i> Chuyên mục
-      </a>
-    @endif
-      @if($mods->contains('blogs'))
-      <a class="nav-link {{ $is('staff.blogs.*') }}" href="{{ $r('staff.blogs.index') }}">
-      <i class="ri-article-line me-2"></i> Bài viết
-      </a>
-    @endif
-      @if($mods->contains('banners'))
-      <a class="nav-link {{ $is('staff.banners.*') }}" href="{{ $r('staff.banners.index') }}">
-      <i class="ri-image-2-line me-2"></i> Banners
-      </a>
-    @endif
-      @if($mods->contains('pages'))
-      <a class="nav-link {{ $is('staff.pages.*') }}" href="{{ $r('staff.pages.index') }}">
-      <i class="ri-file-text-line me-2"></i> Trang nội dung
-      </a>
-    @endif
-
-      <div class="mt-3 small text-uppercase text-secondary fw-bold ms-2">Hệ thống</div>
-      @if($mods->contains('settings'))
-      <a class="nav-link {{ $is('staff.settings.*') }}" href="{{ $r('staff.settings.index') }}">
-      <i class="ri-settings-3-line me-2"></i> Cấu hình
-      </a>
-    @endif
-      @if($mods->contains('users'))
-      <a class="nav-link {{ $is('staff.users.*') }}" href="{{ $r('staff.users.index') }}">
-      <i class="ri-user-3-line me-2"></i> Người dùng
-      </a>
-    @endif
-      @if($mods->contains('staffs'))
-      <a class="nav-link {{ $is('staff.staffs.*') }}" href="{{ $r('staff.staffs.index') }}">
-      <i class="ri-shield-user-line me-2"></i> Nhân viên
-      </a>
-    @endif
-
-    @endif
-    </nav>
-  </aside>
-
-  <div class="content">
-    <header class="topbar py-2 px-3 d-flex align-items-center justify-content-between">
-      <div>@yield('breadcrumb')</div>
-      <div class="d-flex align-items-center gap-3">
-        <span class="text-secondary small d-none d-md-inline">Xin chào, {{ auth()->user()->name ?? 'Staff' }}</span>
-        <a class="btn btn-sm btn-outline-secondary" href="{{ route('logout') }}"
-          onclick="event.preventDefault();document.getElementById('logout-form').submit();">
-          <i class="ri-logout-circle-r-line me-1"></i> Đăng xuất
-        </a>
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
-      </div>
-    </header>
-
-    <main class="p-4">
-      @yield('content')
+            @yield('content')
+        </div>
     </main>
+</div>
 
-    <footer class="py-3 text-center text-secondary small">
-      © {{ date('Y') }} EternaHome • Staff
-    </footer>
-  </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const sidebar   = document.getElementById('sidebar');
+    const backdrop  = document.getElementById('sidebarBackdrop');
+    const openBtn   = document.getElementById('btnOpenSidebar');
+    const closeBtn  = document.getElementById('btnCloseSidebar');
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  @yield('scripts')
+    function openSidebar(){ sidebar.classList.add('show'); backdrop.classList.add('show'); }
+    function closeSidebar(){ sidebar.classList.remove('show'); backdrop.classList.remove('show'); }
+
+    openBtn?.addEventListener('click', openSidebar);
+    closeBtn?.addEventListener('click', closeSidebar);
+    backdrop?.addEventListener('click', closeSidebar);
+</script>
+@stack('scripts')
 </body>
-
 </html>
