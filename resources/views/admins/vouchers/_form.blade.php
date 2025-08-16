@@ -36,7 +36,7 @@
         min="0" step="0.01"
     >
     <small id="valueHelp" class="form-text text-muted">
-        Nếu là %, nhập 10 cho 10%. Nếu là giá cố định, nhập số tiền (ví dụ: 50000).
+        Nếu là %, nhập giá trị từ 0 đến 50 (ví dụ: 10 = giảm 10%). Nếu là giá cố định, nhập số tiền (ví dụ: 50000).
     </small>
     @error('value') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
 </div>
@@ -102,60 +102,53 @@
 @push('scripts-page')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const typeEl  = document.getElementById('type');
+    const typeEl = document.getElementById('type');
     const valueEl = document.getElementById('value');
-    const helpEl  = document.getElementById('valueHelp');
+    const helpEl = document.getElementById('valueHelp');
     const MAX_PERCENT = 50;
+
+    function showAlert(message) {
+        if (window.Swal) {
+            Swal.fire({
+                toast: true,
+                icon: 'warning',
+                title: message,
+                timer: 1800,
+                showConfirmButton: false,
+                position: 'top-end'
+            });
+        } else {
+            alert(message); // Fallback nếu SweetAlert2 không khả dụng
+        }
+    }
 
     function syncHelpAndConstraints() {
         const isPercent = typeEl.value === 'percent';
-
-        // hint + ràng buộc UI
+        helpEl.textContent = isPercent
+            ? 'Nhập giá trị từ 0 đến 50 (ví dụ: 10 = giảm 10%).'
+            : 'Nhập số tiền giảm cố định (đơn vị VNĐ). Ví dụ: 50000.';
+        valueEl.setAttribute('step', isPercent ? '1' : '1000');
+        valueEl.setAttribute('min', '0');
         if (isPercent) {
-            helpEl.textContent = 'Nhập phần trăm giảm (tối đa 50%). Ví dụ: 10 = giảm 10%.';
-            valueEl.setAttribute('step', '1');
-            valueEl.setAttribute('min', '0');
-            valueEl.setAttribute('max', String(MAX_PERCENT));
-            // nếu đang vượt quá 50 thì cắt về 50 và báo
+            valueEl.setAttribute('max', MAX_PERCENT);
             const val = parseFloat(valueEl.value || '0');
             if (val > MAX_PERCENT) {
                 valueEl.value = MAX_PERCENT;
-                if (window.Swal) {
-                    Swal.fire({
-                        toast: true, icon: 'warning',
-                        title: 'Giảm theo % chỉ tối đa 50%',
-                        timer: 1800, showConfirmButton: false, position: 'top-end'
-                    });
-                }
+                showAlert('Mức giảm theo % không được vượt quá 50%');
             }
         } else {
-            helpEl.textContent = 'Nhập số tiền giảm cố định (đơn vị VNĐ). Ví dụ: 50000.';
-            valueEl.setAttribute('step', '1000');
-            valueEl.setAttribute('min', '0');
             valueEl.removeAttribute('max');
         }
     }
 
-    // live guard khi gõ
-    ['keyup','change','blur'].forEach(evt => {
+    ['keyup', 'change', 'blur'].forEach(evt => {
         valueEl.addEventListener(evt, () => {
             if (typeEl.value === 'percent') {
-                const v = parseFloat(valueEl.value || '0');
-                if (v > MAX_PERCENT) {
+                const val = parseFloat(valueEl.value || '0');
+                if (val > MAX_PERCENT) {
                     valueEl.value = MAX_PERCENT;
-                    if (window.Swal) {
-                        Swal.fire({
-                            toast: true, icon: 'warning',
-                            title: 'Mức giảm % không được vượt 50%',
-                            timer: 1600, showConfirmButton: false, position: 'top-end'
-                        });
-                    }
+                    showAlert('Mức giảm theo % không được vượt quá 50%');
                 }
-                if (v < 0) valueEl.value = 0;
-            } else {
-                // fixed: không âm
-                const v = parseFloat(valueEl.value || '0');
-                if (v < 0) valueEl.value = 0;
             }
         });
     });
@@ -163,18 +156,21 @@ document.addEventListener('DOMContentLoaded', function () {
     typeEl.addEventListener('change', syncHelpAndConstraints);
     syncHelpAndConstraints();
 
-    // Toast kết quả submit (nếu layout đã nạp SweetAlert2)
+    // Toast kết quả submit
     @if (session('success'))
     if (window.Swal) {
         Swal.fire({
-            toast: true, icon: 'success',
+            toast: true,
+            icon: 'success',
             title: @json(session('success')),
-            timer: 2000, showConfirmButton: false, position: 'top-end'
+            timer: 2000,
+            showConfirmButton: false,
+            position: 'top-end'
         });
     }
     @endif
 
-    // Nếu có lỗi validate -> báo tổng quát (chi tiết vẫn hiện dưới input)
+    // Nếu có lỗi validate
     @if ($errors->any())
     if (window.Swal) {
         Swal.fire({

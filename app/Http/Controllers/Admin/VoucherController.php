@@ -54,18 +54,27 @@ class VoucherController extends Controller
 
     public function update(Request $request, Voucher $voucher)
     {
-        $data = $request->validate([
-            'code' => 'required|string|unique:vouchers,code,' . $voucher->id,
-            'type' => 'required|in:percent,fixed',
-            'value' => 'required|numeric|min:0',
+        $validator = Validator::make($request->all(), [
+            'code'             => 'required|string|unique:vouchers,code,' . $voucher->id,
+            'type'             => 'required|in:percent,fixed',
+            'value'            => 'required|numeric|min:0',
             'min_order_amount' => 'nullable|numeric|min:0',
-            'usage_limit' => 'nullable|integer|min:1',
-            'start_at' => 'nullable|date',
-            'end_at' => 'nullable|date|after_or_equal:start_at',
-            'is_active' => 'boolean',
+            'usage_limit'      => 'nullable|integer|min:1',
+            'start_at'         => 'nullable|date',
+            'end_at'           => 'nullable|date|after_or_equal:start_at',
+            'is_active'        => 'boolean',
+        ], [
+            'value.max' => 'Mức giảm theo phần trăm chỉ được tối đa 50%.',
         ]);
-        $data['is_active'] = $request->has('is_active');
+
+        $validator->sometimes('value', 'max:50', function ($input) {
+            return $input->type === 'percent';
+        });
+
+        $data = $validator->validate();
+        $data['is_active'] = $request->boolean('is_active');
         $voucher->update($data);
+
         return redirect()->route('admin.vouchers.index')->with('success', 'Cập nhật voucher thành công.');
     }
 
