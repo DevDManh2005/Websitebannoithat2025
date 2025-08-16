@@ -85,8 +85,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="bio" class="form-label">Tiểu sử</label>
-                            <textarea class="form-control" id="bio" name="bio" rows="3">{{ old('bio', optional($user->profile)->bio) }}</textarea>
+                            <label for="address" class="form-label">Địa chỉ chi tiết</label>
+                            <textarea class="form-control" id="address" name="address" rows="3">{{ old('address', optional($user->profile)->address) }}</textarea>
                         </div>
                     </div>
                 </div>

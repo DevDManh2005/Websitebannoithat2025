@@ -36,7 +36,7 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'dob' => 'nullable|date|before:today',
             'gender' => ['nullable', Rule::in(['Nam', 'Nữ', 'Khác'])],
-            'bio' => 'nullable|string|max:1000',
+            'address' => 'nullable|string|max:1000',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'avatar_url' => 'nullable|url'
         ]);
@@ -44,7 +44,7 @@ class ProfileController extends Controller
         $profileData = $request->only([
             'dob',
             'gender',
-            'bio',
+            'address',
             'province_name',
             'district_name',
             'ward_name'

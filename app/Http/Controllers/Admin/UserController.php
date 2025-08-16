@@ -47,7 +47,7 @@ class UserController extends Controller
             'province_name' => 'nullable|string',
             'district_name' => 'nullable|string',
             'ward_name' => 'nullable|string',
-            'bio' => 'nullable|string',
+            'address' => 'nullable|string',
         ]);
 
         // 1) Update bảng users
@@ -67,7 +67,7 @@ class UserController extends Controller
                 'province_name' => $data['province_name'] ?? null,
                 'district_name' => $data['district_name'] ?? null,
                 'ward_name' => $data['ward_name'] ?? null,
-                'bio' => $data['bio'] ?? null,
+                'address' => $data['address'] ?? null,
             ]
         );
 

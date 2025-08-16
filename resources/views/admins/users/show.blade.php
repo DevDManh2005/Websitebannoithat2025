@@ -62,8 +62,8 @@
                             @endif
                         </dd>
 
-                        <dt class="col-sm-4">Tiểu sử:</dt>
-                        <dd class="col-sm-8">{{ optional($user->profile)->bio ?? 'Chưa cập nhật' }}</dd>
+                        <dt class="col-sm-4">Địa chỉ chi tiết:</dt>
+                        <dd class="col-sm-8">{{ optional($user->profile)->address ?? 'Chưa cập nhật' }}</dd>
                         
                         <dt class="col-sm-4">Ngày tham gia:</dt>
                         <dd class="col-sm-8">{{ $user->created_at->format('d/m/Y H:i') }}</dd>

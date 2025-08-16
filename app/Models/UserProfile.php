@@ -37,7 +37,7 @@ class UserProfile extends Model
         'district_name',
         'ward_id',
         'ward_name',
-        'bio',
+        'address',
     ];
 
     // Thêm casts để Laravel tự động ép kiểu khi truy vấn

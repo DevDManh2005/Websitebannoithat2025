@@ -26,7 +26,7 @@ class UserProfilesTableSeeder extends Seeder
                 'avatar' => 'avatars/kggHBrKAjvSddMxcOi3o9DhPEj21wsZmxqQ5PgZe.png',
                 'dob' => '2013-06-29',
                 'gender' => 'Nam',
-                'bio' => NULL,
+                'address' => NULL,
                 'created_at' => '2025-08-06 13:14:53',
                 'updated_at' => '2025-08-09 21:25:39',
                 'province_id' => NULL,

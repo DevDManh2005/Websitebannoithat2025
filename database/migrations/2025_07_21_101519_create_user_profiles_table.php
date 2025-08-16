@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->string('avatar')->nullable();
             $table->date('dob')->nullable();
             $table->string('gender')->nullable();
-            $table->text('bio')->nullable();
+            $table->text('address')->nullable();
             $table->timestamps();
         });
     }
