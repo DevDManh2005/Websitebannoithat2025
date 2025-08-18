@@ -19,7 +19,6 @@
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
-
   <style>
     :root {
       --brand: #A20E38;
@@ -38,43 +37,43 @@
       backdrop-filter: blur(6px) saturate(1.1);
     }
 
-    /* ===== Mega menu (catmega) – canh giữa theo trigger ===== */
+    /* ===== Mega menu (catmega) – CSS cho danh mục dropdown ===== */
+    /* Đặt vị trí tương đối cho navbar để chứa menu */
     .navbar {
       position: relative;
     }
 
-    /* toạ độ tuyệt đối của menu bám theo navbar */
+    /* Đảm bảo các phần tử con của navbar không bị cắt nội dung */
     .navbar * {
       overflow: visible !important;
     }
 
-    /* tránh ancestor cắt menu */
+    /* Đặt nav-item dropdown mega ở vị trí tĩnh để menu có thể mở rộng */
     .nav-item.dropdown.mega {
       position: static !important;
     }
 
-    /* để .dropdown-menu có thể thoát khỏi li */
-
+    /* Cấu hình dropdown menu danh mục (catmega) */
     .dropdown-menu.catmega {
-      position: absolute;
-      top: calc(100% + 10px);
-      left: 0;
-      transform: none;
-      display: block;
-      margin: 0;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      width: min(1200px, 96vw);
-      background: #fff;
-      border: 1px solid rgba(15, 23, 42, .10);
-      border-radius: 14px;
-      box-shadow: 0 18px 48px rgba(2, 6, 23, .20);
-      z-index: 1060;
-      overflow: clip;
+      position: absolute; /* Vị trí tuyệt đối so với navbar */
+      top: calc(100% + 10px); /* Khoảng cách từ đỉnh navbar */
+      left: 0; /* Mặc định căn trái */
+      transform: none; /* Không sử dụng transform mặc định */
+      display: block; /* Hiển thị dạng block */
+      margin: 0; /* Không margin */
+      opacity: 0; /* Ẩn mặc định */
+      visibility: hidden; /* Không hiển thị */
+      pointer-events: none; /* Không cho phép tương tác */
+      width: min(1200px, 96vw); /* Chiều rộng tối đa 1200px hoặc 96% viewport */
+      background: #fff; /* Màu nền trắng */
+      border: 1px solid rgba(15, 23, 42, .10); /* Viền nhẹ */
+      border-radius: 14px; /* Bo góc */
+      box-shadow: 0 18px 48px rgba(2, 6, 23, .20); /* Đổ bóng */
+      z-index: 1060; /* Độ ưu tiên hiển thị */
+      overflow: clip; /* Cắt nội dung tràn */
     }
 
-    /* Vô hiệu hoá Popper của Bootstrap với menu này */
+    /* Vô hiệu hóa Popper của Bootstrap để tùy chỉnh vị trí */
     .dropdown-menu.catmega[data-bs-popper] {
       left: 0 !important;
       top: auto !important;
@@ -82,86 +81,96 @@
       margin: 0 !important;
     }
 
+    /* Hiển thị menu khi được kích hoạt */
     .dropdown-menu.catmega.show {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transition: opacity .18s ease;
+      opacity: 1; /* Hiện hoàn toàn */
+      visibility: visible; /* Hiển thị */
+      pointer-events: auto; /* Cho phép tương tác */
+      transition: opacity .18s ease; /* Hiệu ứng chuyển đổi độ mờ */
     }
 
-    /* Lưới cột */
+    /* Cấu hình lưới bên trong menu */
     .catmega-inner {
-      padding: 16px 18px;
+      padding: 16px 18px; /* Khoảng cách bên trong */
     }
 
+    /* Thiết lập lưới 4 cột cho danh mục */
     .catmega-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px 24px;
+      grid-template-columns: repeat(4, 1fr); /* 4 cột đều nhau */
+      gap: 16px 24px; /* Khoảng cách giữa các cột và hàng */
     }
 
+    /* Cột danh mục */
     .catmega-col {
-      min-width: 0;
-      border-right: 1px solid rgba(2, 6, 23, .06);
+      min-width: 0; /* Không giới hạn chiều rộng tối thiểu */
+      border-right: 1px solid rgba(2, 6, 23, .06); /* Viền phân cách giữa các cột */
     }
 
+    /* Loại bỏ viền ở cột cuối */
     .catmega-col:last-child {
       border-right: 0;
     }
 
+    /* Tiêu đề danh mục */
     .catmega-title {
       display: inline-block;
-      margin: 0 0 6px;
-      font-weight: 700;
-      color: #111827;
-      text-decoration: none;
+      margin: 0 0 6px; /* Khoảng cách dưới */
+      font-weight: 700; /* Chữ đậm */
+      color: #111827; /* Màu chữ chính */
+      text-decoration: none; /* Không gạch chân */
     }
 
+    /* Hiệu ứng hover cho tiêu đề */
     .catmega-title:hover {
-      color: #c1126b;
+      color: #c1126b; /* Đổi màu khi hover */
     }
 
+    /* Danh sách các mục trong danh mục */
     .catmega-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
+      list-style: none; /* Bỏ dấu đầu dòng */
+      margin: 0; /* Không margin */
+      padding: 0; /* Không padding */
     }
 
+    /* Liên kết trong danh mục */
     .catmega-link {
-      display: block;
-      padding: 6px 8px;
-      border-radius: 8px;
-      color: #374151;
-      text-decoration: none;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      display: block; /* Hiển thị dạng block */
+      padding: 6px 8px; /* Khoảng cách bên trong */
+      border-radius: 8px; /* Bo góc */
+      color: #374151; /* Màu chữ */
+      text-decoration: none; /* Không gạch chân */
+      white-space: nowrap; /* Không xuống dòng */
+      overflow: hidden; /* Ẩn nội dung tràn */
+      text-overflow: ellipsis; /* Hiển thị dấu ba chấm khi tràn */
     }
 
+    /* Hiệu ứng hover cho liên kết */
     .catmega-link:hover {
-      background: rgba(193, 18, 107, .08);
-      color: #c1126b;
+      background: rgba(193, 18, 107, .08); /* Màu nền khi hover */
+      color: #c1126b; /* Màu chữ khi hover */
     }
 
+    /* Responsive cho màn hình nhỏ hơn 991.98px */
     @media (max-width:991.98px) {
       .dropdown-menu.catmega {
-        width: 100vw;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        border-radius: 0 0 14px 14px;
+        width: 100vw; /* Chiều rộng full viewport */
+        left: 50% !important; /* Căn giữa */
+        transform: translateX(-50%) !important; /* Dịch chuyển để căn giữa */
+        border-radius: 0 0 14px 14px; /* Bo góc chỉ ở dưới */
       }
 
       .catmega-inner {
-        padding: 12px 14px;
+        padding: 12px 14px; /* Giảm khoảng cách bên trong */
       }
 
       .catmega-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px 16px;
+        grid-template-columns: repeat(2, 1fr); /* Giảm xuống 2 cột */
+        gap: 12px 16px; /* Giảm khoảng cách */
       }
 
       .catmega-col {
-        border-right: 0;
+        border-right: 0; /* Loại bỏ viền phân cách */
       }
     }
 
@@ -438,34 +447,48 @@
 
       // ===== CANH GIỮA MEGA MENU NGAY DƯỚI "SẢN PHẨM" =====
       (function () {
-        const nav = document.querySelector('nav.navbar');      // navbar bao quanh dropdown
-        const trigger = document.getElementById('productsDropdown'); // nút "Sản phẩm"
-        const menu = document.getElementById('catmega');          // <div class="dropdown-menu catmega" ...>
-        if (!(nav && trigger && menu)) return;
+        // Lấy tham chiếu đến navbar, nút "Sản phẩm" và menu danh mục
+        const nav = document.querySelector('nav.navbar'); // Navbar bao quanh dropdown
+        const trigger = document.getElementById('productsDropdown'); // Nút "Sản phẩm"
+        const menu = document.getElementById('catmega'); // Menu dropdown danh mục
+        if (!(nav && trigger && menu)) return; // Thoát nếu thiếu các phần tử cần thiết
 
+        // Hàm định vị menu danh mục
         const place = () => {
+          // Lấy kích thước và vị trí của navbar và nút trigger
           const navRect = nav.getBoundingClientRect();
           const tRect = trigger.getBoundingClientRect();
 
+          // Tính chiều rộng menu (tối đa 1200px hoặc 96% viewport)
           const mWidth = Math.min(1200, window.innerWidth * 0.96);
+          // Tính tâm của nút trigger
           const centerX = tRect.left + tRect.width / 2;
+          // Tính vị trí trái để căn giữa menu
           let left = centerX - mWidth / 2;
 
-          // Clamp trong viewport
+          // Giới hạn vị trí trái trong viewport
           const minLeft = 8, maxLeft = window.innerWidth - mWidth - 8;
           left = Math.max(minLeft, Math.min(maxLeft, left));
 
-          // Toạ độ bên trong navbar
+          // Tính vị trí trái trong navbar
           const leftInNav = left - navRect.left;
 
+          // Áp dụng kiểu dáng cho menu
           menu.style.width = mWidth + 'px';
           menu.style.left = Math.round(leftInNav) + 'px';
           menu.style.top = Math.round(tRect.bottom - navRect.top + 10) + 'px';
         };
 
-        trigger.addEventListener('shown.bs.dropdown', () => { if (!menu.classList.contains('show')) menu.classList.add('show'); place(); });
+        // Khi menu được hiển thị
+        trigger.addEventListener('shown.bs.dropdown', () => {
+          if (!menu.classList.contains('show')) menu.classList.add('show'); // Thêm lớp show nếu chưa có
+          place(); // Định vị menu
+        });
+        // Khi menu bị ẩn
         trigger.addEventListener('hide.bs.dropdown', () => menu.classList.remove('show'));
+        // Cập nhật vị trí khi thay đổi kích thước cửa sổ
         window.addEventListener('resize', () => { if (menu.classList.contains('show')) place(); });
+        // Cập nhật vị trí khi cuộn trang
         window.addEventListener('scroll', () => { if (menu.classList.contains('show')) place(); }, { passive: true });
       })();
 
