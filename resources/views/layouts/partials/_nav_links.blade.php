@@ -3,6 +3,25 @@
   $productActive = request()->routeIs('products.*')
     || request()->routeIs('product.*')
     || request()->routeIs('category.*');
+
+  // Đếm phản hồi chưa đọc & ticket đang mở (nếu cần hiển thị badge)
+  $supportUnread = null; $supportOpen = null;
+  try {
+      if (auth()->check()) {
+          // Số phản hồi từ admin/staff mà user chưa đọc
+          $supportUnread = \App\Models\SupportReply::query()
+              ->whereNull('read_at')
+              ->whereIn('replier_type', ['admin','staff'])
+              ->whereHas('ticket', fn($q) => $q->where('user_id', auth()->id()))
+              ->count();
+
+          // Số ticket đang mở
+          $supportOpen = \App\Models\SupportTicket::query()
+              ->where('user_id', auth()->id())
+              ->where('status', 'open')
+              ->count();
+      }
+  } catch (\Throwable $e) { /* bỏ qua nếu model chưa có */ }
 @endphp
 
 <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center">
@@ -34,6 +53,17 @@
       Tin tức
     </a>
     @include('frontend.components.blog-category-menu')
+  </li>
+
+  {{-- ====== HỖ TRỢ ====== --}}
+  <li class="nav-item">
+    <a class="nav-link {{ request()->routeIs('support.*') ? 'active' : '' }} {{ $textColor ?? '' }}"
+       href="{{ route('support.index') }}">
+      Hỗ trợ
+      @if(auth()->check() && (int)($supportUnread ?? 0) > 0)
+        <span class="badge bg-danger ms-1">{{ $supportUnread }}</span>
+      @endif
+    </a>
   </li>
 
   <li class="nav-item"><a class="nav-link {{ $textColor ?? '' }}" href="#">Giới thiệu</a></li>

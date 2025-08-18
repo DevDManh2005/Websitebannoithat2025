@@ -11,14 +11,17 @@ return [
     'vouchers'        => ['label' => 'Voucher',             'icon' => 'ri-ticket-2-line',        'index' => 'staff.vouchers.index'],
     'reviews'         => ['label' => 'Đánh giá',            'icon' => 'ri-chat-1-line',          'index' => 'staff.reviews.index'],
 
+    // Hỗ trợ
+    'support-tickets' => ['label' => 'Hỗ trợ',              'icon' => 'ri-lifebuoy-line',        'index' => 'staff.support_tickets.index'],
+
     // Nội dung / Media
     'slides'          => ['label' => 'Slides',              'icon' => 'ri-slideshow-2-line',     'index' => 'staff.slides.index'],
     'blogs'           => ['label' => 'Bài viết',            'icon' => 'ri-article-line',         'index' => 'staff.blogs.index'],
     'blog-categories' => ['label' => 'Danh mục bài viết',   'icon' => 'ri-price-tag-2-line',      'index' => 'staff.blog-categories.index'],
     'banners'         => ['label' => 'Banners',             'icon' => 'ri-image-2-line',         'index' => 'staff.banners.index'],
-    'pages'           => ['label' => 'Trang nội dung',      'icon' => 'ri-file-text-line',       'index' => 'staff.pages.index'], // nếu có
+    'pages'           => ['label' => 'Trang nội dung',      'icon' => 'ri-file-text-line',       'index' => 'staff.pages.index'],
 
-    // Hệ thống (tuỳ quyền sẽ hiện)
+    // Hệ thống
     'users'           => ['label' => 'Người dùng',          'icon' => 'ri-user-3-line',          'index' => 'staff.users.index'],
     'staffs'          => ['label' => 'Nhân viên',           'icon' => 'ri-shield-user-line',     'index' => 'staff.staffs.index'],
     'admins'          => ['label' => 'Quản trị viên',       'icon' => 'ri-shield-keyhole-line',  'index' => 'staff.admins.index'],
