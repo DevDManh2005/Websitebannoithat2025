@@ -41,7 +41,6 @@ class DatabaseSeeder extends Seeder
             CartsTableSeeder::class,                // Phụ thuộc Users, ProductVariants
             InventoriesTableSeeder::class,          // Phụ thuộc Products, ProductVariants, Locations
             OrdersTableSeeder::class,               // Phụ thuộc Users
-            PointsTableSeeder::class,               // Phụ thuộc Users
             BlogsTableSeeder::class,                // Phụ thuộc Users
             SupportTicketsTableSeeder::class,       // Phụ thuộc Users
             NotificationsTableSeeder::class,        // Phụ thuộc Users
@@ -63,7 +62,7 @@ class DatabaseSeeder extends Seeder
             OtpsTableSeeder::class,
             PasswordResetTokensTableSeeder::class,
             PersonalAccessTokensTableSeeder::class,
-            
+            PermissionSeeder::class, // Bảng permissions
         ]);
         $this->call(\Database\Seeders\Patches\DashboardPermissionPatchSeeder::class);
 
