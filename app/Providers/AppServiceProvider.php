@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Route;
 use App\Models\Category;
-use App\Models\Order;
 use App\Models\Cart;
 use App\Models\Setting;
 use App\Models\RoutePermission;
@@ -79,18 +77,7 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('perm', function (string $module, string $action) {
             return auth()->check() && auth()->user()->hasPermission($module, $action);
         });
-        Route::bind('order', function ($value) {
-            $q = Order::query()
-                ->where('id', $value)
-                ->orWhere('order_code', $value);
 
-            // Nếu chỉ cho chủ đơn xem, giữ điều kiện dưới:
-            if (auth()->check()) {
-                $q->where('user_id', auth()->id());
-            }
-
-            return $q->firstOrFail();
-        });
         // @permroute('staff.products.create') → tra DB map (nếu không có thì fallback theo quy ước)
         Blade::if('permroute', function (string $routeName) {
             if (!auth()->check()) return false;
