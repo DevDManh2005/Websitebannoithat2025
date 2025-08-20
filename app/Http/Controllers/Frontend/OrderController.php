@@ -40,20 +40,25 @@ class OrderController extends Controller
     /**
      * Hủy đơn hàng (chỉ khi pending | processing).
      */
-    public function cancel(Order $order)
-    {
-        if ($order->user_id !== Auth::id()) {
-            abort(403, 'Bạn không có quyền hủy đơn hàng này.');
-        }
+   public function cancel(Order $order)
+{
+    $u = auth()->user();
+    $isOwner = $u && ((int)$u->id === (int)$order->user_id);
+    $role    = optional($u->role)->name;
+    $isStaff = in_array($role, ['admin','staff'], true);
 
-        if (!in_array($order->status, ['pending', 'processing'], true)) {
-            return back()->with('error', 'Đơn hàng không thể hủy ở trạng thái hiện tại.');
-        }
+    abort_unless($isOwner || $isStaff, 403, 'Bạn không có quyền hủy đơn hàng này.');
 
-        $order->update(['status' => 'cancelled']);
-
-        return back()->with('success', 'Đã hủy đơn hàng thành công.');
+    // chỉ hủy khi còn cho phép (pending|processing)
+    if (!in_array($order->status, ['pending', 'processing'], true)) {
+        return back()->with('error', 'Đơn hàng không thể hủy ở trạng thái hiện tại.');
     }
+
+    $order->update(['status' => 'cancelled']);
+
+    return back()->with('success', 'Đã hủy đơn hàng thành công.');
+}
+
 
     /**
      * Khách xác nhận đã nhận hàng (chỉ khi delivered).
