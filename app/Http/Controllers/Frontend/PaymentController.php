@@ -18,44 +18,51 @@ class PaymentController extends Controller
      */
     public function createVnpayPayment(Order $order)
     {
+        // Chỉ cho chủ đơn tạo thanh toán
+        abort_unless(auth()->id() === $order->user_id, 403);
+
         $vnp_TmnCode    = env('VNP_TMNCODE');
         $vnp_HashSecret = env('VNP_HASHSECRET');
         $vnp_Url        = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
 
-        // ReturnUrl phải đúng HTTPS + đúng domain đã khai báo trên portal
-        $vnp_ReturnUrl  = route('payment.vnpay.return');
+        // Lấy IP thật (qua proxy/CDN nếu có)
+        $ip = request()->header('CF-Connecting-IP')
+            ?? explode(',', (string)request()->header('X-Forwarded-For'))[0]
+            ?? request()->ip();
 
-        // Ưu tiên IPv4
-        $ip = request()->header('x-forwarded-for') ?? request()->ip();
-        if (strpos($ip, ':') !== false) { // IPv6 -> set IPv4 loopback
-            $ip = '127.0.0.1';
-        }
+        // ReturnUrl: ưu tiên .env nếu có, fallback route()
+        $vnp_ReturnUrl = env('VNP_RETURNURL') ?: route('payment.vnpay.return');
+
+        // TxnRef chỉ chữ-số cho an toàn
+        $txnRef = preg_replace('/[^A-Za-z0-9]/', '', (string)($order->order_code ?? $order->id));
 
         $input = [
             'vnp_Version'    => '2.1.0',
             'vnp_TmnCode'    => $vnp_TmnCode,
-            'vnp_Amount'     => (int) $order->final_amount * 100,
+            'vnp_Amount'     => (int) round((float)$order->final_amount) * 100, // NHÂN 100
             'vnp_Command'    => 'pay',
-            'vnp_CreateDate' => now()->format('YmdHis'),
+            'vnp_CreateDate' => now('Asia/Ho_Chi_Minh')->format('YmdHis'),
+            'vnp_ExpireDate' => now('Asia/Ho_Chi_Minh')->addMinutes(15)->format('YmdHis'),
             'vnp_CurrCode'   => 'VND',
             'vnp_IpAddr'     => $ip,
             'vnp_Locale'     => 'vn',
-            'vnp_OrderInfo'  => 'Thanh toan don hang ' . $order->order_code,
-            'vnp_OrderType'  => 'other', // an toàn
+            'vnp_OrderInfo'  => 'Thanh toan don hang ' . $txnRef, // ASCII
+            'vnp_OrderType'  => 'other',
             'vnp_ReturnUrl'  => $vnp_ReturnUrl,
-            'vnp_TxnRef'     => $order->order_code,
+            'vnp_TxnRef'     => $txnRef,
         ];
 
-        // Bank test (tùy chọn)
-        if ($bank = env('VNP_BANKCODE', 'NCB')) {
+        // SANDBOX: để test nhanh, set NCB (có thể bỏ trống nếu muốn chọn trên cổng)
+        $bank = trim((string) env('VNP_BANKCODE', 'NCB'));
+        if ($bank !== '') {
             $input['vnp_BankCode'] = $bank;
         }
 
         ksort($input);
 
-        // Ký theo đúng spec của VNPAY: urlencode key & value
+        // Theo mẫu VNPAY: urlencode key & value khi ký
         $hashdata = '';
-        $query = '';
+        $query    = '';
         $i = 0;
         foreach ($input as $key => $value) {
             $encKey = urlencode($key);
@@ -70,17 +77,18 @@ class PaymentController extends Controller
         }
 
         $vnp_SecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-        $payUrl = $vnp_Url . '?' . $query . 'vnp_SecureHash=' . $vnp_SecureHash;
+        $payUrl = rtrim($vnp_Url, '?') . '?' . $query . 'vnp_SecureHash=' . $vnp_SecureHash;
 
         Log::info('VNPAY Create Payment URL', [
-            'order'        => $order->order_code,
+            'order'        => $txnRef,
             'signed_query' => $query,
-            'calc_hash'    => $vnp_SecureHash,
             'url'          => $payUrl,
         ]);
 
-        return redirect($payUrl);
+
+        return redirect()->away($payUrl);
     }
+
 
     /**
      * IPN: VNPAY gọi server-to-server (POST). Trạng thái cuối cùng dựa vào đây.
@@ -133,34 +141,46 @@ class PaymentController extends Controller
         }
 
         $isOk = ($signed['vnp_ResponseCode'] ?? '') === '00'
-             && ($signed['vnp_TransactionStatus'] ?? '') === '00';
+            && ($signed['vnp_TransactionStatus'] ?? '') === '00';
 
         if ($isOk) {
             $changed = false;
 
             if ((int) $order->is_paid !== 1) {
-                $order->is_paid = 1; $changed = true;
+                $order->is_paid = 1;
+                $changed = true;
             }
             if ($order->payment_status !== 'paid') {
-                $order->payment_status = 'paid'; $changed = true;
+                $order->payment_status = 'paid';
+                $changed = true;
             }
             if ($order->payment_method !== 'vnpay') {
-                $order->payment_method = 'vnpay'; $changed = true;
+                $order->payment_method = 'vnpay';
+                $changed = true;
             }
             if (is_null($order->paid_at)) {
-                $order->paid_at = now(); $changed = true;
+                $order->paid_at = now();
+                $changed = true;
             }
             if (empty($order->payment_ref)) {
-                $order->payment_ref = $signed['vnp_TransactionNo'] ?? null; $changed = true;
+                $order->payment_ref = $signed['vnp_TransactionNo'] ?? null;
+                $changed = true;
             }
             if ($order->status === 'pending') {
-                $order->status = 'processing'; $changed = true;
+                $order->status = 'processing';
+                $changed = true;
             }
 
             if ($changed) {
                 $order->save();
-                try { Cart::where('user_id', $order->user_id)->delete(); } catch (\Throwable $e) {}
-                try { Mail::to($order->user->email)->send(new OrderPlaced($order)); } catch (\Throwable $e) {}
+                try {
+                    Cart::where('user_id', $order->user_id)->delete();
+                } catch (\Throwable $e) {
+                }
+                try {
+                    Mail::to($order->user->email)->send(new OrderPlaced($order));
+                } catch (\Throwable $e) {
+                }
             }
 
             Log::info('VNPAY IPN OK', ['order' => $order->order_code]);
@@ -213,17 +233,41 @@ class PaymentController extends Controller
         if (hash_equals($calc, $secureHash) && ($signed['vnp_ResponseCode'] ?? '') === '00') {
             // Cập nhật “mềm” để user thấy ngay (IPN vẫn là nguồn sự thật)
             $changed = false;
-            if ((int) $order->is_paid !== 1) { $order->is_paid = 1; $changed = true; }
-            if ($order->payment_status !== 'paid') { $order->payment_status = 'paid'; $changed = true; }
-            if ($order->payment_method !== 'vnpay') { $order->payment_method = 'vnpay'; $changed = true; }
-            if (is_null($order->paid_at)) { $order->paid_at = now(); $changed = true; }
-            if (empty($order->payment_ref)) { $order->payment_ref = $signed['vnp_TransactionNo'] ?? null; $changed = true; }
-            if ($order->status === 'pending') { $order->status = 'processing'; $changed = true; }
+            if ((int) $order->is_paid !== 1) {
+                $order->is_paid = 1;
+                $changed = true;
+            }
+            if ($order->payment_status !== 'paid') {
+                $order->payment_status = 'paid';
+                $changed = true;
+            }
+            if ($order->payment_method !== 'vnpay') {
+                $order->payment_method = 'vnpay';
+                $changed = true;
+            }
+            if (is_null($order->paid_at)) {
+                $order->paid_at = now();
+                $changed = true;
+            }
+            if (empty($order->payment_ref)) {
+                $order->payment_ref = $signed['vnp_TransactionNo'] ?? null;
+                $changed = true;
+            }
+            if ($order->status === 'pending') {
+                $order->status = 'processing';
+                $changed = true;
+            }
 
             if ($changed) {
                 $order->save();
-                try { Cart::where('user_id', $order->user_id)->delete(); } catch (\Throwable $e) {}
-                try { Mail::to($order->user->email)->send(new OrderPlaced($order)); } catch (\Throwable $e) {}
+                try {
+                    Cart::where('user_id', $order->user_id)->delete();
+                } catch (\Throwable $e) {
+                }
+                try {
+                    Mail::to($order->user->email)->send(new OrderPlaced($order));
+                } catch (\Throwable $e) {
+                }
             }
 
             return redirect()

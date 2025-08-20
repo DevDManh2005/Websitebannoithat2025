@@ -80,9 +80,8 @@ Route::post('/forgot',   [AuthController::class, 'forgot'])->name('forgot');
 Route::get('/reset',     fn() => view('auth.reset'))->name('reset.form');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset.password');
 
-Route::get('/payment/vnpay-callback', [PaymentController::class, 'vnpayCallback'])->name('payment.vnpayCallback');
 Route::get('/payment/vnpay-return',   [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
-Route::match(['GET', 'POST'], '/payment/vnpay-ipn', [PaymentController::class, 'vnpayIpn'])->name('payment.vnpay.ipn');
+Route::match(['GET','POST'], '/payment/vnpay-ipn', [PaymentController::class, 'vnpayIpn'])->name('payment.vnpay.ipn');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 

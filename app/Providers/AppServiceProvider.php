@@ -132,12 +132,12 @@ class AppServiceProvider extends ServiceProvider
         });
         // --- Bridge: khi đang ở khu staff.*, ưu tiên layout bridge ---
         if (request()->routeIs('staff.*') || request()->is('staff/*')) {
-            \Illuminate\Support\Facades\View::replaceNamespace('admins', [
+            View::replaceNamespace('admins', [
                 resource_path('views/staffs/admin-bridge'), // <— sẽ chứa layouts/app.blade.php “đội lốt” admin
                 resource_path('views/admins'),
             ]);
         } else {
-            \Illuminate\Support\Facades\View::replaceNamespace('admins', [
+            View::replaceNamespace('admins', [
                 resource_path('views/admins'),
             ]);
         }
