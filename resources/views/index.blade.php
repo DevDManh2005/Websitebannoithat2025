@@ -471,8 +471,8 @@
             </div>
         </div>
     </section>
-@endsection
-{{-- 8.5. Bài viết mới (Blog) --}}
+
+    {{-- 8.5. Bài viết mới (Blog) --}}
 <section class="py-5 bg-white blog-section" data-aos="fade-up">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -524,6 +524,9 @@
         @endif
     </div>
 </section>
+
+@endsection
+
 
 @push('styles')
     <style>
@@ -733,6 +736,7 @@
     }
 }
 
+/* BLOG */
 .blog-card{
     border:1px solid #eee; border-radius:14px; overflow:hidden; background:#fff;
     box-shadow:0 6px 18px rgba(0,0,0,.06); transition:transform .25s, box-shadow .25s;
@@ -742,10 +746,18 @@
 .blog-thumb img{ width:100%; height:100%; object-fit:cover; transition:transform .4s; display:block; }
 .blog-card:hover .blog-thumb img{ transform:scale(1.05); }
 .blog-title{ line-height:1.25; }
+
+.blog-section .swiper{ overflow:visible; }
 .blog-section .swiper-button-prev,
 .blog-section .swiper-button-next{
-    width:44px; height:44px; background:#fff; border-radius:50%; box-shadow:0 4px 14px rgba(0,0,0,.12);
+    width:44px; height:44px; background:#fff; border-radius:50%;
+    box-shadow:0 4px 14px rgba(0,0,0,.12); z-index:5;
 }
+.blog-section .swiper-button-prev:after,
+.blog-section .swiper-button-next:after{ font-size:1rem; color:#333; }
+.blog-section .swiper-pagination-bullet{ opacity:.5; }
+.blog-section .swiper-pagination-bullet-active{ background: var(--main-color); opacity:1; }
+
     </style>
 @endpush
 
@@ -844,8 +856,9 @@ if (countdownContainer) {
 
     const countdownInterval = setInterval(updateCountdown, 1000);
     updateCountdown(); // Chạy ngay lần đầu để không bị trễ 1 giây
-
-    if (document.querySelector('.blog-swiper')) {
+}
+// 5) Swiper cho Blog (đặt ngoài mọi block khác)
+if (document.querySelector('.blog-swiper')) {
     const blogSwiper = new Swiper('.blog-swiper', {
         loop: false,
         speed: 600,
@@ -861,6 +874,6 @@ if (countdownContainer) {
         }
     });
 }
-}
+
     </script>
 @endpush
