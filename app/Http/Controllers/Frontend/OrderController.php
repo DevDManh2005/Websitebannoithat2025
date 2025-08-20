@@ -27,13 +27,15 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
-            abort(404);
-        }
+        $u = auth()->user();
+        $isOwner = $u && ((int)$u->id === (int)$order->user_id);
+        $role    = optional($u->role)->name;
+        $isStaff = in_array($role, ['admin', 'staff'], true);
 
-        $order->load(['items.variant.product.images', 'shipment', 'payment']);
+        abort_unless($isOwner || $isStaff, 404);
         return view('frontend.orders.show', compact('order'));
     }
+
 
     /**
      * Hủy đơn hàng (chỉ khi pending | processing).
@@ -49,7 +51,7 @@ class OrderController extends Controller
         }
 
         $order->update(['status' => 'cancelled']);
-    
+
         return back()->with('success', 'Đã hủy đơn hàng thành công.');
     }
 
@@ -83,7 +85,7 @@ class OrderController extends Controller
                 if ($order->payment()->exists()) {
                     $order->payment()->update([
                         'status'    => 'paid',
-                        'updated_at'=> now(),
+                        'updated_at' => now(),
                     ]);
                 }
             }
