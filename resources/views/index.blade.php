@@ -845,8 +845,7 @@ if (countdownContainer) {
     const countdownInterval = setInterval(updateCountdown, 1000);
     updateCountdown(); // Chạy ngay lần đầu để không bị trễ 1 giây
 
-    <script>
-if (document.querySelector('.blog-swiper')) {
+    if (document.querySelector('.blog-swiper')) {
     const blogSwiper = new Swiper('.blog-swiper', {
         loop: false,
         speed: 600,
@@ -862,8 +861,6 @@ if (document.querySelector('.blog-swiper')) {
         }
     });
 }
-</script>
-
 }
     </script>
 @endpush
