@@ -12,7 +12,12 @@ class SupportTicketController extends Controller
 {
     public function index()
     {
-        $tickets = SupportTicket::where('user_id', auth()->id())
+        $u = auth()->user();
+        $role = optional($u->role)->name;
+        $isStaff = in_array($role, ['admin','staff'], true);
+
+        $tickets = SupportTicket::query()
+            ->when(!$isStaff, fn($q) => $q->where('user_id', (int)$u->id))
             ->latest()
             ->paginate(12);
 
@@ -29,21 +34,20 @@ class SupportTicketController extends Controller
         $validated = $form->validated();
 
         $ticket = SupportTicket::create([
-            'user_id' => auth()->id(),
+            'user_id' => (int)auth()->id(),
             'subject' => $validated['subject'],
-            'message' => trim((string) $validated['message']),
+            'message' => trim((string)$validated['message']),
             'status'  => SupportTicket::STATUS_OPEN,
         ]);
 
-        // Nếu người dùng có đính kèm khi tạo vé → lưu như 1 reply chỉ có file
-        $req  = request(); // IDE nhận diện đúng Illuminate\Http\Request
-        $file = $req->file('attachment');
+        // Nếu có file đính kèm khi tạo vé -> lưu như 1 reply
+        $file = request()->file('attachment');
         if ($file) {
             $path = $file->store('support_attachments', 'public');
 
             SupportReply::create([
                 'support_ticket_id' => $ticket->id,
-                'user_id'           => auth()->id(),
+                'user_id'           => (int)auth()->id(),
                 'message'           => null,
                 'attachment'        => $path,
             ]);
@@ -54,10 +58,15 @@ class SupportTicketController extends Controller
 
     public function show(SupportTicket $ticket)
     {
-        abort_if($ticket->user_id !== auth()->id(), 403);
+        $u = auth()->user();
+        $isOwner = (int)$ticket->user_id === (int)$u->id;
+        $role    = optional($u->role)->name;
+        $isStaff = in_array($role, ['admin','staff'], true);
+
+        abort_unless($isOwner || $isStaff, 403);
 
         $ticket->load([
-            'replies' => fn ($q) => $q->with('user:id,name,email')->latest(),
+            'replies' => fn($q) => $q->with('user:id,name,email')->latest(),
         ]);
 
         return view('frontend.support.show', compact('ticket'));
@@ -68,29 +77,28 @@ class SupportTicketController extends Controller
      */
     public function reply(StoreReplyRequest $form, SupportTicket $ticket)
     {
-        abort_if($ticket->user_id !== auth()->id(), 403);
+        $u = auth()->user();
+        $isOwner = (int)$ticket->user_id === (int)$u->id;
+        $role    = optional($u->role)->name;
+        $isStaff = in_array($role, ['admin','staff'], true);
+
+        abort_unless($isOwner || $isStaff, 403);
 
         $validated = $form->validated();
-        $message   = isset($validated['message']) ? trim((string) $validated['message']) : null;
-        if ($message === '') {
-            $message = null;
-        }
+        $message   = isset($validated['message']) ? trim((string)$validated['message']) : null;
+        if ($message === '') $message = null;
 
-        $req  = request(); // dùng Request “chuẩn” cho IDE
-        $file = $req->file('attachment');
-        $path = null;
-        if ($file) {
-            $path = $file->store('support_attachments', 'public');
-        }
+        $file = request()->file('attachment');
+        $path = $file ? $file->store('support_attachments', 'public') : null;
 
         SupportReply::create([
             'support_ticket_id' => $ticket->id,
-            'user_id'           => auth()->id(),
+            'user_id'           => (int)auth()->id(),
             'message'           => $message,
             'attachment'        => $path,
         ]);
 
-        // Người dùng nhắn thêm: nếu đang resolved/closed => mở lại
+        // Nếu vé đã resolved/closed mà có tin nhắn mới -> mở lại
         if (in_array($ticket->status, [SupportTicket::STATUS_RESOLVED, SupportTicket::STATUS_CLOSED], true)) {
             $ticket->update(['status' => SupportTicket::STATUS_OPEN]);
         } else {
