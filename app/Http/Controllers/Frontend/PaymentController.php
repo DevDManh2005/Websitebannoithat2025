@@ -41,7 +41,8 @@ class PaymentController extends Controller
         $vnp_ReturnUrl = route('payment.vnpay.return', [], true);
 
         // TxnRef: chỉ chữ–số
-        $txnRef = preg_replace('/[^A-Za-z0-9]/', '', (string)($order->order_code ?? $order->id));
+        $txnRef = (string) ($order->order_code ?? $order->id);
+
 
         // Tính amount an toàn
         $baseAmount = $order->final_amount
