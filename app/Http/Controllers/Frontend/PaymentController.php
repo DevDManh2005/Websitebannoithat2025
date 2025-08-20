@@ -21,17 +21,21 @@ class PaymentController extends Controller
         $u = auth()->user();
         $isOwner = $u && ((int)$u->id === (int)$order->user_id);
         $role    = optional($u->role)->name; // 'admin' | 'staff' | ...
-        $isStaff = in_array($role, ['admin','staff'], true);
+        $isStaff = in_array($role, ['admin', 'staff'], true);
         abort_unless($isOwner || $isStaff, 403);
 
         $vnp_TmnCode    = env('VNP_TMNCODE');
         $vnp_HashSecret = env('VNP_HASHSECRET');
         $vnp_Url        = env('VNP_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
 
-        // IP thật qua proxy/CDN nếu có
+        // Lấy IP thật (qua proxy/CDN nếu có) và ép IPv4
         $ip = request()->header('CF-Connecting-IP')
-            ?? explode(',', (string)request()->header('X-Forwarded-For'))[0]
+            ?? (request()->header('X-Forwarded-For') ? explode(',', request()->header('X-Forwarded-For'))[0] : null)
             ?? request()->ip();
+        $ip = trim((string) $ip);
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $ip = '127.0.0.1';
+        }
 
         // Return URL: ưu tiên .env, fallback route()
         $vnp_ReturnUrl = env('VNP_RETURNURL') ?: route('payment.vnpay.return');
@@ -49,7 +53,7 @@ class PaymentController extends Controller
             'vnp_CurrCode'   => 'VND',
             'vnp_IpAddr'     => $ip,
             'vnp_Locale'     => 'vn',
-            'vnp_OrderInfo'  => 'Thanh toan don hang '.$txnRef,
+            'vnp_OrderInfo'  => 'Thanh toan don hang ' . $txnRef,
             'vnp_OrderType'  => 'other',
             'vnp_ReturnUrl'  => $vnp_ReturnUrl,
             'vnp_TxnRef'     => $txnRef,
@@ -135,22 +139,46 @@ class PaymentController extends Controller
         }
 
         $isOk = ($signed['vnp_ResponseCode'] ?? '') === '00'
-             && ($signed['vnp_TransactionStatus'] ?? '') === '00';
+            && ($signed['vnp_TransactionStatus'] ?? '') === '00';
 
         if ($isOk) {
             $changed = false;
 
-            if ((int)$order->is_paid !== 1) { $order->is_paid = 1; $changed = true; }
-            if ($order->payment_status !== 'paid') { $order->payment_status = 'paid'; $changed = true; }
-            if ($order->payment_method !== 'vnpay') { $order->payment_method = 'vnpay'; $changed = true; }
-            if (is_null($order->paid_at)) { $order->paid_at = now(); $changed = true; }
-            if (empty($order->payment_ref)) { $order->payment_ref = $signed['vnp_TransactionNo'] ?? null; $changed = true; }
-            if ($order->status === 'pending') { $order->status = 'processing'; $changed = true; }
+            if ((int)$order->is_paid !== 1) {
+                $order->is_paid = 1;
+                $changed = true;
+            }
+            if ($order->payment_status !== 'paid') {
+                $order->payment_status = 'paid';
+                $changed = true;
+            }
+            if ($order->payment_method !== 'vnpay') {
+                $order->payment_method = 'vnpay';
+                $changed = true;
+            }
+            if (is_null($order->paid_at)) {
+                $order->paid_at = now();
+                $changed = true;
+            }
+            if (empty($order->payment_ref)) {
+                $order->payment_ref = $signed['vnp_TransactionNo'] ?? null;
+                $changed = true;
+            }
+            if ($order->status === 'pending') {
+                $order->status = 'processing';
+                $changed = true;
+            }
 
             if ($changed) {
                 $order->save();
-                try { Cart::where('user_id', $order->user_id)->delete(); } catch (\Throwable $e) {}
-                try { Mail::to($order->user->email)->send(new OrderPlaced($order)); } catch (\Throwable $e) {}
+                try {
+                    Cart::where('user_id', $order->user_id)->delete();
+                } catch (\Throwable $e) {
+                }
+                try {
+                    Mail::to($order->user->email)->send(new OrderPlaced($order));
+                } catch (\Throwable $e) {
+                }
             }
 
             Log::info('VNPAY IPN OK', ['order' => $order->order_code]);
@@ -196,17 +224,41 @@ class PaymentController extends Controller
 
         if (hash_equals($calc, $secureHash) && ($signed['vnp_ResponseCode'] ?? '') === '00') {
             $changed = false;
-            if ((int)$order->is_paid !== 1) { $order->is_paid = 1; $changed = true; }
-            if ($order->payment_status !== 'paid') { $order->payment_status = 'paid'; $changed = true; }
-            if ($order->payment_method !== 'vnpay') { $order->payment_method = 'vnpay'; $changed = true; }
-            if (is_null($order->paid_at)) { $order->paid_at = now(); $changed = true; }
-            if (empty($order->payment_ref)) { $order->payment_ref = $signed['vnp_TransactionNo'] ?? null; $changed = true; }
-            if ($order->status === 'pending') { $order->status = 'processing'; $changed = true; }
+            if ((int)$order->is_paid !== 1) {
+                $order->is_paid = 1;
+                $changed = true;
+            }
+            if ($order->payment_status !== 'paid') {
+                $order->payment_status = 'paid';
+                $changed = true;
+            }
+            if ($order->payment_method !== 'vnpay') {
+                $order->payment_method = 'vnpay';
+                $changed = true;
+            }
+            if (is_null($order->paid_at)) {
+                $order->paid_at = now();
+                $changed = true;
+            }
+            if (empty($order->payment_ref)) {
+                $order->payment_ref = $signed['vnp_TransactionNo'] ?? null;
+                $changed = true;
+            }
+            if ($order->status === 'pending') {
+                $order->status = 'processing';
+                $changed = true;
+            }
 
             if ($changed) {
                 $order->save();
-                try { Cart::where('user_id', $order->user_id)->delete(); } catch (\Throwable $e) {}
-                try { Mail::to($order->user->email)->send(new OrderPlaced($order)); } catch (\Throwable $e) {}
+                try {
+                    Cart::where('user_id', $order->user_id)->delete();
+                } catch (\Throwable $e) {
+                }
+                try {
+                    Mail::to($order->user->email)->send(new OrderPlaced($order));
+                } catch (\Throwable $e) {
+                }
             }
 
             return redirect()->route('orders.show', $order)->with('success', 'Giao dịch đã tiếp nhận.');
