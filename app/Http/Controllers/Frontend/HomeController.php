@@ -6,17 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Slide;
 use App\Models\Category;
-use Illuminate\Http\Request;
 use App\Models\Voucher;
+use App\Models\Blog; // <-- THÊM
+use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        // Lấy danh sách slide đang hoạt động
+        // Slides
         $slides = Slide::where('is_active', true)->orderBy('position')->get();
 
-        // Lấy 8 sản phẩm nổi bật
+        // Sản phẩm nổi bật (8)
         $featuredProducts = Product::where('is_featured', true)
             ->active()
             ->with(['variants', 'images'])
@@ -24,52 +25,63 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        // Lấy 12 sản phẩm mới nhất
+        // Sản phẩm mới (12)
         $latestProducts = Product::active()
             ->with(['variants', 'images'])
             ->latest()
             ->take(12)
             ->get();
 
-        // Lấy 6 danh mục cha đang hoạt động
+        // Danh mục cha (6)
         $categories = Category::active()
             ->whereNull('parent_id')
             ->orderBy('position')
             ->take(6)
             ->get();
 
-        $specialOfferProducts = Product::whereHas('variants', function ($query) {
-            $query->whereColumn('sale_price', '<', 'price');
-        })->with(['variants', 'images'])->take(8)->get();
+        // SP đang giảm giá (8)
+        $specialOfferProducts = Product::whereHas('variants', function ($q) {
+                $q->whereColumn('sale_price', '<', 'price');
+            })
+            ->with(['variants', 'images'])
+            ->take(8)
+            ->get();
+
+        // Voucher còn hạn (8)
         $vouchers = Voucher::where('is_active', true)
             ->where('end_at', '>', now())
             ->orderBy('end_at', 'asc')
             ->limit(8)
             ->get();
 
-        // Lấy 6 danh mục con
+        // Danh mục con (6) + SP bán chạy
         $topCategories = Category::whereNotNull('parent_id')
-            ->with(['products' => function ($query) {
-                $query
-                    ->with(['variants', 'images']) // preload hình ảnh thay vì firstMedia
-                    ->withCount('orderItems')
-                    ->orderByDesc('order_items_count')
-                    ->take(8);
+            ->with(['products' => function ($q) {
+                $q->with(['variants', 'images'])
+                  ->withCount('orderItems')
+                  ->orderByDesc('order_items_count')
+                  ->take(8);
             }])
             ->take(6)
             ->get();
 
+        // 3 bài viết mới nhất
+        $latestBlogs = Blog::published()
+            ->orderByDesc('published_at')
+            ->orderByDesc('created_at')
+            ->take(3)
+            ->get(['id','title','slug','excerpt','thumbnail','published_at','created_at']);
 
-
-        // Gửi tất cả dữ liệu sang view index.blade.php
-        return view('index', compact(
-            'slides',
-            'featuredProducts',
-            'latestProducts',
-            'categories', // danh mục cha
-            'specialOfferProducts',
-            'vouchers',
-            'topCategories' // danh mục con + sp
-        ));
+        // Trả về view bằng mảng kết hợp (KHÔNG dùng compact key=>value)
+        return view('index', [
+            'slides'              => $slides,
+            'featuredProducts'    => $featuredProducts,
+            'latestProducts'      => $latestProducts,
+            'categories'          => $categories,
+            'specialOfferProducts'=> $specialOfferProducts,
+            'vouchers'            => $vouchers,
+            'topCategories'       => $topCategories,
+            'latestPosts'         => $latestBlogs, // tên biến view bạn đang dùng
+        ]);
     }
 }

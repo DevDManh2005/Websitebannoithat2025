@@ -8,8 +8,18 @@ use Illuminate\Database\Eloquent\Builder;
 class Blog extends Model
 {
     protected $fillable = [
-        'category_id','title','slug','excerpt','content','thumbnail',
-        'seo_title','seo_description','user_id','is_published','published_at','view_count'
+        'category_id',
+        'title',
+        'slug',
+        'excerpt',
+        'content',
+        'thumbnail',
+        'seo_title',
+        'seo_description',
+        'user_id',
+        'is_published',
+        'published_at',
+        'view_count'
     ];
 
     protected $casts = [
@@ -17,15 +27,32 @@ class Blog extends Model
         'published_at' => 'datetime',
     ];
 
-    public function category() { return $this->belongsTo(BlogCategory::class, 'category_id'); }
-    public function author() { return $this->belongsTo(User::class, 'user_id'); }
-    public function comments() { 
+    public function category()
+    {
+        return $this->belongsTo(BlogCategory::class, 'category_id');
+    }
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    public function comments()
+    {
         return $this->hasMany(BlogComment::class, 'blog_id')->whereNull('parent_id')->where('is_approved', 1)->latest();
     }
-    public function likes() { return $this->hasMany(BlogLike::class, 'blog_id'); }
+    public function likes()
+    {
+        return $this->hasMany(BlogLike::class, 'blog_id');
+    }
 
-    public function scopePublished(Builder $q): Builder {
+    public function scopePublished(Builder $q): Builder
+    {
         return $q->where('is_published', 1)
-                 ->when(app()->runningInConsole() === false, fn($qq) => $qq->whereNull('published_at')->orWhere('published_at','<=', now()));
+            ->when(!app()->runningInConsole(), function ($qq) {
+                // (published_at IS NULL) OR (published_at <= now) — được nhóm đúng
+                $qq->where(function ($w) {
+                    $w->whereNull('published_at')
+                        ->orWhere('published_at', '<=', now());
+                });
+            });
     }
 }

@@ -472,6 +472,58 @@
         </div>
     </section>
 @endsection
+{{-- 8.5. Bài viết mới (Blog) --}}
+<section class="py-5 bg-white blog-section" data-aos="fade-up">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="fw-bold mb-0 text-primary-custom">📰 Bài viết mới</h2>
+            <a href="{{ route('blog.index') }}" class="text-danger fw-semibold">Xem tất cả →</a>
+        </div>
+
+        @if(!empty($latestPosts) && $latestPosts->count())
+            <div class="swiper blog-swiper">
+                <div class="swiper-wrapper">
+                    @foreach($latestPosts as $post)
+                        @php
+                            $thumb = $post->thumbnail
+                                ? asset('storage/'.$post->thumbnail)
+                                : 'https://picsum.photos/seed/blog'.$post->id.'/640/400';
+                            $url   = route('blog.show', $post->slug ?? $post->id);
+                            $date  = optional($post->published_at ?? $post->created_at)->format('d/m/Y');
+                            $excerpt = \Illuminate\Support\Str::limit(strip_tags($post->excerpt ?? $post->content ?? ''), 110);
+                        @endphp
+
+                        <div class="swiper-slide">
+                            <article class="blog-card h-100">
+                                <a href="{{ $url }}" class="blog-thumb d-block">
+                                    <img src="{{ $thumb }}" alt="{{ $post->title }}" loading="lazy">
+                                </a>
+                                <div class="p-3">
+                                    <div class="blog-meta small text-muted mb-1">
+                                        <i class="bi bi-calendar-check me-1"></i> {{ $date ?? '' }}
+                                    </div>
+                                    <h5 class="fw-bold blog-title">
+                                        <a href="{{ $url }}" class="text-dark text-decoration-none">
+                                            {{ $post->title }}
+                                        </a>
+                                    </h5>
+                                    <p class="text-muted mb-3">{{ $excerpt }}</p>
+                                    <a href="{{ $url }}" class="btn btn-sm btn-outline-danger">Đọc tiếp</a>
+                                </div>
+                            </article>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="swiper-pagination blog-pagination mt-3"></div>
+                <div class="swiper-button-prev blog-prev d-none d-lg-flex"></div>
+                <div class="swiper-button-next blog-next d-none d-lg-flex"></div>
+            </div>
+        @else
+            <div class="text-center text-muted py-5">Chưa có bài viết nào.</div>
+        @endif
+    </div>
+</section>
 
 @push('styles')
     <style>
@@ -680,6 +732,20 @@
         margin-left: 0;
     }
 }
+
+.blog-card{
+    border:1px solid #eee; border-radius:14px; overflow:hidden; background:#fff;
+    box-shadow:0 6px 18px rgba(0,0,0,.06); transition:transform .25s, box-shadow .25s;
+}
+.blog-card:hover{ transform:translateY(-4px); box-shadow:0 10px 26px rgba(0,0,0,.10); }
+.blog-thumb{ aspect-ratio: 16/10; overflow:hidden; }
+.blog-thumb img{ width:100%; height:100%; object-fit:cover; transition:transform .4s; display:block; }
+.blog-card:hover .blog-thumb img{ transform:scale(1.05); }
+.blog-title{ line-height:1.25; }
+.blog-section .swiper-button-prev,
+.blog-section .swiper-button-next{
+    width:44px; height:44px; background:#fff; border-radius:50%; box-shadow:0 4px 14px rgba(0,0,0,.12);
+}
     </style>
 @endpush
 
@@ -778,6 +844,26 @@ if (countdownContainer) {
 
     const countdownInterval = setInterval(updateCountdown, 1000);
     updateCountdown(); // Chạy ngay lần đầu để không bị trễ 1 giây
+
+    <script>
+if (document.querySelector('.blog-swiper')) {
+    const blogSwiper = new Swiper('.blog-swiper', {
+        loop: false,
+        speed: 600,
+        spaceBetween: 24,
+        autoplay: { delay: 6000, disableOnInteraction: false },
+        pagination: { el: '.blog-pagination', clickable: true },
+        navigation: { nextEl: '.blog-next', prevEl: '.blog-prev' },
+        slidesPerView: 1,
+        breakpoints: {
+            576: { slidesPerView: 1 },
+            768: { slidesPerView: 2 },
+            1200:{ slidesPerView: 3 }
+        }
+    });
+}
+</script>
+
 }
     </script>
 @endpush
