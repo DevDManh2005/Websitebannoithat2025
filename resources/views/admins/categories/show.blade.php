@@ -1,56 +1,113 @@
+{{-- resources/views/admins/categories/show.blade.php --}}
 @extends('admins.layouts.app')
 
 @section('title', 'Chi tiết danh mục: ' . $category->name)
 
 @section('content')
+@php
+  use Illuminate\Support\Str;
+  $img = $category->image ?? null;
+  $imgUrl = $img
+      ? (Str::startsWith($img, ['http://','https://','//']) ? $img : asset('storage/'.$img))
+      : null;
+@endphp
+
+<style>
+  .card-soft{ border-radius:16px; border:1px solid rgba(32,25,21,.08) }
+  .card-soft .card-header{ background:transparent; border-bottom:1px dashed rgba(32,25,21,.12) }
+  .badge.bg-success-soft{ background:#e5f7ed; color:#1e6b3a }
+  .badge.bg-secondary-soft{ background:#ececec; color:#545b62 }
+</style>
+
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Chi tiết danh mục: {{ $category->name }}</h1>
-        <div>
-            <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-warning">Sửa</a>
-            <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Quay lại</a>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h5 mb-0 fw-bold">Chi tiết danh mục: {{ $category->name }}</h1>
+    <div class="d-flex gap-2">
+      <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Quay lại
+      </a>
+      <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-primary">
+        <i class="bi bi-pencil-square"></i> Sửa
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card card-soft">
+        <div class="card-header"><strong>Ảnh</strong></div>
+        <div class="card-body text-center">
+          @if($imgUrl)
+            <img src="{{ $imgUrl }}" alt="{{ $category->name }}" class="img-fluid rounded" style="max-height:220px">
+          @else
+            <div class="text-muted">Chưa có ảnh</div>
+          @endif
         </div>
+      </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card shadow mb-4">
-                <div class="card-header">Thông tin</div>
-                <div class="card-body">
-                    @if($category->image)
-                        <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="img-fluid rounded mb-3">
-                    @endif
-                    <dl>
-                        <dt>Tên</dt>
-                        <dd>{{ $category->name }}</dd>
-                        <dt>Slug</dt>
-                        <dd>{{ $category->slug }}</dd>
-                        <dt>Danh mục cha</dt>
-                        <dd>{{ $category->parent->name ?? '—' }}</dd>
-                        <dt>Trạng thái</dt>
-                        <dd>@if($category->is_active) <span class="badge bg-success">Hiện</span> @else <span class="badge bg-secondary">Ẩn</span> @endif</dd>
-                        <dt>Vị trí</dt>
-                        <dd>{{ $category->position }}</dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <div class="card shadow mb-4">
-                <div class="card-header">Sản phẩm thuộc danh mục này</div>
-                <div class="card-body">
-                    @if($category->products->isNotEmpty())
-                        <ul>
-                        @foreach($category->products as $product)
-                            <li><a href="{{ route('admin.products.show', $product) }}">{{ $product->name }}</a></li>
-                        @endforeach
-                        </ul>
+    <div class="col-lg-8">
+      <div class="card card-soft">
+        <div class="card-header"><strong>Thông tin</strong></div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <tbody>
+                <tr>
+                  <th style="width:200px">Tên</th>
+                  <td class="fw-semibold">{{ $category->name }}</td>
+                </tr>
+                <tr>
+                  <th>Slug</th>
+                  <td><code>{{ $category->slug ?? '—' }}</code></td>
+                </tr>
+                <tr>
+                  <th>Danh mục cha</th>
+                  <td>{{ $category->parent->name ?? '—' }}</td>
+                </tr>
+                <tr>
+                  <th>Trạng thái</th>
+                  <td>
+                    @if($category->is_active)
+                      <span class="badge bg-success-soft">Hiện</span>
                     @else
-                        <p class="text-muted">Chưa có sản phẩm nào thuộc danh mục này.</p>
+                      <span class="badge bg-secondary">Ẩn</span>
                     @endif
-                </div>
-            </div>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Vị trí</th>
+                  <td>{{ $category->position }}</td>
+                </tr>
+                <tr>
+                  <th>Ngày tạo</th>
+                  <td>{{ $category->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                </tr>
+                <tr>
+                  <th>Ngày cập nhật</th>
+                  <td>{{ $category->updated_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
+      </div>
+
+      <div class="card card-soft mt-3">
+        <div class="card-header"><strong>Sản phẩm thuộc danh mục</strong></div>
+        <div class="card-body">
+          @if($category->products->isNotEmpty())
+            <ul class="mb-0">
+              @foreach($category->products as $product)
+                <li><a href="{{ route('admin.products.show', $product) }}">{{ $product->name }}</a></li>
+              @endforeach
+            </ul>
+          @else
+            <div class="text-muted">Chưa có sản phẩm nào.</div>
+          @endif
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 @endsection

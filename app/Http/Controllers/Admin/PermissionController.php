@@ -10,10 +10,35 @@ use App\Support\RoutePermissionSync;
 
 class PermissionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $perms = Permission::orderBy('module_name')->orderBy('action')->paginate(20);
-        return view('admins.permissions.index', compact('perms'));
+        // Build query + áp bộ lọc
+        $query = Permission::query()
+            ->when($request->filled('q'), function ($q) use ($request) {
+                $kw = trim($request->q);
+                $q->where(function ($qq) use ($kw) {
+                    $qq->where('module_name', 'like', "%{$kw}%")
+                       ->orWhere('action', 'like', "%{$kw}%")
+                       ->orWhereRaw("concat(module_name,'.',action) like ?", ["%{$kw}%"]);
+                });
+            })
+            ->when($request->filled('module'), fn($q) => $q->where('module_name', $request->module))
+            ->when($request->filled('action'), fn($q) => $q->where('action', $request->action))
+            ->orderBy('module_name')
+            ->orderBy('action');
+
+        $perms = $query->paginate(20); // giữ query ở view bằng ->appends()
+
+        // Dropdown filter options (distinct toàn bảng, không phụ thuộc trang)
+        $moduleOptions = Permission::query()
+            ->select('module_name')->distinct()
+            ->pluck('module_name')->filter()->values()->all();
+
+        $actionOptions = Permission::query()
+            ->select('action')->distinct()
+            ->pluck('action')->filter()->values()->all();
+
+        return view('admins.permissions.index', compact('perms', 'moduleOptions', 'actionOptions'));
     }
 
     public function create()
@@ -112,63 +137,54 @@ class PermissionController extends Controller
 
     // ================= Helpers =================
 
-    
-protected function buildFormData(): array
-{
-    // Những cặp module ⇒ action cho phép tạo
-    $availablePerms = [
-        'orders'          => ['view','create','update','delete','ready_to_ship','cod_paid'],
-        'reviews'         => ['view','moderate','delete'],
-        'products'        => ['view','create','update','delete'],
-        'categories'      => ['view','create','update','delete'],
-        'brands'          => ['view','create','update','delete'],
-        'suppliers'       => ['view','create','update','delete'],
-        'inventories'     => ['view','create','update','delete'],
-        'vouchers'        => ['view','create','update','delete'],
-        'slides'          => ['view','create','update','delete'],
-        'blogs'           => ['view','create','update','delete'],
-        'blog-categories' => ['view','create','update','delete'],
-        'uploads'         => ['update'],
+    protected function buildFormData(): array
+    {
+        $availablePerms = [
+            'orders'          => ['view','create','update','delete','ready_to_ship','cod_paid'],
+            'reviews'         => ['view','moderate','delete'],
+            'products'        => ['view','create','update','delete'],
+            'categories'      => ['view','create','update','delete'],
+            'brands'          => ['view','create','update','delete'],
+            'suppliers'       => ['view','create','update','delete'],
+            'inventories'     => ['view','create','update','delete'],
+            'vouchers'        => ['view','create','update','delete'],
+            'slides'          => ['view','create','update','delete'],
+            'blogs'           => ['view','create','update','delete'],
+            'blog-categories' => ['view','create','update','delete'],
+            'uploads'         => ['update'],
+            'support-tickets' => ['view','update','reply','delete'],
+        ];
 
-        // ➜ THÊM NHÓM HỖ TRỢ
-        'support-tickets' => ['view','update','reply','delete'],
-    ];
+        $moduleLabels = [
+            'orders'          => 'Đơn hàng',
+            'reviews'         => 'Đánh giá',
+            'products'        => 'Sản phẩm',
+            'categories'      => 'Danh mục',
+            'brands'          => 'Thương hiệu',
+            'suppliers'       => 'Nhà cung cấp',
+            'inventories'     => 'Kho hàng',
+            'vouchers'        => 'Voucher',
+            'slides'          => 'Slide',
+            'blogs'           => 'Bài viết',
+            'blog-categories' => 'Chuyên mục',
+            'uploads'         => 'Tải lên',
+            'support-tickets' => 'Hỗ trợ',
+        ];
 
-    // Nhãn tiếng Việt cho module
-    $moduleLabels = [
-        'orders'          => 'Đơn hàng',
-        'reviews'         => 'Đánh giá',
-        'products'        => 'Sản phẩm',
-        'categories'      => 'Danh mục',
-        'brands'          => 'Thương hiệu',
-        'suppliers'       => 'Nhà cung cấp',
-        'inventories'     => 'Kho hàng',
-        'vouchers'        => 'Voucher',
-        'slides'          => 'Slide',
-        'blogs'           => 'Bài viết',
-        'blog-categories' => 'Chuyên mục',
-        'uploads'         => 'Tải lên',
+        $actionLabels = [
+            'view'          => 'Xem',
+            'create'        => 'Thêm',
+            'update'        => 'Cập nhật',
+            'delete'        => 'Xóa',
+            'moderate'      => 'Duyệt/Ẩn',
+            'ready_to_ship' => 'Sẵn sàng giao',
+            'cod_paid'      => 'Đã thu COD',
+            'reply'         => 'Gửi phản hồi',
+        ];
 
-        // ➜ NHÃN HỖ TRỢ
-        'support-tickets' => 'Hỗ trợ',
-    ];
+        return [$availablePerms, $moduleLabels, $actionLabels];
+    }
 
-    // Nhãn tiếng Việt cho action
-    $actionLabels = [
-        'view'          => 'Xem',
-        'create'        => 'Thêm',
-        'update'        => 'Cập nhật',
-        'delete'        => 'Xóa',
-        'moderate'      => 'Duyệt/Ẩn',
-        'ready_to_ship' => 'Sẵn sàng giao',
-        'cod_paid'      => 'Đã thu COD',
-
-        // ➜ NHÃN CHO ACTION MỚI
-        'reply'         => 'Gửi phản hồi',
-    ];
-
-    return [$availablePerms, $moduleLabels, $actionLabels];
-}
     protected function flattenPairs(array $availablePerms): array
     {
         $pairs = [];

@@ -20,14 +20,43 @@ class ProductController extends Controller
     /**
      * Hiển thị danh sách sản phẩm.
      */
-    public function index()
-    {
-        $products = Product::with(['categories', 'brand', 'variants'])
-            ->latest()
-            ->paginate(15);
+   public function index(Request $request)
+{
+    $query = Product::query()
+        ->with([
+            'categories:id,name',
+            'brand:id,name',
+            'variants.inventory',
+            'images' => fn($q) => $q->orderByDesc('is_primary')->orderBy('id'),
+        ])
+        ->latest();
 
-        return view('admins.products.index', compact('products'));
+    if ($q = $request->input('q')) {
+        $query->where(fn($sub) =>
+            $sub->where('name', 'like', "%{$q}%")
+                ->orWhere('sku', 'like', "%{$q}%")
+        );
     }
+
+    if ($request->filled('status') && in_array($request->status, ['0','1'], true)) {
+        $query->where('is_active', (int) $request->status);
+    }
+
+    if ($catId = $request->input('category_id')) {
+        $query->whereHas('categories', fn($c) => $c->where('categories.id', $catId));
+    }
+
+    $products = $query->paginate(15);
+    // giữ query string trên phân trang (hết cảnh báo IDE)
+    $products->appends($request->query());
+
+    $allCategories = Category::query()
+        ->where('is_active', 1)
+        ->orderBy('name')
+        ->get(['id','name']);
+
+    return view('admins.products.index', compact('products','allCategories'));
+}
 
     /**
      * Hiển thị form tạo sản phẩm mới.
@@ -176,7 +205,7 @@ class ProductController extends Controller
             $productData['slug'] = $request->slug ? Str::slug($request->slug) : Str::slug($request->name);
             $productData['is_active'] = $request->has('is_active');
             $productData['is_featured'] = $request->has('is_featured');
-            
+
             $product->update($productData);
             $product->categories()->sync($data['categories']);
 
@@ -200,7 +229,7 @@ class ProductController extends Controller
                     ]);
                 }
             }
-            
+
             // Cập nhật ảnh chính
             $mainImageUrl = null;
             if ($request->hasFile('main_image_file')) {
@@ -218,7 +247,7 @@ class ProductController extends Controller
             }
 
             // Cập nhật ảnh phụ
-            $product->images()->where('is_primary', false)->get()->each(function($image) {
+            $product->images()->where('is_primary', false)->get()->each(function ($image) {
                 if (!Str::startsWith($image->image_url, 'http')) Storage::disk('public')->delete($image->image_url);
                 $image->delete();
             });

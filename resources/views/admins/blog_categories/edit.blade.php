@@ -1,59 +1,116 @@
+{{-- resources/views/admins/blog_categories/edit.blade.php --}}
 @extends('admins.layouts.app')
 @section('title','Sửa danh mục bài viết')
 
 @section('content')
-<form action="{{ route('admin.blog-categories.update',$category) }}" method="POST" enctype="multipart/form-data" class="row g-4">
-  @csrf @method('PUT')
-  <input type="hidden" name="id" value="{{ $category->id }}">
+@php
+    use Illuminate\Support\Str;
+    $thumb = $category->thumbnail;
+    $thumbUrl = $thumb
+        ? (Str::startsWith($thumb, ['http://','https://','//']) ? $thumb : asset('storage/'.$thumb))
+        : null;
+@endphp
 
-  <div class="col-lg-8">
-    <div class="card p-3">
-      @if ($errors->any())
-        <div class="alert alert-danger">
-          <ul class="mb-0">
-            @foreach ($errors->all() as $e) <li>{{ $e }}</li> @endforeach
-          </ul>
+<style>
+    .card-soft{ border-radius:16px; border:1px solid rgba(32,25,21,.08) }
+    .card-soft .card-header{ background:transparent; border-bottom:1px dashed rgba(32,25,21,.12) }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h5 fw-bold mb-0">Sửa danh mục</h1>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.blog-categories.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
         </div>
-      @endif
-
-      <div class="mb-3">
-        <label class="form-label">Tên *</label>
-        <input type="text" name="name" value="{{ old('name',$category->name) }}" class="form-control" oninput="syncSlug(this.value)" required>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Slug</label>
-        <input type="text" name="slug" value="{{ old('slug',$category->slug) }}" class="form-control">
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Mô tả</label>
-        <textarea name="description" rows="4" class="form-control">{{ old('description',$category->description) }}</textarea>
-      </div>
     </div>
-  </div>
 
-  <div class="col-lg-4">
-    <div class="card p-3">
-      <div class="mb-3">
-        <label class="form-label">Ảnh</label>
-        <input type="file" name="thumbnail" class="form-control" accept="image/*" onchange="previewImage(this)">
-        @if($category->thumbnail)
-          <img id="thumbPreview" src="{{ asset('storage/'.$category->thumbnail) }}" class="img-fluid mt-2" alt="">
-        @else
-          <img id="thumbPreview" class="img-fluid mt-2 d-none" alt="">
-        @endif
-      </div>
+    <form action="{{ route('admin.blog-categories.update',$category) }}" method="POST" enctype="multipart/form-data" class="row g-4">
+        @csrf @method('PUT')
+        <input type="hidden" name="id" value="{{ $category->id }}">
 
-      <div class="mb-3 form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" @checked(old('is_active',$category->is_active))>
-        <label class="form-check-label" for="is_active">Kích hoạt</label>
-      </div>
+        <div class="col-lg-8">
+            <div class="card card-soft">
+                <div class="card-header"><strong>Thông tin cơ bản</strong></div>
+                <div class="card-body p-3">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $e) <li>{{ $e }}</li> @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
-      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save me-1"></i> Cập nhật</button>
-    </div>
-  </div>
-</form>
+                    <div class="mb-3">
+                        <label class="form-label">Tên *</label>
+                        <input type="text" name="name" value="{{ old('name',$category->name) }}" class="form-control @error('name') is-invalid @enderror" oninput="syncSlug(this.value)" required>
+                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Slug</label>
+                        <input type="text" name="slug" value="{{ old('slug',$category->slug) }}" class="form-control @error('slug') is-invalid @enderror">
+                        @error('slug')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">Nếu để trống sẽ tự sinh từ tên.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea name="description" rows="4" class="form-control @error('description') is-invalid @enderror">{{ old('description',$category->description) }}</textarea>
+                        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card card-soft">
+                <div class="card-header"><strong>Cấu hình</strong></div>
+                <div class="card-body p-3">
+                    <div class="mb-3">
+                        <label class="form-label">Danh mục cha</label>
+                        <select name="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
+                            <option value="">— Không có —</option>
+                            @foreach($parents as $p)
+                                <option value="{{ $p->id }}" {{ (string)old('parent_id',$category->parent_id)===(string)$p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('parent_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Thứ tự hiển thị</label>
+                        <input type="number" min="0" name="sort_order" value="{{ old('sort_order',$category->sort_order) }}" class="form-control @error('sort_order') is-invalid @enderror">
+                        @error('sort_order')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">Số nhỏ hiển thị trước.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ảnh</label>
+                        <input type="file" name="thumbnail" class="form-control @error('thumbnail') is-invalid @enderror" accept="image/*" onchange="previewImage(this)">
+                        @error('thumbnail')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <img id="thumbPreview"
+                             src="{{ $thumbUrl ?: '' }}"
+                             class="img-fluid mt-2 {{ $thumbUrl ? '' : 'd-none' }}"
+                             alt="Thumbnail"
+                             onerror="this.classList.add('d-none');">
+                        <div class="form-text">Chấp nhận file ảnh tối đa 2MB. Nếu đã có ảnh & bạn upload mới, ảnh cũ sẽ bị thay thế.</div>
+                    </div>
+
+                    <div class="mb-3 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" @checked(old('is_active',$category->is_active))>
+                        <label class="form-check-label" for="is_active">Kích hoạt</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-save me-1"></i> Cập nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
 @endsection
 
 @push('scripts')
@@ -68,12 +125,18 @@
     const slugInput = document.querySelector('input[name="slug"]');
     if(!slugInput.dataset.touched){ slugInput.value = slugify(val); }
   }
-  document.querySelector('input[name="slug"]').addEventListener('input', function(){ this.dataset.touched = '1'; });
+  const slugField = document.querySelector('input[name="slug"]');
+  if (slugField) slugField.addEventListener('input', function(){ this.dataset.touched = '1'; });
 
   function previewImage(input){
     const img = document.getElementById('thumbPreview');
-    if(input.files && input.files[0]){ img.src = URL.createObjectURL(input.files[0]); img.classList.remove('d-none'); }
-    else { img.src = ''; img.classList.add('d-none'); }
+    if(input.files && input.files[0]){
+      img.src = URL.createObjectURL(input.files[0]);
+      img.classList.remove('d-none');
+    } else {
+      img.src = '';
+      img.classList.add('d-none');
+    }
   }
 </script>
 @endpush

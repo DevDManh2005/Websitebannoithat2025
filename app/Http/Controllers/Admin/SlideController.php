@@ -9,41 +9,39 @@ use Illuminate\Support\Facades\Storage;
 
 class SlideController extends Controller
 {
-    /**
-     * Hiển thị danh sách các slide.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $slides = Slide::orderBy('position')->get();
+        $slides = Slide::query()
+            ->when($request->filled('q'), fn($q) =>
+                $q->where('title', 'like', '%' . trim($request->q) . '%'))
+            ->when($request->has('status') && $request->status !== '',
+                fn($q) => $q->where('is_active', (int)$request->status))
+            ->orderBy('position')
+            ->orderByDesc('id')
+            ->paginate(12);
+
         return view('admins.slides.index', compact('slides'));
     }
 
-    /**
-     * Hiển thị form tạo slide mới.
-     */
     public function create()
     {
-        // Truyền một biến slide rỗng để form không báo lỗi
         $slide = new Slide();
         return view('admins.slides.create', compact('slide'));
     }
 
-    /**
-     * Lưu slide mới vào database.
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string',
-            'image' => 'required|image|max:2048', // Tối đa 2MB
-            'button_text' => 'nullable|string|max:255',
-            'button_link' => 'nullable|url',
-            'position' => 'required|integer',
-            'is_active' => 'boolean',
+            'title'        => ['required','string','max:255'],
+            'subtitle'     => ['nullable','string'],
+            'image'        => ['required','image','max:2048'], // 2MB
+            'button_text'  => ['nullable','string','max:255'],
+            'button_link'  => ['nullable','url'],
+            'position'     => ['required','integer','min:0'],
+            'is_active'    => ['nullable','boolean'],
         ]);
 
-        $data['is_active'] = $request->has('is_active');
+        $data['is_active'] = (bool) ($request->is_active ?? false);
         $data['image'] = $request->file('image')->store('slides', 'public');
 
         Slide::create($data);
@@ -51,33 +49,34 @@ class SlideController extends Controller
         return redirect()->route('admin.slides.index')->with('success', 'Tạo slide mới thành công.');
     }
 
-    /**
-     * Hiển thị form chỉnh sửa slide.
-     */
     public function edit(Slide $slide)
     {
         return view('admins.slides.edit', compact('slide'));
     }
 
-    /**
-     * Cập nhật thông tin slide.
-     */
     public function update(Request $request, Slide $slide)
     {
         $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            'button_text' => 'nullable|string|max:255',
-            'button_link' => 'nullable|url',
-            'position' => 'required|integer',
-            'is_active' => 'boolean',
+            'title'        => ['required','string','max:255'],
+            'subtitle'     => ['nullable','string'],
+            'image'        => ['nullable','image','max:2048'],
+            'button_text'  => ['nullable','string','max:255'],
+            'button_link'  => ['nullable','url'],
+            'position'     => ['required','integer','min:0'],
+            'is_active'    => ['nullable','boolean'],
+            'remove_image' => ['nullable','boolean'],
         ]);
 
-        $data['is_active'] = $request->has('is_active');
+        $data['is_active'] = (bool) ($request->is_active ?? false);
 
+        // Xoá ảnh cũ nếu người dùng bấm “Xoá ảnh”
+        if ($request->boolean('remove_image') && $slide->image) {
+            Storage::disk('public')->delete($slide->image);
+            $data['image'] = null;
+        }
+
+        // Upload ảnh mới
         if ($request->hasFile('image')) {
-            // Xóa ảnh cũ trước khi upload ảnh mới
             if ($slide->image) {
                 Storage::disk('public')->delete($slide->image);
             }
@@ -89,9 +88,6 @@ class SlideController extends Controller
         return redirect()->route('admin.slides.index')->with('success', 'Cập nhật slide thành công.');
     }
 
-    /**
-     * Xóa slide.
-     */
     public function destroy(Slide $slide)
     {
         if ($slide->image) {
@@ -99,5 +95,23 @@ class SlideController extends Controller
         }
         $slide->delete();
         return back()->with('success', 'Đã xóa slide.');
+    }
+
+    /**
+     * Toggle trạng thái kích hoạt (AJAX hoặc điều hướng thường).
+     */
+    public function toggle(Request $request, Slide $slide)
+    {
+        $slide->is_active = !$slide->is_active;
+        $slide->save();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'ok' => true,
+                'is_active' => (bool) $slide->is_active,
+                'message' => $slide->is_active ? 'Đã bật slide.' : 'Đã tắt slide.',
+            ]);
+        }
+        return back()->with('success', $slide->is_active ? 'Đã bật slide.' : 'Đã tắt slide.');
     }
 }

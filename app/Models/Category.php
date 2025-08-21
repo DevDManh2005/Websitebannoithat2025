@@ -10,73 +10,20 @@ class Category extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'slug',
-        'parent_id',
-        'is_active',
-        'position',
-        'image', // Thêm 'image' vào đây
-    ];
+    protected $fillable = ['name','slug','parent_id','is_active','position','image'];
+    protected $casts = ['is_active'=>'boolean','position'=>'integer'];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'is_active' => 'boolean',
-        'position' => 'integer',
-    ];
+    public function parent()   { return $this->belongsTo(Category::class, 'parent_id'); }
+    public function children() { return $this->hasMany(Category::class, 'parent_id'); }
+    public function products() { return $this->belongsToMany(Product::class); }
 
-    /**
-     * Lấy danh mục cha của danh mục hiện tại.
-     */
-    public function parent()
-    {
-        return $this->belongsTo(Category::class, 'parent_id');
-    }
+    public function scopeActive($q)   { return $q->where('is_active', 1); }
+    public function scopeRoots($q)    { return $q->whereNull('parent_id'); }
+    public function scopeLeaves($q)   { return $q->whereNotNull('parent_id'); }
 
-    /**
-     * Lấy tất cả các danh mục con trực tiếp.
-     */
-    public function children()
-    {
-        return $this->hasMany(Category::class, 'parent_id');
-    }
-    
-    /**
-     * Lấy tất cả các sản phẩm thuộc về danh mục này.
-     * Đây là quan hệ nhiều-nhiều mới.
-     */
-    public function products()
-    {
-        return $this->belongsToMany(Product::class);
-    }
-    
-    /**
-     * Lấy các danh mục đang hoạt động.
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', 1);
-    }
-
-    /**
-     * Boot the model.
-     * Tự động tạo slug khi tên thay đổi.
-     */
     protected static function boot()
     {
         parent::boot();
-
-        static::saving(function ($category) {
-            $category->slug = Str::slug($category->name);
-        });
+        static::saving(function ($c) { $c->slug = Str::slug($c->name); });
     }
 }

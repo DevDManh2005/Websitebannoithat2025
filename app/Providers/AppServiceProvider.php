@@ -13,6 +13,7 @@ use App\Models\Setting;
 use App\Models\RoutePermission;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route as Rt;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +31,18 @@ class AppServiceProvider extends ServiceProvider
                 Setting::pluck('value', 'key')->all()
             );
             View::share('settings', $settings);
+        }
+
+        if (view()->exists('vendor.pagination.admin')) {
+            Paginator::defaultView('vendor.pagination.admin');
+        } else {
+            Paginator::defaultView('pagination::bootstrap-5');
+        }
+
+        if (view()->exists('vendor.pagination.admin-simple')) {
+            Paginator::defaultSimpleView('vendor.pagination.admin-simple');
+        } else {
+            Paginator::defaultSimpleView('pagination::simple-bootstrap-5');
         }
 
         View::composer([
@@ -111,7 +124,7 @@ class AppServiceProvider extends ServiceProvider
                 $allPerms    = $rolePerms->concat($directPerms)->unique('id');
 
                 $viewable = $allPerms->where('action', 'view')->groupBy('module_name')->keys();
-                $map = config('staff_modules');
+               $map = config('staff_modules', []);
 
                 foreach ($viewable as $module) {
                     if (!isset($map[$module])) continue;

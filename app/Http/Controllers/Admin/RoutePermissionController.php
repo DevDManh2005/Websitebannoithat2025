@@ -14,25 +14,37 @@ class RoutePermissionController extends Controller
     // =========================
     // Index
     // =========================
-    public function index(Request $request)
-    {
-        $rows = RoutePermission::query()
-            ->when($request->filled('q'), function ($q) use ($request) {
-                $kw = trim($request->q);
-                $q->where(function ($qq) use ($kw) {
-                    $qq->where('route_name', 'like', "%{$kw}%")
-                       ->orWhere('module_name', 'like', "%{$kw}%")
-                       ->orWhere('action', 'like', "%{$kw}%")
-                       ->orWhere('area', 'like', "%{$kw}%");
-                });
-            })
-            ->orderBy('area')
-            ->orderBy('module_name')
-            ->orderBy('action')
-            ->paginate(20);
+  
 
-        return view('admins.route_permissions.index', compact('rows'));
-    }
+public function index(Request $request)
+{
+    $rows = RoutePermission::query()
+        // q: route_name/module_name/action/area
+        ->when($request->filled('q'), function ($q) use ($request) {
+            $kw = trim($request->q);
+            $q->where(function ($qq) use ($kw) {
+                $qq->where('route_name', 'like', "%{$kw}%")
+                   ->orWhere('module_name', 'like', "%{$kw}%")
+                   ->orWhere('action', 'like', "%{$kw}%")
+                   ->orWhere('area', 'like', "%{$kw}%");
+            });
+        })
+        // area: admin | staff
+        ->when(in_array($request->area, ['admin','staff'], true), function ($q) use ($request) {
+            $q->where('area', $request->area);
+        })
+        // status: 1 | 0 (is_active)
+        ->when($request->has('status') && ($request->status === '1' || $request->status === '0'), function ($q) use ($request) {
+            $q->where('is_active', $request->status === '1');
+        })
+        ->orderByDesc('id')   // cho dễ thấy bản ghi mới
+        ->paginate(20)
+        ->appends($request->query()); // giữ query khi phân trang
+
+    return view('admins.route_permissions.index', compact('rows'));
+}
+
+
 
     // =========================
     // Create

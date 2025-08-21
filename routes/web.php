@@ -48,7 +48,8 @@ use App\Http\Controllers\Admin\{
     PermissionController,
     RoutePermissionController,
     SupportTicketController as AdminSupportTicketController,
-    SupportReplyController  as AdminSupportReplyController
+    SupportReplyController  as AdminSupportReplyController,
+    ReportController
 };
 
 /*
@@ -81,7 +82,7 @@ Route::get('/reset',     fn() => view('auth.reset'))->name('reset.form');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset.password');
 
 Route::get('/payment/vnpay-return',   [PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
-Route::match(['GET','POST'], '/payment/vnpay-ipn', [PaymentController::class, 'vnpayIpn'])->name('payment.vnpay.ipn');
+Route::match(['GET', 'POST'], '/payment/vnpay-ipn', [PaymentController::class, 'vnpayIpn'])->name('payment.vnpay.ipn');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
@@ -147,13 +148,27 @@ Route::middleware('auth')->group(function () {
 | ADMIN (chỉ admin)
 |--------------------------------------------------------------------------
 */
+Route::middleware('auth')->post('/uploads/ckeditor', [UploadController::class, 'ckeditor'])
+    ->name('uploads.ckeditor');
+
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'role:admin'])
     ->group(function () {
+        Route::patch('/admin/slides/{slide}/toggle', [SlideController::class, 'toggle'])
+            ->name('admin.slides.toggle')
+            ->middleware(['auth', 'role:admin']);
 
-        Route::get('/dashboard', fn() => view('admins.dashboard'))->name('dashboard');
-
+        Route::get(
+            '/dashboard',
+            [\App\Http\Controllers\Admin\DashboardController::class, 'index']
+        )->name('dashboard');
+        Route::get('/admin/products/{productId}/variants-inventory', [InventoryController::class, 'variantsInventory'])
+            ->name('admin.inventories.variants');
+        // staff/admin mới vào được (nếu bạn có middleware riêng thì gắn thêm ở đây)
+        Route::get('/reports', [ReportController::class, 'dashboard'])->name('reports.dashboard');
+        // CSV export nhanh (không cần package)
+        Route::get('/reports/export/top-products', [ReportController::class, 'exportTopProductsCsv'])->name('reports.export.top_products');
         // Nhân sự
         Route::resource('staffs', StaffController::class)->except(['show']);
         Route::resource('admins', AdminController::class)->except(['show']);
@@ -213,6 +228,7 @@ Route::prefix('admin')
 
         // Upload + quản trị quyền
         Route::post('/uploads/ckeditor',  [UploadController::class, 'ckeditor'])->name('uploads.ckeditor');
+
         Route::resource('permissions',        PermissionController::class)->except(['show']);
         Route::resource('route-permissions',  RoutePermissionController::class)->except(['show']);
 
@@ -239,7 +255,6 @@ Route::prefix('staff')
         // Dashboard
         Route::get('/dashboard', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])
             ->name('dashboard');
-
         /* ========== KINH DOANH ========== */
 
         // Orders (tái dùng Admin\OrderController) — giữ camelCase cho readyToShip/codPaid
@@ -275,8 +290,6 @@ Route::prefix('staff')
         Route::resource('slides', SlideController::class);
         Route::resource('blog-categories', AdminBlogCategoryController::class)->except(['show']);
         Route::resource('blogs',           AdminBlogController::class)->except(['show']);
-        Route::post('/uploads/ckeditor', [UploadController::class, 'ckeditor'])->name('uploads.ckeditor');
-
         // Banners (nếu có controller)
         if (class_exists('App\Http\Controllers\Admin\BannerController')) {
             Route::resource('banners', 'App\Http\Controllers\Admin\BannerController');

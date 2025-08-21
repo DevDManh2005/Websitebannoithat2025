@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
 class User extends Authenticatable
 {
     use Notifiable;
@@ -15,78 +15,70 @@ class User extends Authenticatable
     protected $hidden   = ['password', 'remember_token'];
     protected $casts    = ['email_verified_at' => 'datetime', 'is_active' => 'boolean'];
 
+    // --- Quan hệ vai trò ---
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
 
-    /**
-     * Quyền gán trực tiếp cho user qua pivot permission_user
-     */
-    public function permissions()
-    {
-        return $this->belongsToMany(Permission::class, 'permission_user', 'user_id', 'permission_id')
-            ->withTimestamps();
-        // Nếu sau này bạn thêm cột JSON 'scope' cho permission_user:
-        // ->withPivot(['scope'])
-    }
-
-    /**
-     * Kiểm tra quyền "module.action" theo 2 nguồn:
-     *  1) gán trực tiếp cho user (permission_user)
-     *  2) gán qua vai trò (role_permission)
-     */
-    /** Quyền gán TRỰC TIẾP cho user (permission_user) */
+    // --- Quyền gán trực tiếp cho user ---
     public function directPermissions(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class, 'permission_user')
-            ->withTimestamps();
+        return $this->belongsToMany(Permission::class, 'permission_user')->withTimestamps();
     }
 
-    /** Quyền đến từ vai trò */
+    /**
+     * Alias để tương thích các chỗ đang gọi ->permissions
+     * (ví dụ: with(['permissions','role.permissions'])).
+     */
+    public function permissions(): BelongsToMany
+    {
+        return $this->directPermissions();
+    }
+
+    // --- Quyền đến từ vai trò ---
     public function rolePermissions(): BelongsToMany
     {
-        // pivot role_permission (role_id, permission_id) -> join qua role_id của user
-        return $this->role()
-            ->first()
+        // Khi user có role => dùng quan hệ permissions() của Role
+        // Khi chưa có role => trả về 1 quan hệ belongsToMany "trống" (để code không lỗi).
+        return $this->role
             ? $this->role->permissions()
             : $this->belongsToMany(Permission::class, 'role_permission', 'role_id', 'permission_id');
     }
 
-    /** Tập quyền hợp nhất: direct + role */
+    // --- Gộp tất cả quyền (trực tiếp + từ role), unique theo id ---
     public function allPermissions()
     {
         $direct = $this->directPermissions()->get();
-        $byRole = $this->role ? $this->role->permissions()->get() : collect();
-        return $direct->merge($byRole)->unique('id');
+        $fromRole = $this->role ? $this->role->permissions()->get() : collect();
+        return $direct->merge($fromRole)->unique('id')->values();
     }
 
-    /** Kiểm tra quyền */
+    // --- Kiểm tra quyền theo module + action ---
     public function hasPermission(string $module, string $action): bool
     {
-        // ưu tiên query exists để không phải load toàn bộ
-        $direct = $this->directPermissions()
-            ->where('module_name', $module)
-            ->where('action', $action)
-            ->exists();
-
-        if ($direct) return true;
-
-        if ($this->role) {
-            return $this->role->permissions()
+        if ($this->directPermissions()
                 ->where('module_name', $module)
                 ->where('action', $action)
-                ->exists();
+                ->exists()) {
+            return true;
         }
 
-        return false;
+        return $this->role
+            ? $this->role->permissions()
+                ->where('module_name', $module)
+                ->where('action', $action)
+                ->exists()
+            : false;
     }
 
+    // --- Thông tin hồ sơ ---
     public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
     }
 
+    // --- Các quan hệ khác ---
     public function orders()
     {
         return $this->hasMany(Order::class);
@@ -102,6 +94,44 @@ class User extends Authenticatable
         return $this->hasMany(ProductReview::class);
     }
 
+    // --- Helpers phân nhóm ---
+    public function isAdmin(): bool
+    {
+        return optional($this->role)->name === 'admin';
+    }
+
+    public function isStaff(): bool
+    {
+        return in_array(optional($this->role)->name, ['admin', 'staff'], true);
+    }
+
+    public function isCustomer(): bool
+    {
+        return ! $this->isStaff();
+    }
+
+    // --- Scopes ---
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', 1);
+    }
+
+    public function scopeAdmins($q)
+    {
+        return $q->whereHas('role', fn($r) => $r->where('name', 'admin'));
+    }
+
+    public function scopeStaffs($q)
+    {
+        return $q->whereHas('role', fn($r) => $r->whereIn('name', ['admin', 'staff']));
+    }
+
+    public function scopeCustomers($q)
+    {
+        return $q->whereDoesntHave('role', fn($r) => $r->whereIn('name', ['admin', 'staff']));
+    }
+
+    // --- Helpers khác ---
     public function hasReviewedProduct($productId)
     {
         return $this->reviews()->where('product_id', $productId)->exists();
@@ -110,9 +140,8 @@ class User extends Authenticatable
     public function hasPurchasedProduct($productId)
     {
         return $this->orders()
-            ->where('status', '!=', 'cancelled')
-            ->whereHas('items.variant', function ($query) use ($productId) {
-                $query->where('product_id', $productId);
-            })->exists();
+            ->where('status', '!=', Order::ST_CANCEL)
+            ->whereHas('items.variant', fn($q) => $q->where('product_id', $productId))
+            ->exists();
     }
 }

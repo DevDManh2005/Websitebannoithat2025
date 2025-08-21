@@ -3,20 +3,57 @@
 @section('title', 'Tạo sản phẩm')
 
 @section('content')
+@php
+    // Tự động dùng 'staff' nếu route hiện tại thuộc nhóm staff.*, ngược lại dùng 'admin'
+    $rp = request()->routeIs('staff.*') ? 'staff' : 'admin';
+@endphp
+
+@php
+    // Chuẩn hóa mảng đã chọn (nếu có)
+    $oldCats = old('categories', []);
+@endphp
+
+<style>
+    /* Khối card mềm + viền */
+    .card-soft{ border-radius:16px; border:1px solid rgba(32,25,21,.08) }
+    .card-soft .card-header{ background:transparent; border-bottom:1px dashed rgba(32,25,21,.12) }
+
+    /* Dropdown danh mục dạng cây */
+    .cat-dropdown .dropdown-menu{
+        width: 100%;
+        max-height: 420px;
+        overflow: auto;
+        border-radius: 12px;
+    }
+    .cat-node .toggle{
+        width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+        border:1px solid rgba(32,25,21,.12); border-radius:6px; background:#fff;
+    }
+    .cat-node .children{ border-left:1px dashed rgba(32,25,21,.15); margin-left: 22px; padding-left: 12px; }
+    .cat-node .form-check-input{ margin-top: 0 }
+    .cat-summary{
+        display:flex; align-items:center; gap:6px; min-height: 38px;
+        padding: 6px 10px; border:1px solid var(--bs-border-color); border-radius: .375rem; background: #fff;
+        cursor: pointer; width:100%;
+    }
+    .cat-summary span{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge.bg-secondary-soft{ background:#f0f0f0; color:#555 }
+</style>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('admin.products.index') }}">Sản phẩm</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route($rp.'.dashboard') }}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route($rp.'.products.index') }}">Sản phẩm</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Tạo sản phẩm</li>
                 </ol>
             </nav>
         </div>
     </div>
 
-    <div class="card shadow mb-4">
+    <div class="card card-soft shadow mb-4">
         <div class="card-header">
             <h5 class="card-title mb-0">Tạo sản phẩm mới</h5>
         </div>
@@ -31,10 +68,11 @@
                 </div>
             @endif
 
-            <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route($rp.'.products.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+
                 {{-- Thông tin cơ bản --}}
-                <div class="card mb-4">
+                <div class="card mb-4 card-soft">
                     <div class="card-header">Thông tin cơ bản</div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -42,88 +80,119 @@
                             <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
                             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
+
                         <div class="mb-3">
-                            <label for="slug" class="form-label">Slug (URL thân thiện)</label>
-                            <input type="text" class="form-control @error('slug') is-invalid @enderror" id="slug" name="slug" value="{{ old('slug') }}" placeholder="Để trống để tự động tạo">
+                            <label for="slug" class="form-label">Đường dẫn (Slug)</label>
+                            <input type="text" class="form-control @error('slug') is-invalid @enderror" id="slug" name="slug" value="{{ old('slug') }}" placeholder="Để trống để tự tạo theo tên">
                             @error('slug')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        
+
+                        {{-- Danh mục: Dropdown Cây + giữ select hidden để submit --}}
                         <div class="mb-3">
-                            <label for="categories" class="form-label">Danh mục <span class="text-danger">*</span></label>
-                            <select class="form-select @error('categories') is-invalid @enderror" id="categories" name="categories[]" multiple required>
+                            <label class="form-label">Danh mục <span class="text-danger">*</span></label>
+
+                            {{-- Nút mở dropdown + tóm tắt --}}
+                            <div class="dropdown cat-dropdown">
+                                <button class="cat-summary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-folder2-open"></i>
+                                    <span id="cat-summary-text">Chọn danh mục…</span>
+                                    <i class="ms-auto bi bi-caret-down-fill"></i>
+                                </button>
+
+                                <div class="dropdown-menu p-3">
+                                    <div class="input-group input-group-sm mb-2">
+                                        <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
+                                        <input type="text" class="form-control" id="cat-search" placeholder="Tìm danh mục…">
+                                    </div>
+                                    <div id="cat-tree"></div>
+                                </div>
+                            </div>
+
+                            {{-- Select cũ giữ submit/validate (ẩn) --}}
+                            <select class="form-select d-none @error('categories') is-invalid @enderror" id="categories" name="categories[]" multiple required>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}" {{ in_array($category->id, old('categories', [])) ? 'selected' : '' }}>
+                                    <option value="{{ $category->id }}" {{ in_array($category->id, $oldCats) ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
                             </select>
-                            <small class="form-text">Giữ Ctrl (hoặc Cmd trên Mac) để chọn nhiều danh mục.</small>
-                            @error('categories')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">Bạn có thể chọn cả danh mục cha và danh mục con.</div>
+                            @error('categories')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="brand_id" class="form-label">Thương hiệu</label>
-                            <select class="form-select @error('brand_id') is-invalid @enderror" id="brand_id" name="brand_id">
-                                <option value="">Chọn thương hiệu</option>
-                                @foreach ($brands as $brand)
-                                    <option value="{{ $brand->id }}" {{ old('brand_id') == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('brand_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="brand_id" class="form-label">Thương hiệu</label>
+                                <select class="form-select @error('brand_id') is-invalid @enderror" id="brand_id" name="brand_id">
+                                    <option value="">— Chọn —</option>
+                                    @foreach ($brands as $brand)
+                                        <option value="{{ $brand->id }}" {{ old('brand_id') == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('brand_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="supplier_id" class="form-label">Nhà cung cấp</label>
+                                <select class="form-select @error('supplier_id') is-invalid @enderror" id="supplier_id" name="supplier_id">
+                                    <option value="">— Chọn —</option>
+                                    @foreach ($suppliers as $supplier)
+                                        <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('supplier_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="supplier_id" class="form-label">Nhà cung cấp</label>
-                            <select class="form-select @error('supplier_id') is-invalid @enderror" id="supplier_id" name="supplier_id">
-                                <option value="">Chọn nhà cung cấp</option>
-                                @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('supplier_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
+
                         <div class="mb-3">
                             <label for="description" class="form-label">Mô tả</label>
                             <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
                             @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="mb-3">
-                            <label for="label" class="form-label">Nhãn</label>
-                            <input type="text" class="form-control @error('label') is-invalid @enderror" id="label" name="label" value="{{ old('label') }}">
-                            @error('label')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_active">Hiển thị</label>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="label" class="form-label">Nhãn (ví dụ: Mới, Nổi bật)</label>
+                                <input type="text" class="form-control @error('label') is-invalid @enderror" id="label" name="label" value="{{ old('label') }}">
+                                @error('label')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="is_featured">Nổi bật</label>
+                            <div class="col-md-3 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="is_active">Hiển thị</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="is_featured">Nổi bật</label>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Quản lý hình ảnh --}}
-                <div class="card mb-4">
-                     <div class="card-header">Hình ảnh sản phẩm</div>
-                     <div class="card-body">
-                         <div class="mb-3">
+                {{-- Hình ảnh --}}
+                <div class="card mb-4 card-soft">
+                    <div class="card-header">Hình ảnh sản phẩm</div>
+                    <div class="card-body">
+                        <div class="mb-3">
                             <label class="form-label">Ảnh chính</label>
-                            <div class="input-group"><input type="file" class="form-control @error('main_image_file') is-invalid @enderror" id="main_image_file" name="main_image_file" accept="image/*"></div>
-                            @error('main_image_file')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="input-group">
+                                <input type="file" class="form-control @error('main_image_file') is-invalid @enderror" id="main_image_file" name="main_image_file" accept="image/*">
+                            </div>
+                            @error('main_image_file')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             <div class="form-text">Hoặc nhập URL</div>
-                            <input type="url" class="form-control @error('main_image_url') is-invalid @enderror" id="main_image_url" name="main_image_url" value="{{ old('main_image_url') }}">
-                            @error('main_image_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="url" class="form-control @error('main_image_url') is-invalid @enderror" id="main_image_url" name="main_image_url" value="{{ old('main_image_url') }}" placeholder="https://...">
+                            @error('main_image_url')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
                         <hr>
                         <div class="mb-3">
                             <label class="form-label">Ảnh phụ</label>
-                            <div class="input-group mb-2"><input type="file" class="form-control @error('images_files.*') is-invalid @enderror" id="images_files" name="images_files[]" accept="image/*" multiple></div>
-                            @error('images_files.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            
+                            <div class="input-group mb-2">
+                                <input type="file" class="form-control @error('images_files.*') is-invalid @enderror" id="images_files" name="images_files[]" accept="image/*" multiple>
+                            </div>
+                            @error('images_files.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+
                             <div class="form-text">Hoặc nhập các URL</div>
                             <div id="images-urls-container">
                                 <div class="input-group mb-2">
@@ -133,17 +202,18 @@
                             </div>
                             <button type="button" id="add-image-url-btn" class="btn btn-sm btn-primary mt-2">Thêm URL ảnh phụ</button>
                         </div>
-                     </div>
+                    </div>
                 </div>
 
-                {{-- Quản lý biến thể --}}
-                <div class="card mb-4">
+                {{-- Biến thể --}}
+                <div class="card mb-4 card-soft">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Biến thể sản phẩm</h5>
                         <button type="button" class="btn btn-success btn-sm" id="add-variant-btn">Thêm biến thể</button>
                     </div>
                     <div class="card-body">
                         <div id="variants-container"></div>
+
                         <template id="variant-template">
                             <div class="card mb-3 variant-item" data-index="INDEX">
                                 <div class="card-body">
@@ -152,7 +222,7 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">SKU <span class="text-danger">*</span></label>
+                                            <label class="form-label">Mã biến thể (SKU) <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" name="variants[INDEX][sku]" required>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -183,6 +253,7 @@
                                 </div>
                             </div>
                         </template>
+
                         <template id="attribute-template">
                             <div class="input-group mb-2 attribute-row">
                                 <input type="text" class="form-control" name="variants[VARIANT_INDEX][attributes][ATTR_INDEX][name]" placeholder="Tên thuộc tính (ví dụ: Màu sắc)" required>
@@ -193,8 +264,10 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Tạo sản phẩm</button>
-                <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">Hủy</a>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Tạo sản phẩm</button>
+                    <a href="{{ route($rp.'.products.index') }}" class="btn btn-secondary">Hủy</a>
+                </div>
             </form>
         </div>
     </div>
@@ -202,18 +275,34 @@
 @endsection
 
 @push('scripts')
+{{-- CKEditor 5 --}}
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<style>.ck-editor__editable{min-height:260px}</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // SCRIPT CHO THÊM/XÓA URL ẢNH PHỤ
+    ClassicEditor.create(document.querySelector('#description'), {
+        toolbar: [
+            'heading','|','bold','italic','underline','link',
+            '|','bulletedList','numberedList','blockQuote',
+            '|','insertTable','imageUpload','mediaEmbed',
+            '|','undo','redo'
+        ],
+        simpleUpload: { uploadUrl: '{{ route('uploads.ckeditor') }}', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }
+    }).catch(console.error);
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    /* ========== ẢNH PHỤ: thêm/xóa URL ========== */
     const urlContainer = document.getElementById('images-urls-container');
     document.getElementById('add-image-url-btn').addEventListener('click', function() {
-        const newField = `
-            <div class="input-group mb-2">
+        urlContainer.insertAdjacentHTML('beforeend',
+            `<div class="input-group mb-2">
                 <input type="url" class="form-control" name="images_urls[]">
                 <button type="button" class="btn btn-danger remove-image-url-btn">Xóa</button>
-            </div>
-        `;
-        urlContainer.insertAdjacentHTML('beforeend', newField);
+            </div>`
+        );
     });
     urlContainer.addEventListener('click', function(e) {
         if (e.target && e.target.classList.contains('remove-image-url-btn')) {
@@ -223,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // SCRIPT CHO BIẾN THỂ
+    /* ========== BIẾN THỂ ========== */
     const variantsContainer = document.getElementById('variants-container');
     const addVariantBtn = document.getElementById('add-variant-btn');
     const variantTemplate = document.getElementById('variant-template');
@@ -239,8 +328,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if(data.weight) newVariantNode.querySelector('[name$="[weight]"]').value = data.weight;
         if(data.price) newVariantNode.querySelector('[name$="[price]"]').value = data.price;
         if(data.sale_price) newVariantNode.querySelector('[name$="[sale_price]"]').value = data.sale_price;
+
         const isMainCheckbox = newVariantNode.querySelector('.is-main-variant-checkbox');
         if(data.is_main_variant) isMainCheckbox.checked = (data.is_main_variant == 1);
+
         const attributesContainer = newVariantNode.querySelector('.attributes-container');
         const attributes = data.attributes || {};
         if (Object.keys(attributes).length > 0) {
@@ -265,7 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.value) newAttrNode.querySelector('[name$="[value]"]').value = data.value;
         container.appendChild(newAttrNode);
     }
-    
+
     function updateMainVariantLogic() {
         const checkboxes = variantsContainer.querySelectorAll('.is-main-variant-checkbox');
         checkboxes.forEach(chk => {
@@ -283,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     addVariantBtn.addEventListener('click', () => createNewVariant());
-
     variantsContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-variant-btn')) {
             if (variantsContainer.children.length > 1) {
@@ -311,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function renderInitialData() {
+    function renderInitialVariants() {
         const initialVariants = @json(old('variants'));
         if (initialVariants && initialVariants.length > 0) {
             initialVariants.forEach(variantData => createNewVariant(variantData));
@@ -319,7 +409,158 @@ document.addEventListener('DOMContentLoaded', function() {
             createNewVariant();
         }
     }
-    renderInitialData();
+    renderInitialVariants();
+
+    /* ========== DANH MỤC DẠNG CÂY ========== */
+    const allCats = @json($categories->map(fn($c)=>[
+        'id'=>$c->id,'name'=>$c->name,'parent_id'=>$c->parent_id ?? 0
+    ]));
+    const preselected = new Set(@json($oldCats));
+    const hiddenSelect = document.getElementById('categories');
+    const treeWrap = document.getElementById('cat-tree');
+    const searchBox = document.getElementById('cat-search');
+    const summaryEl = document.getElementById('cat-summary-text');
+
+    // Lập map con theo parent
+    const byParent = {};
+    allCats.forEach(c => {
+        const p = c.parent_id || 0;
+        (byParent[p] ??= []).push(c);
+    });
+    // Sắp xếp tên
+    Object.values(byParent).forEach(list => list.sort((a,b)=>a.name.localeCompare(b.name,'vi')));
+
+    function makeNode(cat){
+        const hasChild = !!(byParent[cat.id] && byParent[cat.id].length);
+        const wrap = document.createElement('div');
+        wrap.className = 'cat-node';
+        wrap.dataset.id = cat.id;
+
+        const row = document.createElement('div');
+        row.className = 'd-flex align-items-center gap-2 py-1';
+        row.innerHTML = `
+            ${hasChild ? `<button type="button" class="toggle" aria-label="Mở/đóng"><i class="bi bi-caret-down-fill"></i></button>` : `<span style="width:28px"></span>`}
+            <input class="form-check-input cat-check" type="checkbox" value="${cat.id}" id="cat_${cat.id}">
+            <label class="form-check-label flex-grow-1" for="cat_${cat.id}">${cat.name}</label>
+        `;
+        wrap.appendChild(row);
+
+        if (hasChild){
+            const children = document.createElement('div');
+            children.className = 'children';
+            byParent[cat.id].forEach(ch => children.appendChild(makeNode(ch)));
+            wrap.appendChild(children);
+        }
+        return wrap;
+    }
+
+    function buildTree(){
+        treeWrap.innerHTML = '';
+        const roots = byParent[0] || byParent[null] || [];
+        roots.forEach(r => treeWrap.appendChild(makeNode(r)));
+
+        // Gán checked theo preselected
+        preselected.forEach(id => {
+            const cb = treeWrap.querySelector(`#cat_${id}`);
+            if(cb){ cb.checked = true; }
+        });
+
+        refreshSummary();
+        syncHiddenSelect();
+
+        // Toggle expand/collapse
+        treeWrap.addEventListener('click', function(e){
+            if(e.target.closest('.toggle')){
+                const node = e.target.closest('.cat-node');
+                const child = node.querySelector(':scope > .children');
+                if(child){
+                    child.classList.toggle('d-none');
+                    const icon = node.querySelector('.toggle i');
+                    icon && icon.classList.toggle('bi-caret-right-fill');
+                    icon && icon.classList.toggle('bi-caret-down-fill');
+                }
+            }
+        });
+
+        // Chọn/deselect
+        treeWrap.addEventListener('change', function(e){
+            if(e.target.classList.contains('cat-check')){
+                const id = e.target.value;
+                if(e.target.checked){ preselected.add(id); }
+                else{ preselected.delete(id); }
+                refreshSummary();
+                syncHiddenSelect();
+            }
+        });
+    }
+
+    function syncHiddenSelect(){
+        // Clear selected state trong select ẩn
+        [...hiddenSelect.options].forEach(opt => { opt.selected = false; });
+        // Tick lại theo set
+        preselected.forEach(id => {
+            const opt = [...hiddenSelect.options].find(o => String(o.value) === String(id));
+            if(opt){ opt.selected = true; }
+            else{
+                // Phòng khi thiếu option (hầu như không xảy ra)
+                const cat = allCats.find(c => String(c.id) === String(id));
+                if(cat){
+                    const o = new Option(cat.name, cat.id, true, true);
+                    hiddenSelect.add(o);
+                }
+            }
+        });
+    }
+
+    function refreshSummary(){
+        if(preselected.size === 0){
+            summaryEl.textContent = 'Chọn danh mục…';
+            return;
+        }
+        const picked = allCats.filter(c => preselected.has(String(c.id)) || preselected.has(c.id));
+        if(picked.length <= 3){
+            summaryEl.textContent = picked.map(x=>x.name).join(', ');
+        }else{
+            summaryEl.textContent = `Đã chọn ${picked.length} danh mục`;
+        }
+    }
+
+    // Tìm kiếm
+    searchBox.addEventListener('input', function(){
+        const kw = this.value.trim().toLowerCase();
+        if(!kw){
+            // Hiện tất cả
+            treeWrap.querySelectorAll('.cat-node').forEach(n => n.classList.remove('d-none'));
+            return;
+        }
+        // Ẩn/hiện theo tên + tổ tiên
+        const idMatch = new Set();
+        allCats.forEach(c => {
+            if((c.name||'').toLowerCase().includes(kw)) idMatch.add(String(c.id));
+        });
+        // Hiện node khớp + tổ tiên
+        treeWrap.querySelectorAll('.cat-node').forEach(n => n.classList.add('d-none'));
+        function showChain(id){
+            const node = treeWrap.querySelector(`.cat-node[data-id="${id}"]`);
+            if(!node) return;
+            node.classList.remove('d-none');
+            // mở ancestor
+            const parentNode = node.parentElement?.closest('.cat-node');
+            if(parentNode){
+                const children = parentNode.querySelector(':scope > .children');
+                if(children && children.classList.contains('d-none')){
+                    children.classList.remove('d-none');
+                    const icon = parentNode.querySelector('.toggle i');
+                    icon && icon.classList.remove('bi-caret-right-fill');
+                    icon && icon.classList.add('bi-caret-down-fill');
+                }
+                showChain(parentNode.dataset.id);
+            }
+        }
+        idMatch.forEach(showChain);
+    });
+
+    buildTree();
 });
 </script>
 @endpush

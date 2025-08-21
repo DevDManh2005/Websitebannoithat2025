@@ -2,12 +2,12 @@
 use Illuminate\Support\Str;
 
 /**
- * Biến mong đợi từ controller (đều có fallback an toàn):
+ * Dữ liệu mong đợi từ Controller (đều có fallback an toàn):
  * - $routesByArea: [ 'admin' => ['admin.orders.index', ...], 'staff' => ['staff.orders.index', ...] ]
  * - $availablePerms: [ 'orders' => ['view','create','update','delete','ready_to_ship','cod_paid'], ... ]
  * - $moduleLabels: [ 'orders' => 'Đơn hàng', ... ]
  * - $actionLabels: [ 'view' => 'Xem', 'create' => 'Thêm', ... ]
- * - $routePermission (optional khi edit)
+ * - $routePermission (optional khi sửa)
  */
 $routesByArea    = $routesByArea    ?? [];
 $availablePerms  = $availablePerms  ?? [];
@@ -22,20 +22,24 @@ $isActive        = old('is_active', isset($routePermission) ? (int)$routePermiss
 $pairHasError    = $errors->has('pair') || $errors->has('module_name') || $errors->has('action');
 $routeHasError   = $errors->has('route_name');
 $areaHasError    = $errors->has('area');
+
+$areaName = fn($v) => $v === 'admin' ? 'Quản trị' : 'Nhân viên';
 @endphp
 
-{{-- ROUTE NAME --}}
+<style>
+  .help { color:#6c757d; font-size:.875rem }
+</style>
+
+{{-- TÊN TUYẾN (ROUTE) --}}
 <div class="mb-3">
-  <label class="form-label">Route <span class="text-danger">*</span></label>
-  @php
-    $hasPreset = count($routesByArea) > 0;
-  @endphp
+  <label class="form-label">Tên tuyến (route) <span class="text-danger">*</span></label>
+  @php $hasPreset = count($routesByArea) > 0; @endphp
 
   @if($hasPreset)
     <select id="route_name" name="route_name" class="form-select {{ $routeHasError ? 'is-invalid' : '' }}" required>
-      <option value="">— Chọn route —</option>
+      <option value="">— Chọn tuyến —</option>
       @foreach($routesByArea as $area => $routes)
-        <optgroup label="{{ strtoupper($area) }}">
+        <optgroup label="{{ $areaName($area) }}">
           @foreach($routes as $r)
             <option value="{{ $r }}" @selected($selectedRoute === $r)>{{ $r }}</option>
           @endforeach
@@ -44,30 +48,30 @@ $areaHasError    = $errors->has('area');
     </select>
   @else
     <input type="text" id="route_name" name="route_name" class="form-control {{ $routeHasError ? 'is-invalid' : '' }}"
-           value="{{ $selectedRoute }}" placeholder="VD: staff.orders.index" required>
+           value="{{ $selectedRoute }}" placeholder="Ví dụ: staff.orders.index" required>
   @endif
 
   @if($routeHasError)
     <div class="invalid-feedback d-block">{{ $errors->first('route_name') }}</div>
   @endif
-  <div class="form-text">Chọn/thêm tên route (ví dụ: <code>staff.orders.index</code>, <code>admin.products.update</code>…)</div>
+  <div class="help">Bạn có thể chọn từ danh sách sẵn có hoặc nhập thủ công (ví dụ: <code>staff.orders.index</code>, <code>admin.products.update</code>…)</div>
 </div>
 
-{{-- AREA --}}
+{{-- KHU VỰC --}}
 <div class="mb-3">
   <label class="form-label">Khu vực <span class="text-danger">*</span></label>
   <select id="area" name="area" class="form-select {{ $areaHasError ? 'is-invalid' : '' }}" required>
-    <option value="staff" @selected($selectedArea==='staff')>Staff</option>
-    <option value="admin" @selected($selectedArea==='admin')>Admin</option>
+    <option value="staff" @selected($selectedArea==='staff')>Nhân viên</option>
+    <option value="admin" @selected($selectedArea==='admin')>Quản trị</option>
   </select>
   @if($areaHasError)
     <div class="invalid-feedback d-block">{{ $errors->first('area') }}</div>
   @endif
 </div>
 
-{{-- CHỨC NĂNG (MODULE + ACTION) --}}
+{{-- CHỨC NĂNG (MODULE + HÀNH ĐỘNG) --}}
 <div class="mb-3">
-  <label class="form-label">Chức năng <span class="text-danger">*</span></label>
+  <label class="form-label">Chức năng &amp; hành động <span class="text-danger">*</span></label>
   <select id="pair" name="pair" class="form-select {{ $pairHasError ? 'is-invalid' : '' }}" required>
     <option value="">— Chọn chức năng —</option>
     @foreach($availablePerms as $module => $actions)
@@ -75,30 +79,27 @@ $areaHasError    = $errors->has('area');
       <optgroup label="{{ $ml }}">
         @foreach($actions as $a)
           @php $al = $actionLabels[$a] ?? Str::headline(str_replace('_',' ', $a)); @endphp
-          <option value="{{ $module }}|{{ $a }}" @selected($selectedPair === $module.'|'.$a)>
-            {{ $al.' '.$ml }}
-          </option>
+          <option value="{{ $module }}|{{ $a }}" @selected($selectedPair === $module.'|'.$a)>{{ $al.' '.$ml }}</option>
         @endforeach
       </optgroup>
     @endforeach
   </select>
-  <div class="form-text">Ví dụ: <em>Thêm Sản phẩm</em>, <em>Xem Đơn hàng</em>, <em>Sẵn sàng giao Đơn hàng</em>…</div>
+  <div class="help">Ví dụ: <em>Thêm Sản phẩm</em>, <em>Xem Đơn hàng</em>, <em>Sẵn sàng giao Đơn hàng</em>…</div>
 
-  {{-- lỗi hiển thị ngay dưới select --}}
-  @if($errors->first('pair') || $errors->first('module_name') || $errors->first('action'))
+  @if($pairHasError)
     <div class="invalid-feedback d-block">
       {{ $errors->first('pair') ?? $errors->first('module_name') ?? $errors->first('action') }}
     </div>
   @endif
 </div>
 
-{{-- is_active --}}
+{{-- TRẠNG THÁI --}}
 <div class="form-check form-switch mb-3">
   <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" @checked((int)$isActive === 1)>
   <label class="form-check-label" for="is_active">Kích hoạt</label>
 </div>
 
-{{-- Hidden sync xuống DB --}}
+{{-- Hidden để lưu xuống DB --}}
 <input type="hidden" name="module_name" id="module_name" value="{{ old('module_name', $routePermission->module_name ?? '') }}">
 <input type="hidden" name="action" id="action" value="{{ old('action', $routePermission->action ?? '') }}">
 
@@ -138,14 +139,14 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   function onRouteChanged(){
-    const v = (routeSel && routeSel.value) ? routeSel.value : (routeSel ? routeSel.value : '');
+    const v = routeSel ? (routeSel.value || '') : '';
     if(!v) return;
 
-    // đoán area theo prefix
+    // đoán khu vực
     if (v.startsWith('admin.')) areaSel.value = 'admin';
     else if (v.startsWith('staff.')) areaSel.value = 'staff';
 
-    // tách module + rest để thử preselect pair
+    // đoán module + action để preselect
     const parts = v.split('.');
     if (parts.length >= 3){
       const module = parts[1];
@@ -158,17 +159,15 @@ document.addEventListener('DOMContentLoaded', function(){
         if (opt) {
           pairSel.value = candidate;
           syncPairToHidden();
-          return;
         }
       }
     }
-    // nếu không đoán được thì không đổi selection
   }
 
-  if (pairSel) pairSel.addEventListener('change', syncPairToHidden);
-  if (routeSel) routeSel.addEventListener('change', onRouteChanged);
+  pairSel && pairSel.addEventListener('change', syncPairToHidden);
+  routeSel && routeSel.addEventListener('change', onRouteChanged);
 
-  // Prefill khi edit
+  // Prefill khi sửa
   syncPairToHidden();
   onRouteChanged();
 });

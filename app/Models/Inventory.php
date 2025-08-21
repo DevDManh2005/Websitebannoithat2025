@@ -12,13 +12,11 @@ class Inventory extends Model
     protected $fillable = [
         'product_id',
         'product_variant_id',
-        'quantity',
+        'quantity',     // cột tồn kho chính (nếu DB bạn đặt tên khác vẫn OK nhờ accessor bên dưới)
         'location_id',
     ];
 
-    /**
-     * Relationships
-     */
+    /** Quan hệ */
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -37,5 +35,20 @@ class Inventory extends Model
     public function transactions()
     {
         return $this->hasMany(InventoryTransaction::class);
+    }
+
+    /**
+     * Thuộc tính ảo: số tồn để hiển thị an toàn (tự dò cột nếu quantity không có)
+     * Dùng trong view: $inventory->stock_display
+     */
+    public function getStockDisplayAttribute()
+    {
+        return $this->quantity
+            ?? $this->stock
+            ?? $this->qty
+            ?? $this->stock_quantity
+            ?? $this->available
+            ?? $this->available_quantity
+            ?? 0;
     }
 }
