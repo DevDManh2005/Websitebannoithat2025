@@ -22,4 +22,5 @@ class Brand extends Model
         if (Str::startsWith($this->logo, ['http://','https://'])) return $this->logo;
         return asset('storage/'.$this->logo);
     }
+    
 }

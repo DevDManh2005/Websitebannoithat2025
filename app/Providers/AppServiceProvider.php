@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\Category;
 use App\Models\Cart;
 use App\Models\Setting;
+use App\Models\Brand;
 use App\Models\RoutePermission;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route as Rt;
@@ -149,22 +150,34 @@ class AppServiceProvider extends ServiceProvider
             $view->with('blogCategories', $blogCategories);
         });
 
-        view::composer('layouts.footer', function ($view) {
+        View::composer('layouts.footer', function ($view) {
+
+            // 1. Lấy dữ liệu cho slider đối tác
+            // Dòng này yêu cầu bạn phải có scope "active()" trong Model Brand
+            $brands = Brand::query()
+                ->where('is_active', 1) // Hoặc dùng scope: Brand::active()
+                ->take(8)
+                ->get();
+
+            // 2. Lấy dữ liệu cho accordion danh mục sản phẩm ở footer
             $footerAccordionCategories = Category::query()
-                ->whereNull('parent_id') // Lấy danh mục cha
-                ->where('is_active', 1)
-                ->latest() // Sắp xếp mới nhất lên trước
-                ->take(4) // Giới hạn 4
+                ->where('is_active', true)
+                ->whereNull('parent_id') // Chỉ lấy các danh mục cha
                 ->with(['children' => function ($query) {
-                    $query->where('is_active', 1)->latest()->take(3); // Với mỗi cha, lấy 3 con mới nhất
+                    $query->where('is_active', true); // Kèm theo các danh mục con đang hoạt động
                 }])
                 ->get();
-            // THÊM MỚI: Logic lấy brands
-            $brands = \App\Models\Brand::active()->take(6)->get();
+            
+            // 3. Lấy dữ liệu cài đặt chung của website
+            // Cách này hiệu quả để lấy tất cả settings và biến nó thành mảng key => value
+            $settings = Setting::all()->pluck('value', 'key')->all();
 
-            // Gửi cả 2 biến tới view
-            $view->with('footerAccordionCategories', $footerAccordionCategories)
-                ->with('brands', $brands);
+            // 4. Gửi tất cả dữ liệu sang view footer
+            $view->with([
+                'brandsForFooter' => $brands,
+                'footerAccordionCategories' => $footerAccordionCategories,
+                'settings' => $settings,
+            ]);
         });
         if (request()->routeIs('staff.*') || request()->is('staff/*')) {
             View::replaceNamespace('admins', [

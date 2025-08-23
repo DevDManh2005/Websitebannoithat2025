@@ -5,18 +5,11 @@
             <h6 class="footer-brands-title" data-aos="fade-up">Đối tác uy tín</h6>
             <div data-aos="fade-up" data-aos-delay="100">
 
-                {{-- =============================================== --}}
-                {{-- == HTML CỦA SLIDER ĐỐI TÁC ĐƯỢC TÍCH HỢP SẴN == --}}
-                {{-- =============================================== --}}
-                @php
-                    // Lấy dữ liệu brands một lần để sử dụng
-                    $brands = \App\Models\Brand::active()->take(8)->get();
-                @endphp
-
-                @if(isset($brands) && $brands->count() > 0)
+                {{-- Dữ liệu $brandsForFooter được cung cấp từ AppServiceProvider --}}
+                @if(isset($brandsForFooter) && $brandsForFooter->count() > 0)
                     <div class="swiper brand-swiper-component">
                         <div class="swiper-wrapper align-items-center">
-                            @foreach($brands as $brand)
+                            @foreach($brandsForFooter as $brand)
                                 <div class="swiper-slide text-center">
                                     <a href="{{ $brand->website ?? '#' }}" target="_blank" title="{{ $brand->name }}" class="d-inline-block">
                                         <img src="{{ $brand->logo_url }}"
@@ -27,8 +20,9 @@
                             @endforeach
                         </div>
                     </div>
+                @else
+                    <p class="small text-muted">Đang cập nhật danh sách đối tác của chúng tôi.</p>
                 @endif
-                {{-- =============================================== --}}
 
             </div>
         </div>
@@ -56,6 +50,7 @@
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="footer-column">
                         <h6 class="footer-column-title">Sản phẩm</h6>
+                        {{-- Dữ liệu $footerAccordionCategories được cung cấp từ AppServiceProvider --}}
                         @if(isset($footerAccordionCategories) && $footerAccordionCategories->isNotEmpty())
                             <div class="footer-accordion">
                                 @foreach($footerAccordionCategories as $category)
@@ -205,9 +200,7 @@
         border-top: 1px solid rgba(0,0,0,.07);
     }
 
-    /* =================================== */
-    /* == CSS CHO SLIDER ĐỐI TÁC         == */
-    /* =================================== */
+    /* CSS CHO SLIDER ĐỐI TÁC */
     .brand-swiper-component {
         transition-timing-function: linear !important;
     }
@@ -229,7 +222,6 @@
 
 @push('scripts-page')
 <script>
-    // KHỞI TẠO SLIDER ĐỐI TÁC
     document.addEventListener('DOMContentLoaded', function () {
         if (document.querySelector('.brand-swiper-component')) {
             const brandSwiper = new Swiper('.brand-swiper-component', {
@@ -250,44 +242,6 @@
             });
         }
     });
-
-    // Các script khác của bạn (nếu có)
-    (function() {
-        // Newsletter AJAX
-        const form = document.getElementById('newsletter-form');
-        if (form && form.action && form.action !== window.location.origin + '#') {
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const email = form.querySelector('input[name="email"]').value.trim();
-                const err = document.getElementById('newsletter-error');
-                const ok  = document.getElementById('newsletter-success');
-                if (err) { err.classList.add('d-none'); err.textContent = ''; }
-                if (ok)  { ok.classList.add('d-none'); }
-
-                try {
-                    const res = await fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify({ email })
-                    });
-                    if (!res.ok) throw new Error('Request failed');
-                    const data = await res.json().catch(() => ({}));
-                    if (data.success) {
-                        if (ok) ok.classList.remove('d-none');
-                        form.reset();
-                    } else {
-                        if (err) { err.textContent = data.message || 'Đăng ký thất bại. Vui lòng thử lại.'; err.classList.remove('d-none'); }
-                    }
-                } catch (ex) {
-                    if (err) { err.textContent = 'Không thể gửi yêu cầu lúc này. Vui lòng thử lại sau.'; err.classList.remove('d-none'); }
-                    console.error(ex);
-                }
-            }, { passive: false });
-        }
-    })();
 </script>
 @endpush
+@endonce
