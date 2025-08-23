@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\Category;
 use App\Models\Cart;
 use App\Models\Setting;
-use App\Models\Brand;
 use App\Models\RoutePermission;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route as Rt;
@@ -150,38 +149,22 @@ class AppServiceProvider extends ServiceProvider
             $view->with('blogCategories', $blogCategories);
         });
 
-       View::composer(['layouts.footer', 'layouts.partials.header'], function ($view) {
-            try {
-                // Lấy dữ liệu cho slider đối tác
-                $brands = Brand::query()->where('is_active', 1)->take(8)->get();
+        view::composer('layouts.footer', function ($view) {
+            $footerAccordionCategories = Category::query()
+                ->whereNull('parent_id') // Lấy danh mục cha
+                ->where('is_active', 1)
+                ->latest() // Sắp xếp mới nhất lên trước
+                ->take(4) // Giới hạn 4
+                ->with(['children' => function ($query) {
+                    $query->where('is_active', 1)->latest()->take(3); // Với mỗi cha, lấy 3 con mới nhất
+                }])
+                ->get();
+            // THÊM MỚI: Logic lấy brands
+            $brands = \App\Models\Brand::active()->take(6)->get();
 
-                // Lấy dữ liệu cho accordion danh mục sản phẩm ở footer
-                $footerAccordionCategories = Category::query()
-                    ->where('is_active', true)
-                    ->whereNull('parent_id')
-                    ->with(['children' => fn($q) => $q->where('is_active', true)])
-                    ->get();
-                
-                // Lấy dữ liệu cài đặt chung của website
-                $settings = Setting::all()->pluck('value', 'key')->all();
-
-                // Gửi tất cả dữ liệu sang view
-                $view->with([
-                    'brandsForFooter' => $brands,
-                    'footerAccordionCategories' => $footerAccordionCategories,
-                    'settings' => $settings,
-                ]);
-
-            } catch (\Exception $e) {
-                // Nếu có lỗi (ví dụ: chưa migrate db), truyền vào mảng rỗng để không bị lỗi 500
-                $view->with([
-                    'brandsForFooter' => collect(),
-                    'footerAccordionCategories' => collect(),
-                    'settings' => [],
-                ]);
-                // Log lỗi để debug
-                // Log::error('View Composer Error: ' . $e->getMessage());
-            }
+            // Gửi cả 2 biến tới view
+            $view->with('footerAccordionCategories', $footerAccordionCategories)
+                ->with('brands', $brands);
         });
         if (request()->routeIs('staff.*') || request()->is('staff/*')) {
             View::replaceNamespace('admins', [
