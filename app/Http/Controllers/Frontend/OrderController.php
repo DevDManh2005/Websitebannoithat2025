@@ -44,7 +44,7 @@ class OrderController extends Controller
         $u = auth()->user();
         $isOwner = $u && ((int)$u->id === (int)$order->user_id);
         $role    = optional($u->role)->name;
-        $isStaff = in_array($role, ['admin','staff'], true);
+        $isStaff = in_array($role, ['admin', 'staff'], true);
 
         abort_unless($isOwner || $isStaff, 403, 'Bạn không có quyền hủy đơn hàng này.');
 
@@ -64,9 +64,13 @@ class OrderController extends Controller
      */
     public function receive(Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
-            abort(403, 'Bạn không có quyền xác nhận đơn hàng này.');
-        }
+        $u = auth()->user();
+        $isOwner = $u && ((int)$u->id === (int)$order->user_id);
+        $role    = optional($u->role)->name;
+        $isStaff = in_array($role, ['admin', 'staff'], true);
+
+        // Cho phép nếu là chủ đơn hàng HOẶC là nhân viên
+        abort_unless($isOwner || $isStaff, 403, 'Bạn không có quyền xác nhận đơn hàng này.');
 
         if ($order->status !== 'delivered') {
             return back()->with('error', 'Đơn hàng chưa ở trạng thái có thể xác nhận đã nhận.');

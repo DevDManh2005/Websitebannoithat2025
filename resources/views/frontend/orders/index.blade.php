@@ -108,7 +108,7 @@
                                             <a href="{{ route('product.show', $item->variant->product->slug) }}"
                                                class="rounded-3 overflow-hidden flex-shrink-0 img-hover-zoom"
                                                style="width:60px;height:60px;">
-                                                <img src="{{ optional($item->variant->product->primaryImage)->image_url_path ?? 'https://placehold.co/80x80' }}"
+                                                <img src="{{ optional(optional($item->variant)->product->primaryImage)->image_url_path ?? 'https://placehold.co/80x80' }}" ... >
                                                      class="w-100 h-100 object-fit-cover" alt="{{ $item->variant->product->name }}">
                                             </a>
                                             <div class="ms-3 flex-grow-1">
@@ -234,5 +234,19 @@
     .badge.bg-info { background-color: #0dcaf0 !important; color: #000; }
     .badge.bg-secondary { background-color: #6c757d !important; color: #fff; }
     .badge.bg-danger { background-color: #dc3545 !important; color: #fff; }
+    @media (max-width: 575.98px) {
+    /*
+     * Trên màn hình điện thoại nhỏ, cho ảnh và tên sản phẩm trong
+     * danh sách đơn hàng xếp chồng lên nhau để dễ nhìn hơn.
+    */
+    .order-item .order-items .d-flex.align-items-center {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.75rem;
+    }
+    .order-item .order-items .ms-3 {
+        margin-left: 0 !important;
+    }
+}
 </style>
 @endpush
