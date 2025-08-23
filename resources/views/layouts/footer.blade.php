@@ -4,14 +4,11 @@
         <div class="footer-brands">
             <h6 class="footer-brands-title" data-aos="fade-up">Đối tác uy tín của chúng tôi</h6>
             <div data-aos="fade-up" data-aos-delay="100">
-                @php
-                    $brands = \App\Models\Brand::active()->take(8)->get();
-                @endphp
-
-                @if(isset($brands) && $brands->count() > 0)
+                {{-- Dữ liệu $brandsForFooter được cung cấp từ AppServiceProvider --}}
+                @if(isset($brandsForFooter) && $brandsForFooter->count() > 0)
                     <div class="swiper brand-swiper-component">
                         <div class="swiper-wrapper align-items-center">
-                            @foreach($brands as $brand)
+                            @foreach($brandsForFooter as $brand)
                                 <div class="swiper-slide text-center">
                                     <a href="{{ $brand->website ?? '#' }}" target="_blank" title="{{ $brand->name }}" class="d-inline-block">
                                         <img src="{{ $brand->logo_url }}"
@@ -23,7 +20,7 @@
                         </div>
                     </div>
                 @else
-                    <p class="small text-muted">Đang cập nhật danh sách đối tác.</p>
+                    <p class="small text-muted">Đang cập nhật danh sách đối tác của chúng tôi.</p>
                 @endif
             </div>
         </div>
@@ -34,9 +31,8 @@
                 <div class="col-12 col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
                     <div class="footer-column">
                         <a href="{{ route('home') }}" class="d-inline-block mb-4">
-                            @php $logo = $settings['logo_dark'] ?? null; @endphp
-                            @if($logo)
-                                <img src="{{ asset('storage/' . $logo) }}" alt="{{ $settings['site_name'] ?? 'EternaHome' }}" style="height: 50px;" loading="lazy">
+                            @if(!empty($settings['logo_dark']))
+                                <img src="{{ asset('storage/' . $settings['logo_dark']) }}" alt="{{ $settings['site_name'] ?? 'EternaHome' }}" style="height: 50px;" loading="lazy">
                             @else
                                 <span class="fs-4 fw-bold text-dark">{{ $settings['site_name'] ?? 'EternaHome' }}</span>
                             @endif
@@ -55,7 +51,7 @@
                     </div>
                 </div>
 
-                {{-- Cột 2: Hỗ trợ & Chính sách --}}
+                {{-- Cột 2: Thông tin --}}
                 <div class="col-12 col-md-6 col-lg-2" data-aos="fade-up" data-aos-delay="200">
                     <div class="footer-column">
                         <h6 class="footer-column-title">Thông tin</h6>
@@ -68,19 +64,19 @@
                     </div>
                 </div>
                 
-                {{-- Cột 3: Hỗ trợ & Chính sách --}}
+                {{-- Cột 3: Hỗ trợ khách hàng --}}
                 <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
                     <div class="footer-column">
                         <h6 class="footer-column-title">Hỗ trợ khách hàng</h6>
                         <ul class="footer-links">
                            <li><a href="{{ route('warranty.show') }}">Chính sách bảo hành</a></li>
                            <li><a href="{{ route('shipping_returns.show') }}">Giao hàng & đổi trả</a></li>
-                            <li><a href="{{ route('terms.show') }}">Điều khoản & dịch vụ</a></li>
+                           <li><a href="{{ route('terms.show') }}">Điều khoản & dịch vụ</a></li>
                         </ul>
                     </div>
                 </div>
 
-                {{-- Cột 4: Kết nối --}}
+                {{-- Cột 4: Thông tin liên hệ --}}
                 <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
                      <div class="footer-column">
                         <h6 class="footer-column-title">Thông tin liên hệ</h6>
@@ -103,11 +99,8 @@
 @once
 @push('styles')
 <style>
-    /* =================================== */
-    /* == CSS ĐỒNG BỘ CHO FOOTER         == */
-    /* =================================== */
     .site-footer {
-        background-color: var(--bg); /* Nền màu be nhạt */
+        background-color: var(--bg);
         color: var(--muted);
         font-size: 0.95rem;
         border-top: 1px solid var(--sand);
@@ -147,13 +140,13 @@
     }
     .footer-contact-info li { 
         display: flex; 
-        align-items: flex-start; /* Căn icon và text theo top */
+        align-items: flex-start;
         gap: 0.75rem; 
     }
     .footer-contact-info i { 
         color: var(--brand); 
         font-size: 1rem;
-        margin-top: 4px; /* Căn chỉnh icon cho đẹp hơn */
+        margin-top: 4px;
     }
     .footer-contact-info a,
     .footer-contact-info span { 
@@ -166,7 +159,7 @@
     .footer-links { 
         list-style: none; padding: 0; margin: 0; 
         display: flex; flex-direction: column; 
-        gap: 0.75rem; /* Tăng khoảng cách giữa các link */
+        gap: 0.75rem;
     }
     .footer-links a {
         color: var(--muted); 
@@ -175,7 +168,7 @@
     }
     .footer-links a:hover { 
         color: var(--brand); 
-        padding-left: 5px; /* Hiệu ứng thụt vào khi hover */
+        padding-left: 5px;
     }
 
     .footer-social-link {
@@ -198,7 +191,7 @@
 
     .footer-bottom {
         display: flex; flex-wrap: wrap; 
-        justify-content: center; /* Căn giữa trên mobile */
+        justify-content: center;
         align-items: center;
         text-align: center;
         gap: 1rem; 
@@ -207,7 +200,7 @@
     }
     @media (min-width: 768px) {
         .footer-bottom {
-            justify-content: space-between; /* Căn 2 bên trên desktop */
+            justify-content: space-between;
             text-align: left;
         }
     }
@@ -217,7 +210,7 @@
         transition-timing-function: linear !important;
     }
     .brand-logo-footer {
-        max-height: 45px; /* Giảm nhẹ logo */
+        max-height: 45px;
         max-width: 120px;
         object-fit: contain;
         filter: grayscale(100%);
@@ -240,16 +233,13 @@
                 loop: true,
                 spaceBetween: 30,
                 speed: 4000,
-                autoplay: {
-                    delay: 1,
-                    disableOnInteraction: false,
-                },
+                autoplay: { delay: 1, disableOnInteraction: false },
                 slidesPerView: 2,
                 allowTouchMove: false,
                 breakpoints: {
-                    576: { slidesPerView: 3, spaceBetween: 30, },
-                    768: { slidesPerView: 4, spaceBetween: 40, },
-                    992: { slidesPerView: 6, spaceBetween: 50, }
+                    576: { slidesPerView: 3 },
+                    768: { slidesPerView: 4 },
+                    992: { slidesPerView: 6 }
                 }
             });
         }
