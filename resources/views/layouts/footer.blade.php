@@ -1,12 +1,25 @@
 <footer class="site-footer-light">
     <div class="container">
+        {{-- MỚI: Phần đối tác --}}
+        <div class="footer-brands">
+            <h6 class="footer-brands-title" data-aos="fade-up">Đối tác uy tín</h6>
+            <div class="footer-brands-list" data-aos="fade-up" data-aos-delay="100">
+                {{-- Thay thế logo và link của bạn ở đây --}}
+                <a href="#" target="_blank" aria-label="Partner A"><img src="https://logodownload.org/wp-content/uploads/2019/09/fpt-logo-0.png" alt="FPT"></a>
+                <a href="#" target="_blank" aria-label="Partner B"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/The_Green_Solutions_Logo.svg/1200px-The_Green_Solutions_Logo.svg.png" alt="The Green Solutions"></a>
+                <a href="#" target="_blank" aria-label="Partner C"><img src="https://cdn.haitrieu.com/wp-content/uploads/2021/11/Logo-The-Gioi-Di-Dong-MWG.png" alt="Thế Giới Di Động"></a>
+                <a href="#" target="_blank" aria-label="Partner D"><img src="https://inanhoangha.com/wp-content/uploads/2022/10/logo-hoa-phat-1.jpg" alt="Hòa Phát"></a>
+                <a href="#" target="_blank" aria-label="Partner E"><img src="https://brademar.com/wp-content/uploads/2022/10/Vingroup-Logo-PNG-1.png" alt="Vingroup"></a>
+            </div>
+        </div>
+
         <div class="footer-main">
             <div class="row gy-5">
                 {{-- Cột 1: Thông tin --}}
                 <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up">
                     <div class="footer-column">
                         <a href="{{ route('home') }}" class="d-inline-block mb-4">
-                             @php $logo = $settings['logo_dark'] ?? ($settings['logo_dark'] ?? null); @endphp
+                            @php $logo = $settings['logo_dark'] ?? ($settings['logo_dark'] ?? null); @endphp
                             @if($logo)
                                 <img src="{{ asset('storage/' . $logo) }}" alt="{{ $settings['site_name'] ?? 'EternaHome' }}" style="height:100px;" loading="lazy">
                             @else
@@ -56,9 +69,9 @@
                         <h6 class="footer-column-title">Hỗ trợ & Chính sách</h6>
                         <ul class="footer-links">
                            <li><a href="{{ route('terms.show') }}">Điều khoản & Dịch vụ</a></li>
-                          <li><a href="{{ route('warranty.show') }}">Chính sách Bảo hành</a></li>
-                            <li><a href="{{ route('shipping_returns.show') }}">Giao hàng & Đổi trả</a></li>
-                            <li><a href="{{ route('faq.show') }}">Câu hỏi thường gặp</a></li>
+                           <li><a href="{{ route('warranty.show') }}">Chính sách Bảo hành</a></li>
+                           <li><a href="{{ route('shipping_returns.show') }}">Giao hàng & Đổi trả</a></li>
+                           <li><a href="{{ route('faq.show') }}">Câu hỏi thường gặp</a></li>
                         </ul>
                     </div>
                 </div>
@@ -68,28 +81,27 @@
                     <div class="footer-column">
                         <h6 class="footer-column-title">Kết nối với chúng tôi</h6>
                          <ul class="footer-contact-info">
-                            <li><i class="bi bi-telephone"></i><a href="tel:{{ preg_replace('/\s+/', '', $settings['contact_phone'] ?? '') }}">{{ $settings['contact_phone'] ?? 'Số điện thoại' }}</a></li>
-                            <li><i class="bi bi-envelope"></i><a href="mailto:{{ $settings['contact_email'] ?? '' }}">{{ $settings['contact_email'] ?? 'Email liên hệ' }}</a></li>
-                        </ul>
+                             <li><i class="bi bi-telephone"></i><a href="tel:{{ preg_replace('/\s+/', '', $settings['contact_phone'] ?? '') }}">{{ $settings['contact_phone'] ?? 'Số điện thoại' }}</a></li>
+                             <li><i class="bi bi-envelope"></i><a href="mailto:{{ $settings['contact_email'] ?? '' }}">{{ $settings['contact_email'] ?? 'Email liên hệ' }}</a></li>
+                         </ul>
                          <div class="d-flex align-items-center gap-2 mt-4">
-                            @php $socials = ['facebook', 'instagram', 'tiktok']; @endphp
-                            @foreach($socials as $key)
-                                @if(!empty($settings['social_' . $key]))
-                                    <a href="{{ $settings['social_' . $key] }}" target="_blank" class="footer-social-link" aria-label="{{ ucfirst($key) }}"><i class="bi bi-{{ $key }}"></i></a>
-                                @endif
-                            @endforeach
-                        </div>
+                             @php $socials = ['facebook', 'instagram', 'tiktok']; @endphp
+                             @foreach($socials as $key)
+                                 @if(!empty($settings['social_' . $key]))
+                                     <a href="{{ $settings['social_' . $key] }}" target="_blank" class="footer-social-link" aria-label="{{ ucfirst($key) }}"><i class="bi bi-{{ $key }}"></i></a>
+                                 @endif
+                             @endforeach
+                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <div class="small footer-copyright">© {{ now()->year }} {{ $settings['site_name'] ?? 'EternaHome' }}- Dự Án Tốt Nghiệp - Cao đẳng FPT Polytechnic Đà Nẵng 
-</div>
+            <div class="small footer-copyright">© {{ now()->year }} {{ $settings['site_name'] ?? 'EternaHome' }}- Dự Án Tốt Nghiệp - Cao đẳng FPT Polytechnic Đà Nẵng</div>
              <div class="footer-contact-info">
-                 <i class="bi bi-geo-alt"></i><span>{{ $settings['contact_address'] ?? 'Địa chỉ' }}</span>
-            </div>
+                   <i class="bi bi-geo-alt"></i><span>{{ $settings['contact_address'] ?? 'Địa chỉ' }}</span>
+             </div>
         </div>
     </div>
 </footer>
@@ -102,6 +114,46 @@
     font-size: 0.9rem;
     border-top: 1px solid rgba(0,0,0, .07);
 }
+
+/* MỚI: CSS CHO PHẦN ĐỐI TÁC */
+.footer-brands {
+    padding: 2.5rem 0;
+    border-bottom: 1px solid rgba(0,0,0, .07);
+    text-align: center;
+}
+.footer-brands-title {
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted, #7D726C);
+}
+.footer-brands-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem 3rem;
+}
+.footer-brands-list a {
+    display: inline-block;
+}
+.footer-brands-list img {
+    height: 35px; /* Điều chỉnh chiều cao chung cho các logo */
+    max-width: 130px;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+.footer-brands-list a:hover img {
+    filter: grayscale(0%);
+    opacity: 1;
+    transform: scale(1.05);
+}
+/* KẾT THÚC CSS MỚI */
+
 .footer-main { padding: 4rem 0; }
 .footer-column-title {
     font-weight: 600; font-size: 1.1rem;
@@ -155,12 +207,10 @@
 .footer-bottom {
     display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
     gap: 1.5rem; padding: 1.5rem 0;
-    /* Bỏ border-top ở đây và đưa vào .footer-brands */
+    border-top: 1px solid rgba(0,0,0,.07); /* Di chuyển border từ .footer-brands xuống đây */
 }
-
 </style>
 @endonce
-
 {{-- Script không cần thay đổi --}}
 @push('scripts-page')
 <script>
