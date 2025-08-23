@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -143,5 +145,27 @@ class User extends Authenticatable
             ->where('status', '!=', Order::ST_CANCEL)
             ->whereHas('items.variant', fn($q) => $q->where('product_id', $productId))
             ->exists();
+    }
+
+     public function avatarUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $avatar_path = $this->profile->avatar ?? null;
+
+                // Nếu không có avatar, trả về một ảnh placeholder với tên người dùng
+                if (!$avatar_path) {
+                    return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=random';
+                }
+
+                // Nếu avatar là một URL đầy đủ, trả về chính nó
+                if (Str::startsWith($avatar_path, 'http')) {
+                    return $avatar_path;
+                }
+
+                // Nếu là đường dẫn trong storage, trả về URL công khai
+                return Storage::url($avatar_path);
+            }
+        );
     }
 }
