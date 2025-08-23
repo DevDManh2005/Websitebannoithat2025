@@ -153,19 +153,6 @@
       transition:opacity .2s, transform .2s; transform: translateY(6px);
     }
     #backTop.show{ opacity:1; pointer-events:auto; transform: translateY(0) }
-
-    /* Mobile (off-canvas) */
-    @media (max-width: 991.98px){
-      #sidebar-wrapper{
-        position:fixed; inset:0 auto 0 0; width:var(--sidebar-w);
-        transform: translateX(-100%); box-shadow: 8px 0 30px rgba(0,0,0,.25);
-      }
-      #wrapper.show-sidebar #sidebar-wrapper{ transform: translateX(0) }
-      #wrapper.collapsed #sidebar-wrapper{ transform: translateX(-100%) }
-      .app-navbar .container-fluid{ gap:.5rem }
-      .search-wrap{ max-width:none }
-    }
-
     /* Phím tắt kiểu keyboard */
     .kbd{
       display:inline-flex; align-items:center; justify-content:center;
@@ -176,6 +163,76 @@
     }
     /* Dropdown không quá cao */
     .navbar .dropdown-menu{ max-height: calc(100vh - 120px); overflow:auto }
+
+    /* === CSS RESPONSIVE HOÀN CHỈNH CHO ADMIN LAYOUT === */
+
+/* == Màn hình Tablet & Mobile (breakpoint lớn) == */
+@media (max-width: 991.98px) {
+    /* --- Sidebar Off-canvas --- */
+    #sidebar-wrapper {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: var(--sidebar-w);
+        transform: translateX(-100%);
+        box-shadow: 8px 0 30px rgba(0,0,0,.25);
+    }
+    #wrapper.show-sidebar #sidebar-wrapper {
+        transform: translateX(0);
+    }
+    /* Khi ở mobile, trạng thái collapsed luôn bị ẩn đi */
+    #wrapper.collapsed #sidebar-wrapper {
+        transform: translateX(-100%);
+    }
+
+    /* --- Top Navbar --- */
+    .app-navbar .container-fluid {
+        gap: .5rem;
+    }
+    /* Ẩn các yếu tố không cần thiết trên tablet để tiết kiệm không gian */
+    .app-navbar .d-none.d-md-inline { /* Ẩn phím tắt */
+        display: none !important;
+    }
+    .search-wrap {
+        max-width: none;
+    }
+
+    /* --- Nội dung chính --- */
+    .content {
+        padding: 1rem; /* Giảm padding trên tablet */
+    }
+}
+
+
+/* == Màn hình Mobile (breakpoint nhỏ) == */
+@media (max-width: 767.98px) {
+    /* --- Top Navbar --- */
+    .app-navbar .navbar-nav .nav-item .fw-600 {
+        display: none; /* Ẩn tên người dùng, chỉ giữ lại avatar */
+    }
+    .app-navbar .d-flex.align-items-center.gap-2 {
+        gap: 0.25rem !important; /* Giảm khoảng cách giữa nút sidebar và avatar */
+    }
+
+    /* --- Page Header (tiêu đề trang) --- */
+    .page-header {
+        flex-direction: column; /* Chuyển sang layout dọc */
+        align-items: stretch !important; /* Các mục con chiếm toàn bộ chiều rộng */
+        gap: 1rem;
+    }
+    /* Đảm bảo các nhóm nút bên trong page-header cũng tự xuống hàng */
+    .page-header > div {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    /* --- Nội dung chính & Card --- */
+    .content {
+        padding: 0.75rem; /* Giảm padding hơn nữa trên mobile */
+    }
+    .card {
+        border-radius: 12px; /* Giảm bo góc một chút cho gọn */
+    }
+}
   </style>
 
   {{-- styles từ các view con (nếu có) --}}
@@ -608,23 +665,6 @@ main.content {
 
 /* --- CSS RESPONSIVE BỔ SUNG CHO ADMIN LAYOUT --- */
 
-/* Áp dụng cho màn hình mobile vừa và nhỏ */
-@media (max-width: 767.98px) {
-    /* * Sắp xếp lại page-header (Bảng điều khiển, nút báo cáo...) 
-     * thành dạng dọc để không bị vỡ layout.
-    */
-    .page-header {
-        flex-direction: column; /* Chuyển sang layout dọc */
-        align-items: flex-start !important; /* Căn các mục về bên trái */
-        gap: 1rem; /* Tạo khoảng cách giữa các mục */
-    }
-
-    /* * Tinh chỉnh thanh navbar trên cùng cho gọn hơn trên mobile 
-    */
-    .app-navbar .navbar-nav .nav-item .fw-600 {
-        display: none; /* Ẩn tên người dùng, chỉ giữ lại avatar */
-    }
-}
 </style>
 
 @stack('scripts')
