@@ -646,17 +646,6 @@
         .best-seller-section .nav-pills .nav-link.active { background-color: var(--main-color); color: #fff; }
         .review-swiper .swiper-slide { display: flex; flex-direction: column; }
         .review-card { background-color: #fffaf5; border-radius: 10px; height: 100%; }
-
-/* --- CSS TỐI ƯU CHO PHẦN ƯU ĐÃI ĐẶC BIỆT --- */
-@keyframes pulse-orange {
-    0% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3); }
-    50% { transform: scale(1.05); box-shadow: 0 6px 25px rgba(255, 153, 0, 0.5); }
-    100% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 153, 0, 0.3); }
-}
-@keyframes blink {
-    50% { opacity: 0.5; }
-}
-
 .special-offer-section-wrapper {
     /* SỬA LẠI Ở ĐÂY: Dùng ảnh nền của bạn và thêm lớp phủ màu tối */
     background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://res.cloudinary.com/dfoxknyho/image/upload/v1754716939/pngtree-empty-wooden-table-top-on-a-blurred-background-of-a-modern-image_16376700_iwce5y.jpg');
@@ -759,25 +748,6 @@
     background-clip: text;
     text-fill-color: transparent;
 }
-
-@media (max-width: 991px) {
-    .special-offer-section-wrapper .offer-header {
-        flex-direction: column;
-        border-radius: 12px;
-        align-items: center;
-    }
-    .special-offer-section-wrapper .offer-timer-wrapper {
-        flex-direction: column;
-        width: 100%;
-    }
-    .special-offer-section-wrapper .offer-title {
-        text-align: center;
-        padding-right: 0;
-        margin-top: 1rem;
-        margin-left: 0;
-    }
-}
-
 /* BLOG */
 .blog-card{
     border:1px solid #eee; border-radius:14px; overflow:hidden; background:#fff;
@@ -799,95 +769,150 @@
 .blog-section .swiper-button-next:after{ font-size:1rem; color:#333; }
 .blog-section .swiper-pagination-bullet{ opacity:.5; }
 .blog-section .swiper-pagination-bullet-active{ background: var(--main-color); opacity:1; }
-/* == Màn hình Tablet (từ 992px trở xuống) == */
+/*
+============================================
+== CODE RESPONSIVE TỐI ƯU CHO TABLET & MOBILE
+== (Dán vào cuối file CSS của bạn)
+============================================
+*/
+
+/* --- Màn hình Tablet (bước đệm) --- */
 @media (max-width: 991.98px) {
-    /* Hero Section */
     .hero-section, .hero-slide {
-        height: 600px; 
+        height: 600px; /* Giảm chiều cao banner một chút */
     }
-    
-    /* About Image */
     .about-img {
-        width: 100%; 
+        width: 100%;
         height: 500px;
         margin-top: 2rem;
     }
+    .special-offer-section-wrapper .offer-header {
+        flex-direction: column;
+        border-radius: 12px;
+        align-items: stretch;
+        text-align: center;
+    }
+    .special-offer-section-wrapper .offer-timer-wrapper {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .special-offer-section-wrapper .offer-title {
+        margin: 0.5rem 0 0 0;
+        padding: 0;
+    }
 }
 
-/* == Màn hình Mobile (từ 768px trở xuống) == */
+/* --- Màn hình Mobile (Tối ưu chính) --- */
 @media (max-width: 767.98px) {
-    /* Hero Section */
+    /* == CHUNG == */
+    body {
+        font-size: 15px; /* Tăng nhẹ font chữ cơ bản cho dễ đọc */
+    }
+    h1, .h1 { font-size: 2rem; }
+    h2, .h2 { font-size: 1.75rem; }
+    h3, .h3 { font-size: 1.5rem; }
+    h4, .h4 { font-size: 1.25rem; }
+
+    /* Giảm khoảng cách giữa các section */
+    .py-5 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+    .py-0 { padding: 0 !important; }
+
+    /* == 1. Hero Section == */
     .hero-section, .hero-slide {
-        height: 500px;
+        height: 50vh; /* Chỉ cao 50% chiều cao màn hình */
+        min-height: 400px;
     }
     .hero-title {
-        font-size: clamp(2rem, 8vw, 2.5rem);
+        font-size: clamp(2rem, 8vw, 2.5rem); /* Font chữ linh hoạt */
     }
     .swiper-button-next, .swiper-button-prev {
-        display: none; /* Ẩn nút điều hướng trên mobile, người dùng sẽ vuốt */
+        display: none; /* Ẩn nút, người dùng sẽ vuốt */
     }
 
-    /* About Image */
+    /* == 2. Đặc điểm nổi bật == */
+    .features-section .row > div {
+        margin-bottom: 1.5rem;
+    }
+    .features-section i {
+        font-size: 4rem !important; /* Thu nhỏ icon */
+    }
+
+    /* == 3. Về Chúng Tôi == */
+    .about-section .text-center .col-4 {
+        flex: 0 0 100%; /* QUAN TRỌNG: 3 cột thống kê sẽ xếp chồng */
+        max-width: 100%;
+        margin-bottom: 1rem;
+    }
+    .about-section .text-muted.mb-5 {
+        font-size: 16px !important; /* Giảm font mô tả */
+    }
     .about-img {
-        height: 400px;
+        height: auto; /* Để ảnh tự co giãn theo chiều rộng */
+        max-height: 400px;
     }
 
-    /* Category Section */
-    .category-caption h3 { 
-        font-size: 1.1rem; 
+    /* == 5. Danh mục sản phẩm == */
+    .home-category .row-margin {
+        margin-left: -5px;
+        margin-right: -5px;
     }
-    .category-caption p { 
-        font-size: 0.85rem; 
+    .home-category .col-padding {
+        padding-left: 5px;
+        padding-right: 5px;
     }
+    .home-category .category-item {
+        margin: 5px 0; /* Giảm margin giữa các item */
+    }
+    /* Chuyển các cột 5-7 thành 2 cột bằng nhau */
+    .home-category .col-lg-9 .col-5,
+    .home-category .col-lg-9 .col-7 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    .category-caption h3 { font-size: 1rem; }
+    .category-caption p { display: none; } /* Ẩn mô tả phụ cho gọn */
+    .category-caption span { font-size: 0.8rem; }
 
-    /* Special Offer Section */
-    .special-offer-section-wrapper .time-block .time-value {
-        font-size: 1.5rem;
-    }
-    .special-offer-section-wrapper .time-block {
-        min-width: 45px;
-        padding: 6px 10px;
-    }
-    .special-offer-section-wrapper .separator {
-        font-size: 1.5rem;
-    }
+    /* == 6. Ưu đãi đặc biệt == */
+    .special-offer-content { padding: 1.5rem; }
     .special-offer-section-wrapper .flash-label {
-        padding: 8px 16px;
         width: 100%;
         justify-content: center;
     }
-     .special-offer-section-wrapper .offer-title {
-        font-size: 1.2rem;
-    }
-}
+    .special-offer-section-wrapper .time-block .time-value { font-size: 1.5rem; }
+    .special-offer-section-wrapper .time-block { min-width: 45px; padding: 6px 10px; }
+    .special-offer-section-wrapper .separator { font-size: 1.5rem; }
+    .special-offer-section-wrapper .offer-title { font-size: 1.25rem; }
 
-/* == Màn hình Mobile nhỏ (từ 576px trở xuống) == */
-@media (max-width: 575.98px) {
-    /* Hero Section */
-    .hero-section, .hero-slide {
-        height: 400px;
-    }
-
-    /* Best Seller Section Tabs */
+    /* == 8. Sản phẩm bán chạy == */
     .best-seller-section .nav-pills {
         flex-wrap: nowrap;
         overflow-x: auto;
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
+        justify-content: flex-start !important;
+        padding-bottom: 10px;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
-    .best-seller-section .nav-pills::-webkit-scrollbar {
-        display: none; /* Chrome, Safari and Opera */
-    }
-    .best-seller-section .nav-pills .nav-link {
-        white-space: nowrap; /* Ngăn chữ của tab xuống dòng */
-        padding: 0.4rem 1rem;
+    .best-seller-section .nav-pills::-webkit-scrollbar { display: none; }
+    .best-seller-section .nav-pills .nav-link { white-space: nowrap; }
+
+    /* == 9. Quy trình làm việc == */
+    .row.justify-content-center .col-6.col-md-3 {
+        flex: 0 0 100%; /* QUAN TRỌNG: Các bước sẽ xếp chồng */
+        max-width: 100%;
     }
 
-    /* Special Offer Section */
-    .special-offer-content {
-        padding: 1rem;
+    /* == 11. FAQ == */
+    .g-4 { /* Giảm khoảng cách giữa 2 cột text và accordion */
+        --bs-gutter-x: 1.5rem;
     }
-    
+
+    /* == 13. Bài viết mới (Blog) == */
+    .blog-section .d-flex {
+        flex-direction: column; /* Xếp tiêu đề và link "Xem tất cả" chồng lên nhau */
+        align-items: flex-start !important;
+        gap: 0.5rem;
+    }
 }
     </style>
 @endpush
