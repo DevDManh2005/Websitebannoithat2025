@@ -153,6 +153,19 @@
       transition:opacity .2s, transform .2s; transform: translateY(6px);
     }
     #backTop.show{ opacity:1; pointer-events:auto; transform: translateY(0) }
+
+    /* Mobile (off-canvas) */
+    @media (max-width: 991.98px){
+      #sidebar-wrapper{
+        position:fixed; inset:0 auto 0 0; width:var(--sidebar-w);
+        transform: translateX(-100%); box-shadow: 8px 0 30px rgba(0,0,0,.25);
+      }
+      #wrapper.show-sidebar #sidebar-wrapper{ transform: translateX(0) }
+      #wrapper.collapsed #sidebar-wrapper{ transform: translateX(-100%) }
+      .app-navbar .container-fluid{ gap:.5rem }
+      .search-wrap{ max-width:none }
+    }
+
     /* Phím tắt kiểu keyboard */
     .kbd{
       display:inline-flex; align-items:center; justify-content:center;
@@ -163,25 +176,54 @@
     }
     /* Dropdown không quá cao */
     .navbar .dropdown-menu{ max-height: calc(100vh - 120px); overflow:auto }
+    /* --- CSS SỬA LỖI CUỘN ĐỘC LẬP CHO SIDEBAR VÀ CONTENT --- */
 
-    /* === CSS RESPONSIVE HOÀN CHỈNH CHO ADMIN LAYOUT === */
+/* 1. Cố định layout chính, không cho toàn bộ trang cuộn */
+body {
+    overflow: hidden; /* Ngăn thanh cuộn của cả trang */
+}
+#wrapper {
+    height: 100vh; /* Giới hạn chiều cao của wrapper bằng chiều cao màn hình */
+}
+
+/* 2. Cho phép sidebar tự cuộn khi nội dung quá dài */
+#sidebar-wrapper {
+    position: static; /* Bỏ 'sticky' vì không còn cần thiết */
+    height: 100vh;
+    overflow-y: auto; /* Thêm thanh cuộn dọc cho sidebar khi cần */
+    flex-shrink: 0;   /* Ngăn sidebar bị co lại bởi flexbox */
+}
+
+/* 3. Cấu trúc lại phần content để chỉ khu vực <main> được cuộn */
+#page-content-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main.content {
+    flex-grow: 1; /* Cho phép main content lấp đầy không gian còn lại */
+    overflow-y: auto; /* Thêm thanh cuộn riêng cho nội dung chính */
+}
+
+.app-navbar {
+    flex-shrink: 0; /* Đảm bảo navbar trên cùng không bị co lại */
+}
+/* === CSS RESPONSIVE HOÀN CHỈNH CHO ADMIN LAYOUT === */
 
 /* == Màn hình Tablet & Mobile (breakpoint lớn) == */
 @media (max-width: 991.98px) {
-    /* --- Sidebar Off-canvas --- */
+    /* --- Sidebar sẽ chuyển thành dạng Off-canvas (trượt ra vào) --- */
     #sidebar-wrapper {
         position: fixed;
-        inset: 0 auto 0 0;
-        width: var(--sidebar-w);
         transform: translateX(-100%);
         box-shadow: 8px 0 30px rgba(0,0,0,.25);
     }
     #wrapper.show-sidebar #sidebar-wrapper {
         transform: translateX(0);
     }
-    /* Khi ở mobile, trạng thái collapsed luôn bị ẩn đi */
     #wrapper.collapsed #sidebar-wrapper {
-        transform: translateX(-100%);
+        transform: translateX(-100%); /* Khi ở mobile, trạng thái collapsed luôn bị ẩn */
     }
 
     /* --- Top Navbar --- */
@@ -213,16 +255,17 @@
         gap: 0.25rem !important; /* Giảm khoảng cách giữa nút sidebar và avatar */
     }
 
-    /* --- Page Header (tiêu đề trang) --- */
+    /* --- Page Header (Tiêu đề trang như "Bảng điều khiển") --- */
     .page-header {
         flex-direction: column; /* Chuyển sang layout dọc */
         align-items: stretch !important; /* Các mục con chiếm toàn bộ chiều rộng */
-        gap: 1rem;
+        gap: 1rem; /* Tạo khoảng cách dọc */
     }
     /* Đảm bảo các nhóm nút bên trong page-header cũng tự xuống hàng */
     .page-header > div {
         flex-wrap: wrap;
         justify-content: flex-start;
+        gap: 0.5rem; /* Thêm khoảng cách cho các nút bên trong */
     }
 
     /* --- Nội dung chính & Card --- */
@@ -392,10 +435,9 @@
 
     {{-- Optional page bar --}}
     @hasSection('pagebar')
-    <div class="container-fluid pt-3">
-        @yield('pagebar')
-    </div>
-@endif
+      <div class="container-fluid pt-3">@yield('pagebar')</div>
+    @endif
+
     <main class="content">
       @yield('content')
       <footer class="app-footer text-center">
@@ -635,36 +677,6 @@
   }
   .pagination { gap: .25rem }
   .page-item .page-link { position: static !important }
-  /* --- CSS SỬA LỖI CUỘN SIDEBAR VÀ CONTENT --- */
-
-/* 1. Cố định layout chính, không cho toàn bộ trang cuộn */
-#wrapper {
-    height: 100vh;
-    overflow: hidden; 
-}
-
-/* 2. Cho phép sidebar tự cuộn khi nội dung quá dài */
-#sidebar-wrapper {
-    position: static; /* Bỏ 'sticky' vì không cần nữa */
-    height: 100vh;
-    overflow-y: auto; /* Thêm thanh cuộn riêng cho sidebar khi cần */
-    flex-shrink: 0;   /* Ngăn sidebar bị co lại */
-}
-
-/* 3. Cấu trúc lại phần content để chỉ khu vực main cuộn */
-#page-content-wrapper {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-main.content {
-    flex-grow: 1; /* Cho phép main content lấp đầy không gian còn lại */
-    overflow-y: auto; /* Thêm thanh cuộn riêng cho nội dung chính */
-}
-
-/* --- CSS RESPONSIVE BỔ SUNG CHO ADMIN LAYOUT --- */
-
 </style>
 
 @stack('scripts')
