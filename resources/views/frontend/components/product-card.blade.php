@@ -9,187 +9,194 @@
     $averageRating = $product->average_rating;
 @endphp
 
-<div class="product-card-wrapper" data-product-id="{{ $product->id }}">
-    <div class="product-card position-relative border rounded shadow-sm p-2 h-100 d-flex flex-column fixed-card-height">
+<div class="product-card-v3">
+    {{-- Image Wrapper --}}
+    <a href="{{ route('product.show', $product->slug) }}" class="product-image-wrapper">
+        <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="product-image">
+    </a>
 
-        <a href="{{ route('product.show', $product->slug) }}" class="product-image d-block mb-3">
-            <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="img-fluid w-100 product-image-fixed">
+    {{-- Sale Ribbon --}}
+    @if($hasSale)
+        <div class="sale-ribbon"><span>SALE</span></div>
+    @endif
 
-            @if($hasSale)
-                <div class="badge bg-danger position-absolute top-0 start-0 m-2">SALE</div>
+    {{-- Wishlist Button --}}
+    <button type="button"
+            class="btn-icon-wishlist toggle-wishlist-btn {{ $isWishlisted ? 'active' : '' }}"
+            data-product-id="{{ $product->id }}"
+            aria-label="Thêm vào danh sách yêu thích">
+        <i class="bi {{ $isWishlisted ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+    </button>
+
+    {{-- Product Info --}}
+    <div class="product-info-wrapper">
+        <div class="product-meta">
+            @if($averageRating > 0)
+                <div class="product-rating">
+                    @for ($i = 1; $i <= 5; $i++)
+                        <i class="bi bi-star{{ $i <= round($averageRating) ? '-fill' : '' }}"></i>
+                    @endfor
+                </div>
+            @else
+                <div class="product-rating-placeholder">&nbsp;</div> {{-- Giữ chiều cao --}}
             @endif
-        </a>
 
-        {{-- Thêm class "toggle-wishlist-btn" để script toàn cục hoạt động --}}
-<button type="button" class="wishlist-btn toggle-wishlist-btn position-absolute top-0 end-0 m-2 {{ $isWishlisted ? 'active' : '' }}"
-        data-product-id="{{ $product->id }}">
-    <i class="bi {{ $isWishlisted ? 'bi-heart-fill' : 'bi-heart' }}"></i>
-</button>
-
-        <div class="product-info flex-grow-1 d-flex flex-column">
-            <h6 class="product-title fw-semibold mb-2">
-                <a href="{{ route('product.show', $product->slug) }}"
-                    class="text-decoration-none text-dark">{{ $product->name }}</a>
+            <h6 class="product-title">
+                <a href="{{ route('product.show', $product->slug) }}">{{ $product->name }}</a>
             </h6>
 
-            @if($averageRating > 0)
-                <div class="mb-2">
-                    @for ($i = 1; $i <= 5; $i++)
-                        <i class="bi bi-star{{ $i <= $averageRating ? '-fill text-warning' : '' }}"></i>
-                    @endfor
-                    <small class="text-muted">({{ number_format($averageRating, 1) }})</small>
-                </div>
-            @endif
-
-            <div class="product-price mb-2">
+            <div class="product-price">
                 @if($hasSale)
-                    <span class="text-muted text-decoration-line-through">{{ number_format($mainVariant->price) }}₫</span>
-                    <span class="fw-bold text-danger ms-2">{{ number_format($mainVariant->sale_price) }}₫</span>
+                    <span class="price-old">{{ number_format($mainVariant->price) }}₫</span>
+                    <span class="price-sale">{{ number_format($mainVariant->sale_price) }}₫</span>
                 @else
-                    <span class="fw-bold text-dark">{{ number_format($mainVariant->price) }}₫</span>
+                    <span class="price-current">{{ number_format($mainVariant->price) }}₫</span>
                 @endif
             </div>
+        </div>
 
-            <div class="mt-auto pt-2 border-top">
-                <a href="{{ route('product.show', $product->slug) }}" class="btn btn-outline-primary w-100">
-                    <i class="bi bi-eye me-1"></i> Xem Chi Tiết
-                </a>
-            </div>
+        {{-- Actions on Hover --}}
+        <div class="card-actions-on-hover">
+             <a href="{{ route('product.show', $product->slug) }}" class="btn btn-brand w-100">
+                <i class="bi bi-eye me-1"></i> Xem Chi Tiết
+            </a>
         </div>
     </div>
 </div>
 
 @once
     @push('styles')
-        <style>
-            .wishlist-btn {
-                background-color: #fff;
-                border: 1px solid #ddd;
-                border-radius: 50%;
-                width: 36px;
-                height: 36px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s ease;
-                z-index: 10;
-            }
+    <style>
+        .product-card-v3 {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .7), rgba(255, 255, 255, .9));
+            border: 1px solid rgba(0,0,0, .05);
+            border-radius: var(--radius, 12px);
+            box-shadow: var(--shadow);
+            padding: 0.75rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform .2s ease, box-shadow .2s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card-v3:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.1);
+        }
 
-            .wishlist-btn i {
-                color: #aaa;
-                font-size: 18px;
-                transition: transform 0.3s ease;
-            }
+        .product-image-wrapper {
+            display: block;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+        .product-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform .3s ease;
+        }
+        .product-card-v3:hover .product-image {
+            transform: scale(1.05);
+        }
 
-            .wishlist-btn:hover i {
-                transform: scale(1.2);
-            }
+        .sale-ribbon {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            width: 80px;
+            height: 80px;
+            overflow: hidden;
+        }
+        .sale-ribbon span {
+            position: absolute;
+            display: block;
+            width: 120px;
+            padding: 5px 0;
+            background-color: var(--brand);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            text-transform: uppercase;
+            text-align: center;
+            left: -30px;
+            top: 20px;
+            transform: rotate(-45deg);
+        }
 
-            .wishlist-btn.active i {
-                color: #dc3545;
-            }
+        .btn-icon-wishlist {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0,0,0,0.1);
+            backdrop-filter: blur(4px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            transition: all .2s ease;
+            z-index: 5;
+        }
+        .btn-icon-wishlist:hover {
+            color: var(--brand);
+            transform: scale(1.1);
+        }
+        .btn-icon-wishlist.active {
+            color: var(--brand);
+        }
 
-            .product-image-fixed {
-                height: 250px;
-                object-fit: cover;
-                border-radius: 8px;
-            }
+        .product-info-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .product-meta {
+            flex-grow: 1;
+        }
 
-            .fixed-card-height {
-                min-height: 480px;
-                /* bạn có thể thử 450px, 500px... để hợp layout */
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                position: relative;
-            }
+        .product-rating { color: var(--brand); font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .product-rating-placeholder { height: 21px; margin-bottom: 0.5rem; } /* Same height as rating */
+        
+        .product-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            height: 48px; /* 2 lines height */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .product-title a {
+            color: var(--text);
+            text-decoration: none;
+            transition: color .2s ease;
+        }
+        .product-title a:hover { color: var(--brand); }
 
-            .product-title {
-                min-height: 48px;
-                /* giữ tiêu đề không làm giãn card nếu dài hơn 1 dòng */
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                /* hiển thị tối đa 2 dòng */
-                -webkit-box-orient: vertical;
-            }
+        .product-price {
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+        .price-current, .price-sale { font-weight: 700; color: var(--brand); }
+        .price-old { color: var(--muted); text-decoration: line-through; font-size: 0.9rem; margin-right: 0.5rem; }
 
-            @keyframes pop {
-                0% {
-                    transform: scale(1);
-                }
-
-                50% {
-                    transform: scale(1.4);
-                }
-
-                100% {
-                    transform: scale(1);
-                }
-            }
-        </style>
-    @endpush
-
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                document.querySelectorAll('.wishlist-btn').forEach(button => {
-                    button.addEventListener('click', function () {
-                        const productId = this.dataset.productId;
-                        const icon = this.querySelector('i');
-                        const wrapper = this.closest('.product-card-wrapper');
-                        const self = this;
-
-                        fetch('{{ route('wishlist.toggle') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ product_id: productId })
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    self.classList.toggle('active');
-                                    icon.classList.toggle('bi-heart');
-                                    icon.classList.toggle('bi-heart-fill');
-                                    icon.style.animation = 'pop 0.4s ease';
-                                    setTimeout(() => icon.style.animation = '', 400);
-
-                                    // Cập nhật localStorage
-                                    localStorage.setItem('wishlist_updated', Date.now());
-
-                                    // ✅ Cập nhật lại badge đếm số yêu thích ở header
-                                    const badge = document.querySelector('#wishlist-count');
-                                    if (badge) {
-                                        const currentCount = parseInt(badge.textContent) || 0;
-                                        if (data.status === 'added') {
-                                            badge.textContent = currentCount + 1;
-                                            badge.style.display = 'inline-block';
-                                        } else if (data.status === 'removed') {
-                                            const newCount = currentCount - 1;
-                                            badge.textContent = newCount;
-                                            badge.style.display = newCount > 0 ? 'inline-block' : 'none';
-                                        }
-                                    }
-
-                                    // Nếu ở trang wishlist thì xóa khỏi DOM nếu bị gỡ
-                                    if (window.location.pathname === '/danh-sach-yeu-thich' && data.status === 'removed') {
-                                        wrapper.style.transition = 'opacity 0.3s ease';
-                                        wrapper.style.opacity = 0;
-                                        setTimeout(() => wrapper.remove(), 300);
-                                    }
-                                } else if (data.redirect) {
-                                    window.location.href = data.redirect;
-                                }
-                            })
-                            .catch(err => console.error('Lỗi xử lý wishlist:', err));
-                    });
-                });
-            });
-        </script>
+        .card-actions-on-hover {
+            opacity: 0;
+            color: #fff;
+            transform: translateY(10px);
+            transition: opacity .2s ease, transform .2s ease;
+        }
+        .product-card-v3:hover .card-actions-on-hover {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
     @endpush
 @endonce

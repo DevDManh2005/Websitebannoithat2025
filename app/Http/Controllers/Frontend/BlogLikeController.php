@@ -15,16 +15,20 @@ class BlogLikeController extends Controller
         if ($like) {
             $like->delete();
             $msg = 'Đã bỏ tym.';
+            $liked = false;
         } else {
-            BlogLike::create(['blog_id'=>$blog->id, 'user_id'=>auth()->id()]);
+            BlogLike::create(['blog_id' => $blog->id, 'user_id' => auth()->id()]);
             $msg = 'Đã thả tym.';
+            $liked = true;
         }
+
+        $count = $blog->likes()->count();
 
         if (request()->wantsJson()) {
             return response()->json([
                 'message' => $msg,
-                'liked'   => (bool)!$like,
-                'count'   => $blog->likes()->count(),
+                'liked' => $liked,
+                'count' => $count,
             ]);
         }
 

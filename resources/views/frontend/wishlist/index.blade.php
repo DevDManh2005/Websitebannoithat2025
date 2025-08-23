@@ -25,7 +25,7 @@
     <div class="container my-5">
         <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3 mb-4" data-aos="fade-up">
             <div class="text-center text-lg-start">
-                <h2 class="h4 fw-bold mb-1">Sản phẩm yêu thích</h2>
+                <h2 class="h4 fw-bold mb-1 text-brand">Sản phẩm yêu thích</h2>
                 <div class="text-muted small">
                     @if($wishlistProducts->isNotEmpty())
                         Hiển thị {{ $wishlistProducts->count() }} mục trong trang này
@@ -37,7 +37,7 @@
 
             {{-- Thanh action nhỏ (chỉ UI, không đổi chức năng hiện có) --}}
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                <a href="{{ route('products.index') }}" class="btn btn-outline-brand btn-sm rounded-pill">
                     <i class="bi bi-shop me-1"></i> Tiếp tục mua sắm
                 </a>
             </div>
@@ -46,7 +46,7 @@
         @if($wishlistProducts->isNotEmpty())
             <div class="row g-3 g-md-4" data-aos="fade-up" data-aos-delay="50">
                 @foreach($wishlistProducts as $product)
-                    <div class="col-6 col-md-4 col-lg-3">
+                    <div class="col-6 col-md-4 col-lg-3 product-card-wrapper">
                         {{-- GIỮ NGUYÊN COMPONENT --}}
                         <div class="card-hover-raise h-100">
                             @include('frontend.components.product-card', ['product' => $product])
@@ -59,14 +59,14 @@
                 {{ $wishlistProducts->links() }}
             </div>
         @else
-            <div class="card border-0 shadow-sm text-center py-5" data-aos="fade-in">
+            <div class="card card-glass text-center py-5 rounded-4" data-aos="fade-in">
                 <div class="card-body">
                     <div class="empty-icon mb-3">
                         <i class="bi bi-heart"></i>
                     </div>
                     <h5 class="fw-bold">Danh sách yêu thích của bạn đang trống</h5>
                     <p class="text-muted mb-3">Khám phá các thiết kế nội thất mới nhất và lưu lại những món bạn ưng ý.</p>
-                    <a href="{{ route('home') }}" class="btn btn-primary rounded-pill px-4">
+                    <a href="{{ route('home') }}" class="btn btn-brand rounded-pill px-4">
                         Bắt đầu mua sắm
                     </a>
                 </div>
@@ -78,7 +78,7 @@
 @push('styles')
 <style>
 /* =================== HERO =================== */
-.wishlist-hero { background:#fff; }
+.wishlist-hero { background:var(--bg); }
 .wishlist-hero .hero-bg{
     position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform: scale(1.03);
     filter: brightness(0.65);
@@ -88,7 +88,7 @@
 }
 .wave-sep{
     position:absolute; left:0; right:0; bottom:-1px; height:32px; background:
-        radial-gradient(40px 12px at 50% 0, #fff 98%, transparent 100%) repeat-x;
+        radial-gradient(40px 12px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
     background-size: 40px 20px;
 }
 
@@ -97,8 +97,32 @@
 .card-hover-raise:hover { transform: translateY(-4px); }
 
 .empty-icon i{
-    font-size: 3.25rem; line-height:1; color:#dee2e6;
+    font-size: 3.25rem; line-height:1; color:var(--muted);
 }
+.text-brand{ color:var(--brand); }
+.btn-brand{
+    background-color:var(--brand);
+    border-color:var(--brand);
+}
+.btn-brand:hover{
+    background-color:var(--brand-600);
+    border-color:var(--brand-600);
+}
+.btn-outline-brand{
+    color:var(--brand);
+    border-color:var(--brand);
+}
+.btn-outline-brand:hover{
+    background-color:var(--brand);
+    color:#fff;
+}
+.card-glass{
+    background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
+    border: 1px solid rgba(15, 23, 42, .04);
+}
+.rounded-4{ border-radius:1rem !important; }
 
 /* =================== Banner text tweaks on small =================== */
 @media (max-width: 575.98px){

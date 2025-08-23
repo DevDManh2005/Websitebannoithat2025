@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 // --- AUTH CONTROLLERS ---
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PageController;
 
 // --- FRONTEND CONTROLLERS ---
 use App\Http\Controllers\Frontend\{
@@ -59,6 +60,15 @@ use App\Http\Controllers\Admin\{
 */
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/gioi-thieu', [PageController::class, 'about'])->name('about');
+Route::get('/dieu-khoan-dich-vu', [PageController::class, 'terms'])->name('terms.show');
+Route::get('/lien-he', [PageController::class, 'contact'])->name('contact');
+Route::get('/chinh-sach-bao-hanh', [PageController::class, 'warranty'])->name('warranty.show');
+Route::get('/giao-hang-doi-tra', [PageController::class, 'shippingReturns'])->name('shipping_returns.show'); 
+Route::get('/cau-hoi-thuong-gap', [PageController::class, 'faq'])->name('faq.show'); // <-- THÊM DÒNG NÀY
+
+
+
 
 Route::get('/danh-muc/{slug}', [CategoryController::class, 'show'])->name('category.show');
 Route::get('/san-pham/{slug}',  [ProductController::class, 'show'])->name('product.show');
@@ -90,6 +100,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::prefix('bai-viet')->name('blog.')->group(function () {
     Route::get('/',       [FrontBlogController::class, 'index'])->name('index');
     Route::get('/{slug}', [FrontBlogController::class, 'show'])->name('show');
+    Route::post('/bai-viet/{blog}/like', [BlogLikeController::class, 'toggle'])->name('blog.like.toggle');
 });
 
 /*
@@ -121,6 +132,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/don-hang/{order}/huy',    [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/don-hang/{order}/da-nhan', [OrderController::class, 'markAsReceived'])->name('orders.markAsReceived');
     Route::patch('/don-hang/{order}/xac-nhan', [OrderController::class, 'receive'])->name('orders.receive');
+    Route::patch('/don-hang/{order}/cap-nhat-dia-chi', [OrderController::class, 'updateAddress'])->name('orders.update-address');
 
     Route::post('/products/{product}/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');
 

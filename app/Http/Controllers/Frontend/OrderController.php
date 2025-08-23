@@ -36,29 +36,27 @@ class OrderController extends Controller
         return view('frontend.orders.show', compact('order'));
     }
 
-
     /**
      * Hủy đơn hàng (chỉ khi pending | processing).
      */
-   public function cancel(Order $order)
-{
-    $u = auth()->user();
-    $isOwner = $u && ((int)$u->id === (int)$order->user_id);
-    $role    = optional($u->role)->name;
-    $isStaff = in_array($role, ['admin','staff'], true);
+    public function cancel(Order $order)
+    {
+        $u = auth()->user();
+        $isOwner = $u && ((int)$u->id === (int)$order->user_id);
+        $role    = optional($u->role)->name;
+        $isStaff = in_array($role, ['admin','staff'], true);
 
-    abort_unless($isOwner || $isStaff, 403, 'Bạn không có quyền hủy đơn hàng này.');
+        abort_unless($isOwner || $isStaff, 403, 'Bạn không có quyền hủy đơn hàng này.');
 
-    // chỉ hủy khi còn cho phép (pending|processing)
-    if (!in_array($order->status, ['pending', 'processing'], true)) {
-        return back()->with('error', 'Đơn hàng không thể hủy ở trạng thái hiện tại.');
+        // chỉ hủy khi còn cho phép (pending|processing)
+        if (!in_array($order->status, ['pending', 'processing'], true)) {
+            return back()->with('error', 'Đơn hàng không thể hủy ở trạng thái hiện tại.');
+        }
+
+        $order->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Đã hủy đơn hàng thành công.');
     }
-
-    $order->update(['status' => 'cancelled']);
-
-    return back()->with('success', 'Đã hủy đơn hàng thành công.');
-}
-
 
     /**
      * Khách xác nhận đã nhận hàng (chỉ khi delivered).
@@ -89,7 +87,7 @@ class OrderController extends Controller
 
                 if ($order->payment()->exists()) {
                     $order->payment()->update([
-                        'status'    => 'paid',
+                        'status'     => 'paid',
                         'updated_at' => now(),
                     ]);
                 }
@@ -97,5 +95,34 @@ class OrderController extends Controller
         });
 
         return back()->with('success', 'Xác nhận đã nhận hàng thành công. Cảm ơn bạn!');
+    }
+
+    /**
+     * Cập nhật thông tin địa chỉ giao hàng (chỉ khi pending | processing).
+     */
+    public function updateAddress(Request $request, Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403, 'Bạn không có quyền chỉnh sửa đơn hàng này.');
+        }
+
+        if (!in_array($order->status, ['pending', 'processing'], true)) {
+            return back()->with('error', 'Đơn hàng không thể chỉnh sửa ở trạng thái hiện tại.');
+        }
+
+        $validated = $request->validate([
+            'receiver_name' => ['required', 'string', 'max:255'],
+            'phone'         => ['required', 'string', 'max:20'],
+            'city'          => ['required', 'string', 'max:255'],
+            'district'      => ['required', 'string', 'max:255'],
+            'ward'          => ['required', 'string', 'max:255'],
+            'address'       => ['required', 'string', 'max:255'],
+        ]);
+
+        if ($order->shipment) {
+            $order->shipment->update($validated);
+        }
+
+        return back()->with('success', 'Thông tin địa chỉ đã được cập nhật thành công.');
     }
 }

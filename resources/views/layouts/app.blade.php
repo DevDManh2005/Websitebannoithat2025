@@ -18,11 +18,146 @@
   <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
     :root {
+      /* (đảm bảo bạn đã có phần brand tokens) */
       --brand: #A20E38;
+      --brand-600: #8E0D30;
+      --brand-700: #6B0A24;
+      --accent: #4E6B52;
+      --sand: #F6E9EC;
+      --text: #2B2623;
+      --bg: #FFF6F8;
+      --card: #FFFFFF;
+      --muted: #7D726C;
+      --ring: rgba(162, 14, 56, .18);
+      --shadow: 0 10px 30px rgba(32, 25, 21, .08);
+      --radius: 12px;
     }
+
+    /* ===== Utilities (brand-aware) ===== */
+    .text-brand {
+      color: var(--brand) !important;
+    }
+
+    .text-brand-600 {
+      color: var(--brand-600) !important;
+    }
+
+    .bg-brand {
+      background: var(--brand) !important;
+      color: #fff !important;
+    }
+
+    .border-brand {
+      border-color: var(--brand) !important;
+    }
+
+    .btn-brand {
+      background: var(--brand);
+      color: #fff;
+      border: 1px solid var(--brand);
+      border-radius: 10px;
+      padding: .45rem .9rem;
+      transition: transform .06s ease, box-shadow .12s ease, background .12s;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+    }
+
+    .btn-brand:hover {
+      background: var(--brand-600);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    }
+
+    .btn-outline-brand {
+      background: transparent;
+      color: var(--brand);
+      border: 1px solid var(--brand);
+      border-radius: 10px;
+      padding: .4rem .8rem;
+      transition: background .12s, color .12s;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 0;
+      color: var(--brand);
+    }
+
+    /* Soft badge */
+    .badge-soft-brand {
+      background: rgba(162, 14, 56, .08);
+      color: var(--brand);
+      border-radius: 999px;
+      padding: .22rem .5rem;
+      font-size: .78rem;
+    }
+
+    /* Card / Surface */
+    .card-glass {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(15, 23, 42, .04);
+    }
+
+    /* Elevated shadow variant */
+    .shadow-elevated {
+      box-shadow: 0 14px 40px rgba(11, 13, 15, .08);
+    }
+
+    /* Table */
+    .table-custom th {
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .table-custom tbody tr:hover {
+      background: rgba(0, 0, 0, .02);
+      transform: translateY(0);
+    }
+
+    /* Icon micro interaction */
+    .icon-hover {
+      transition: transform .14s cubic-bezier(.2, .9, .3, 1), color .12s;
+    }
+
+    .icon-hover:hover {
+      transform: translateY(-3px) scale(1.06);
+      color: var(--brand);
+    }
+
+    /* Focus / ring */
+    .focus-ring:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px var(--ring);
+      border-radius: 8px;
+    }
+
+    /* Command palette / list highlight */
+    .cmd-item {
+      padding: .6rem .75rem;
+      border-radius: 8px;
+      transition: background .12s;
+    }
+
+    .cmd-item.active,
+    .cmd-item:hover {
+      background: rgba(162, 14, 56, .06);
+    }
+
+    /* Small helpers */
+    .kbd {
+      background: #f3f4f6;
+      border-radius: 4px;
+      padding: .12rem .4rem;
+      font-size: .8rem;
+    }
+
+
 
     /* ===== Header trong suốt ở trang chủ ===== */
     .is-home .header-home,
@@ -55,22 +190,38 @@
 
     /* Cấu hình dropdown menu danh mục (catmega) */
     .dropdown-menu.catmega {
-      position: absolute; /* Vị trí tuyệt đối so với navbar */
-      top: calc(100% + 10px); /* Khoảng cách từ đỉnh navbar */
-      left: 0; /* Mặc định căn trái */
-      transform: none; /* Không sử dụng transform mặc định */
-      display: block; /* Hiển thị dạng block */
-      margin: 0; /* Không margin */
-      opacity: 0; /* Ẩn mặc định */
-      visibility: hidden; /* Không hiển thị */
-      pointer-events: none; /* Không cho phép tương tác */
-      width: min(1200px, 96vw); /* Chiều rộng tối đa 1200px hoặc 96% viewport */
-      background: #fff; /* Màu nền trắng */
-      border: 1px solid rgba(15, 23, 42, .10); /* Viền nhẹ */
-      border-radius: 14px; /* Bo góc */
-      box-shadow: 0 18px 48px rgba(2, 6, 23, .20); /* Đổ bóng */
-      z-index: 1060; /* Độ ưu tiên hiển thị */
-      overflow: clip; /* Cắt nội dung tràn */
+      position: absolute;
+      /* Vị trí tuyệt đối so với navbar */
+      top: calc(100% + 10px);
+      /* Khoảng cách từ đỉnh navbar */
+      left: 0;
+      /* Mặc định căn trái */
+      transform: none;
+      /* Không sử dụng transform mặc định */
+      display: block;
+      /* Hiển thị dạng block */
+      margin: 0;
+      /* Không margin */
+      opacity: 0;
+      /* Ẩn mặc định */
+      visibility: hidden;
+      /* Không hiển thị */
+      pointer-events: none;
+      /* Không cho phép tương tác */
+      width: min(1200px, 96vw);
+      /* Chiều rộng tối đa 1200px hoặc 96% viewport */
+      background: #fff;
+      /* Màu nền trắng */
+      border: 1px solid rgba(15, 23, 42, .10);
+      /* Viền nhẹ */
+      border-radius: 14px;
+      /* Bo góc */
+      box-shadow: 0 18px 48px rgba(2, 6, 23, .20);
+      /* Đổ bóng */
+      z-index: 1060;
+      /* Độ ưu tiên hiển thị */
+      overflow: clip;
+      /* Cắt nội dung tràn */
     }
 
     /* Vô hiệu hóa Popper của Bootstrap để tùy chỉnh vị trí */
@@ -83,28 +234,37 @@
 
     /* Hiển thị menu khi được kích hoạt */
     .dropdown-menu.catmega.show {
-      opacity: 1; /* Hiện hoàn toàn */
-      visibility: visible; /* Hiển thị */
-      pointer-events: auto; /* Cho phép tương tác */
-      transition: opacity .18s ease; /* Hiệu ứng chuyển đổi độ mờ */
+      opacity: 1;
+      /* Hiện hoàn toàn */
+      visibility: visible;
+      /* Hiển thị */
+      pointer-events: auto;
+      /* Cho phép tương tác */
+      transition: opacity .18s ease;
+      /* Hiệu ứng chuyển đổi độ mờ */
     }
 
     /* Cấu hình lưới bên trong menu */
     .catmega-inner {
-      padding: 16px 18px; /* Khoảng cách bên trong */
+      padding: 16px 18px;
+      /* Khoảng cách bên trong */
     }
 
     /* Thiết lập lưới 4 cột cho danh mục */
     .catmega-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr); /* 4 cột đều nhau */
-      gap: 16px 24px; /* Khoảng cách giữa các cột và hàng */
+      grid-template-columns: repeat(4, 1fr);
+      /* 4 cột đều nhau */
+      gap: 16px 24px;
+      /* Khoảng cách giữa các cột và hàng */
     }
 
     /* Cột danh mục */
     .catmega-col {
-      min-width: 0; /* Không giới hạn chiều rộng tối thiểu */
-      border-right: 1px solid rgba(2, 6, 23, .06); /* Viền phân cách giữa các cột */
+      min-width: 0;
+      /* Không giới hạn chiều rộng tối thiểu */
+      border-right: 1px solid rgba(2, 6, 23, .06);
+      /* Viền phân cách giữa các cột */
     }
 
     /* Loại bỏ viền ở cột cuối */
@@ -115,62 +275,88 @@
     /* Tiêu đề danh mục */
     .catmega-title {
       display: inline-block;
-      margin: 0 0 6px; /* Khoảng cách dưới */
-      font-weight: 700; /* Chữ đậm */
-      color: #111827; /* Màu chữ chính */
-      text-decoration: none; /* Không gạch chân */
+      margin: 0 0 6px;
+      /* Khoảng cách dưới */
+      font-weight: 700;
+      /* Chữ đậm */
+      color: #111827;
+      /* Màu chữ chính */
+      text-decoration: none;
+      /* Không gạch chân */
     }
 
     /* Hiệu ứng hover cho tiêu đề */
     .catmega-title:hover {
-      color: #c1126b; /* Đổi màu khi hover */
+      color: #c1126b;
+      /* Đổi màu khi hover */
     }
 
     /* Danh sách các mục trong danh mục */
     .catmega-list {
-      list-style: none; /* Bỏ dấu đầu dòng */
-      margin: 0; /* Không margin */
-      padding: 0; /* Không padding */
+      list-style: none;
+      /* Bỏ dấu đầu dòng */
+      margin: 0;
+      /* Không margin */
+      padding: 0;
+      /* Không padding */
     }
 
     /* Liên kết trong danh mục */
     .catmega-link {
-      display: block; /* Hiển thị dạng block */
-      padding: 6px 8px; /* Khoảng cách bên trong */
-      border-radius: 8px; /* Bo góc */
-      color: #374151; /* Màu chữ */
-      text-decoration: none; /* Không gạch chân */
-      white-space: nowrap; /* Không xuống dòng */
-      overflow: hidden; /* Ẩn nội dung tràn */
-      text-overflow: ellipsis; /* Hiển thị dấu ba chấm khi tràn */
+      display: block;
+      /* Hiển thị dạng block */
+      padding: 6px 8px;
+      /* Khoảng cách bên trong */
+      border-radius: 8px;
+      /* Bo góc */
+      color: #374151;
+      /* Màu chữ */
+      text-decoration: none;
+      /* Không gạch chân */
+      white-space: nowrap;
+      /* Không xuống dòng */
+      overflow: hidden;
+      /* Ẩn nội dung tràn */
+      text-overflow: ellipsis;
+      /* Hiển thị dấu ba chấm khi tràn */
     }
 
     /* Hiệu ứng hover cho liên kết */
     .catmega-link:hover {
-      background: rgba(193, 18, 107, .08); /* Màu nền khi hover */
-      color: #c1126b; /* Màu chữ khi hover */
+      background: rgba(193, 18, 107, .08);
+      /* Màu nền khi hover */
+      color: #c1126b;
+      /* Màu chữ khi hover */
     }
 
     /* Responsive cho màn hình nhỏ hơn 991.98px */
     @media (max-width:991.98px) {
       .dropdown-menu.catmega {
-        width: 100vw; /* Chiều rộng full viewport */
-        left: 50% !important; /* Căn giữa */
-        transform: translateX(-50%) !important; /* Dịch chuyển để căn giữa */
-        border-radius: 0 0 14px 14px; /* Bo góc chỉ ở dưới */
+        width: 100vw;
+        /* Chiều rộng full viewport */
+        left: 50% !important;
+        /* Căn giữa */
+        transform: translateX(-50%) !important;
+        /* Dịch chuyển để căn giữa */
+        border-radius: 0 0 14px 14px;
+        /* Bo góc chỉ ở dưới */
       }
 
       .catmega-inner {
-        padding: 12px 14px; /* Giảm khoảng cách bên trong */
+        padding: 12px 14px;
+        /* Giảm khoảng cách bên trong */
       }
 
       .catmega-grid {
-        grid-template-columns: repeat(2, 1fr); /* Giảm xuống 2 cột */
-        gap: 12px 16px; /* Giảm khoảng cách */
+        grid-template-columns: repeat(2, 1fr);
+        /* Giảm xuống 2 cột */
+        gap: 12px 16px;
+        /* Giảm khoảng cách */
       }
 
       .catmega-col {
-        border-right: 0; /* Loại bỏ viền phân cách */
+        border-right: 0;
+        /* Loại bỏ viền phân cách */
       }
     }
 
@@ -443,53 +629,6 @@
         });
 
         loadProvinces();
-      })();
-
-      // ===== CANH GIỮA MEGA MENU NGAY DƯỚI "SẢN PHẨM" =====
-      (function () {
-        // Lấy tham chiếu đến navbar, nút "Sản phẩm" và menu danh mục
-        const nav = document.querySelector('nav.navbar'); // Navbar bao quanh dropdown
-        const trigger = document.getElementById('productsDropdown'); // Nút "Sản phẩm"
-        const menu = document.getElementById('catmega'); // Menu dropdown danh mục
-        if (!(nav && trigger && menu)) return; // Thoát nếu thiếu các phần tử cần thiết
-
-        // Hàm định vị menu danh mục
-        const place = () => {
-          // Lấy kích thước và vị trí của navbar và nút trigger
-          const navRect = nav.getBoundingClientRect();
-          const tRect = trigger.getBoundingClientRect();
-
-          // Tính chiều rộng menu (tối đa 1200px hoặc 96% viewport)
-          const mWidth = Math.min(1200, window.innerWidth * 0.96);
-          // Tính tâm của nút trigger
-          const centerX = tRect.left + tRect.width / 2;
-          // Tính vị trí trái để căn giữa menu
-          let left = centerX - mWidth / 2;
-
-          // Giới hạn vị trí trái trong viewport
-          const minLeft = 8, maxLeft = window.innerWidth - mWidth - 8;
-          left = Math.max(minLeft, Math.min(maxLeft, left));
-
-          // Tính vị trí trái trong navbar
-          const leftInNav = left - navRect.left;
-
-          // Áp dụng kiểu dáng cho menu
-          menu.style.width = mWidth + 'px';
-          menu.style.left = Math.round(leftInNav) + 'px';
-          menu.style.top = Math.round(tRect.bottom - navRect.top + 10) + 'px';
-        };
-
-        // Khi menu được hiển thị
-        trigger.addEventListener('shown.bs.dropdown', () => {
-          if (!menu.classList.contains('show')) menu.classList.add('show'); // Thêm lớp show nếu chưa có
-          place(); // Định vị menu
-        });
-        // Khi menu bị ẩn
-        trigger.addEventListener('hide.bs.dropdown', () => menu.classList.remove('show'));
-        // Cập nhật vị trí khi thay đổi kích thước cửa sổ
-        window.addEventListener('resize', () => { if (menu.classList.contains('show')) place(); });
-        // Cập nhật vị trí khi cuộn trang
-        window.addEventListener('scroll', () => { if (menu.classList.contains('show')) place(); }, { passive: true });
       })();
 
     }); // DOMContentLoaded

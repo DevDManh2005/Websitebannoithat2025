@@ -811,7 +811,7 @@
         counters.forEach(el => observer.observe(el));
     }
 
-   // 4. Đồng hồ đếm ngược (800 giờ)
+// 4. Đồng hồ đếm ngược (thời gian thực - ĐÃ SỬA LỖI)
 const countdownContainer = document.getElementById("countdown-timer");
 if (countdownContainer) {
     const daysBlock = document.getElementById("days-block");
@@ -820,18 +820,19 @@ if (countdownContainer) {
     const minutesEl = document.getElementById("minutes");
     const secondsEl = document.getElementById("seconds");
 
-    // Thiết lập thời gian kết thúc là 400 giờ kể từ bây giờ
-    const endDate = new Date();
-    endDate.setHours(endDate.getHours() + 800);
+    // --- SỬA LỖI Ở ĐÂY ---
+    // Thay vì tạo ngày mới mỗi lần tải trang, chúng ta đặt một mốc thời gian CỐ ĐỊNH.
+    // Ví dụ: Đếm ngược đến 23:59:59 ngày 21 tháng 09 năm 2025 (30 ngày kể từ hôm nay).
+    // BẠN CÓ THỂ THAY ĐỔI MỐC THỜI GIAN NÀY BẤT CỨ LÚC NÀO.
+    const saleEndTime = new Date("2025-09-21T23:59:59").getTime();
 
     const updateCountdown = () => {
-        const distance = endDate.getTime() - new Date().getTime();
+        const now = new Date().getTime();
+        const distance = saleEndTime - now;
 
         if (distance <= 0) {
-            daysEl.innerText = '00';
-            hoursEl.innerText = '00';
-            minutesEl.innerText = '00';
-            secondsEl.innerText = '00';
+            const offerSection = document.querySelector('.special-offer-section-wrapper');
+            if (offerSection) offerSection.style.display = 'none';
             clearInterval(countdownInterval);
             return;
         }
@@ -841,21 +842,14 @@ if (countdownContainer) {
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        // Chỉ hiển thị ô "Ngày" nếu còn hơn 1 ngày
-        if (days > 0) {
-            daysBlock.style.display = 'flex';
-            daysEl.innerText = String(days).padStart(2, '0');
-        } else {
-            daysBlock.style.display = 'none';
-        }
-
+        daysEl.innerText = String(days).padStart(2, '0');
         hoursEl.innerText = String(hours).padStart(2, '0');
         minutesEl.innerText = String(minutes).padStart(2, '0');
         secondsEl.innerText = String(seconds).padStart(2, '0');
     };
 
     const countdownInterval = setInterval(updateCountdown, 1000);
-    updateCountdown(); // Chạy ngay lần đầu để không bị trễ 1 giây
+    updateCountdown();
 }
 // 5) Swiper cho Blog (đặt ngoài mọi block khác)
 if (document.querySelector('.blog-swiper')) {

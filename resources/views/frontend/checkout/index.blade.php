@@ -45,11 +45,11 @@
                 {{-- =================== LEFT: INFO =================== --}}
                 <div class="col-lg-7">
                     {{-- Shipping address --}}
-                    <div class="card border-0 shadow-sm rounded-4 mb-4" data-aos="fade-right">
+                    <div class="card card-glass border-0 rounded-4 mb-4" data-aos="fade-right">
                         <div class="card-body p-4 p-md-5">
                             <div class="d-flex align-items-center mb-3">
                                 <span class="step-badge me-2">1</span>
-                                <h4 class="card-title fw-bold mb-0">Địa chỉ giao hàng</h4>
+                                <h4 class="card-title fw-bold text-brand mb-0">Địa chỉ giao hàng</h4>
                             </div>
 
                             <div class="row g-3">
@@ -87,16 +87,16 @@
                     </div>
 
                     {{-- Payment & shipping --}}
-                    <div class="card border-0 shadow-sm rounded-4" data-aos="fade-right" data-aos-delay="100">
+                    <div class="card card-glass border-0 rounded-4" data-aos="fade-right" data-aos-delay="100">
                         <div class="card-body p-4 p-md-5">
                             <div class="d-flex align-items-center mb-3">
                                 <span class="step-badge me-2">2</span>
-                                <h4 class="card-title fw-bold mb-0">Thanh toán & Vận chuyển</h4>
+                                <h4 class="card-title fw-bold text-brand mb-0">Thanh toán & Vận chuyển</h4>
                             </div>
 
                             <div class="mb-4">
                                 <h6 class="mb-2 fw-semibold">Phương thức vận chuyển</h6>
-                                <div id="shipping-options-container" class="text-muted p-3 bg-light rounded-3 small">
+                                <div id="shipping-options-container" class="text-muted p-3 card-glass rounded-3 small">
                                     Vui lòng điền đủ địa chỉ để tính phí.
                                 </div>
                             </div>
@@ -126,10 +126,9 @@
 
                 {{-- =================== RIGHT: SUMMARY =================== --}}
                 <div class="col-lg-5">
-                    <div class="card border-0 shadow-sm rounded-4 sticky-order" data-aos="fade-left" data-aos-delay="150">
-
+                    <div class="card card-glass border-0 rounded-4 sticky-order" data-aos="fade-left" data-aos-delay="150">
                         <div class="card-body p-4 p-md-5">
-                            <h4 class="card-title fw-bold mb-3">Tổng quan đơn hàng</h4>
+                            <h4 class="card-title fw-bold text-brand mb-3">Tổng quan đơn hàng</h4>
 
                             <div class="order-summary-items mb-3">
                                 @foreach($cartItems as $item)
@@ -138,7 +137,7 @@
                                             <img src="{{ optional($item->variant->product->primaryImage)->image_url_path ?? 'https://placehold.co/100x100' }}"
                                                  alt="{{ $item->variant->product->name }}" class="rounded-3"
                                                  style="width: 64px; height: 64px; object-fit: cover;">
-                                            <span class="badge bg-dark rounded-pill position-absolute top-0 start-100 translate-middle">{{ $item->quantity }}</span>
+                                            <span class="badge badge-soft-brand rounded-pill position-absolute top-0 start-100 translate-middle">{{ $item->quantity }}</span>
                                         </div>
                                         <div class="flex-grow-1">
                                             <p class="mb-0 small fw-semibold text-truncate-2">{{ $item->variant->product->name }}</p>
@@ -173,7 +172,7 @@
                                     <div id="voucher-form">
                                         <div class="input-group">
                                             <input type="text" class="form-control form-control-modern" placeholder="Nhập mã giảm giá" id="voucher-code-input">
-                                            <button class="btn btn-primary" type="button" id="apply-voucher-btn">Áp dụng</button>
+                                            <button class="btn btn-brand" type="button" id="apply-voucher-btn">Áp dụng</button>
                                         </div>
                                     </div>
                                     <div id="applied-voucher-info" class="d-none justify-content-between align-items-center text-success small mt-2">
@@ -197,18 +196,18 @@
                             </div>
                             <div class="d-flex justify-content-between mb-3">
                                 <span>Phí vận chuyển</span>
-                                <strong id="shipping-fee-display">Chọn địa chỉ</strong>
+                                <strong id="shipping-fee-display" class="text-brand">Chọn địa chỉ</strong>
                             </div>
 
                             <hr class="border-dashed">
 
                             <div class="d-flex justify-content-between align-items-center fw-bold fs-5">
                                 <span>Tổng cộng</span>
-                                <span class="text-danger" id="total-price-display">{{ number_format($total) }} ₫</span>
+                                <span class="text-brand" id="total-price-display">{{ number_format($total) }} ₫</span>
                             </div>
 
                             <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg rounded-pill" id="place-order-btn">
+                                <button type="submit" class="btn btn-brand btn-lg rounded-pill" id="place-order-btn">
                                     <i class="bi bi-shield-check me-2"></i>Đặt hàng ngay
                                 </button>
                             </div>
@@ -242,50 +241,61 @@
 .form-control-modern, .form-select.form-control-modern{
     border-radius: .8rem;
     border: 1px solid #e9ecef;
-    background: #fff;
+    background: var(--card);
 }
 .form-control-modern:focus, .form-select.form-control-modern:focus{
-    border-color:#A20E38;
-    box-shadow: 0 0 0 .2rem rgba(162,14,56,.15);
+    border-color:var(--brand);
+    box-shadow: 0 0 0 .2rem rgba(var(--brand-rgb, 162,14,56),.15);
 }
 
 /* ===== Card tweaks ===== */
 .rounded-4{ border-radius:1rem !important; }
-.card-title{ color:#1c1f23; }
+.card-title{ color:var(--text); }
 .step-badge{
     display:inline-flex; width:28px; height:28px; border-radius:50%;
     align-items:center; justify-content:center;
-    background:#A20E38; color:#fff; font-weight:700; font-size:.9rem;
+    background:var(--brand); color:var(--card); font-weight:700; font-size:.9rem;
 }
 
 /* ===== Order summary ===== */
 .order-summary-items{ max-height: 230px; overflow-y:auto; }
 .summary-item{ transition: background .2s ease; border-radius: .8rem; padding:.25rem; }
-.summary-item:hover{ background: #f8f9fa; }
+.summary-item:hover{ background: var(--bg); }
 .text-truncate-2{
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
-
-/* ===== Dashed hr ===== */
+.badge-soft-brand{
+    background: rgba(var(--brand-rgb, 162, 14, 56), .1);
+    color: var(--brand);
+}
 .border-dashed{ border-top:1px dashed #dee2e6; }
 
 /* ===== Buttons ===== */
-.btn-primary{
-    background-color:#A20E38; border-color:#A20E38;
+.btn-brand{
+    background-color:var(--brand); border-color:var(--brand); color:#fff;
 }
-.btn-primary:hover{ background-color:#8b0c30; border-color:#8b0c30; }
+.btn-brand:hover{ background-color:var(--brand-600); border-color:var(--brand-600); }
 
 @media (max-width: 575.98px){
     .checkout-hero h1{ font-size:1.5rem; }
 }
 
 .sticky-order{
-  position: sticky;
-  top: var(--sticky-offset, 88px);
-  z-index: 1;                  
+    position: sticky;
+    top: var(--sticky-offset, 88px);
+    z-index: 1; 
 }
 .container, .row { overflow: visible; }
 
+/* Fix checkbox color */
+.form-check-input:checked {
+    background-color: var(--brand);
+    border-color: var(--brand);
+}
+.form-check-input:focus {
+    border-color: rgba(var(--brand-rgb), .5);
+    box-shadow: 0 0 0 .25rem rgba(var(--brand-rgb), .25);
+}
 </style>
 @endpush
 
@@ -293,164 +303,159 @@
 <script>
 // ===== Tính khoảng cách sticky theo chiều cao header =====
 (function(){
-  function updateStickyOffset(){
-    // Header trang chủ có header-home; các trang trong có header-internal
-    const header = document.querySelector('header.sticky-top, header.navbar-transparent, header'); 
-    // nếu là home, header có thể cao hơn do logo lớn
-    const headerHeight = header ? header.offsetHeight : 72;
-    // chừa thêm 12–16px cho thoáng
-    const gap = 16;
-    document.documentElement.style.setProperty('--sticky-offset', (headerHeight + gap) + 'px');
-  }
-  // gọi lúc load + resize + khi navbar co giãn
-  window.addEventListener('load', updateStickyOffset);
-  window.addEventListener('resize', updateStickyOffset);
-  // đề phòng font/ảnh logo load chậm làm thay đổi chiều cao
-  setTimeout(updateStickyOffset, 300);
+    function updateStickyOffset(){
+        const header = document.querySelector('header.sticky-top, header.navbar-transparent, header'); 
+        const headerHeight = header ? header.offsetHeight : 72;
+        const gap = 16;
+        document.documentElement.style.setProperty('--sticky-offset', (headerHeight + gap) + 'px');
+    }
+    window.addEventListener('load', updateStickyOffset);
+    window.addEventListener('resize', updateStickyOffset);
+    setTimeout(updateStickyOffset, 300);
 })();
 
-    // ===== Currency helper =====
-    const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style:'currency', currency:'VND' }).format(amount);
-    let currentDiscount = {{ $discount }};
+// ===== Currency helper =====
+const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style:'currency', currency:'VND' }).format(amount);
+let currentDiscount = {{ $discount }};
 
-    function updateFinalTotals(){
-        const shippingFee = parseFloat(document.getElementById('shipping_fee_input').value) || 0;
-        const subtotal = parseFloat(document.getElementById('subtotal-display').dataset.value) || 0;
-        const discountRow = document.getElementById('discount-row');
-        const discountDisplay = document.getElementById('discount-display');
-        const total = (subtotal - currentDiscount) + shippingFee;
+function updateFinalTotals(){
+    const shippingFee = parseFloat(document.getElementById('shipping_fee_input').value) || 0;
+    const subtotal = parseFloat(document.getElementById('subtotal-display').dataset.value) || 0;
+    const discountRow = document.getElementById('discount-row');
+    const discountDisplay = document.getElementById('discount-display');
+    const total = (subtotal - currentDiscount) + shippingFee;
 
-        document.getElementById('shipping-fee-display').textContent = isNaN(shippingFee) ? 'Chọn địa chỉ' : formatCurrency(shippingFee);
-        document.getElementById('total-price-display').textContent = formatCurrency(Math.max(total, 0));
+    document.getElementById('shipping-fee-display').textContent = isNaN(shippingFee) ? 'Chọn địa chỉ' : formatCurrency(shippingFee);
+    document.getElementById('total-price-display').textContent = formatCurrency(Math.max(total, 0));
 
-        if (currentDiscount > 0) {
-            discountDisplay.textContent = `-${formatCurrency(currentDiscount)}`;
-            discountRow.classList.remove('d-none');
-        } else {
-            discountRow.classList.add('d-none');
-        }
+    if (currentDiscount > 0) {
+        discountDisplay.textContent = `-${formatCurrency(currentDiscount)}`;
+        discountRow.classList.remove('d-none');
+    } else {
+        discountRow.classList.add('d-none');
+    }
+}
+
+// ===== GHN fee via backend route =====
+async function calculateShippingFee(){
+    const districtId = document.getElementById('district_id').value;
+    const wardCode   = document.getElementById('ward_code').value;
+    const box        = document.getElementById('shipping-options-container');
+    const feeInput   = document.getElementById('shipping_fee_input');
+
+    if (!districtId || !wardCode) {
+        box.innerHTML = '<div class="text-muted">Vui lòng điền đủ địa chỉ.</div>';
+        feeInput.value = 0; updateFinalTotals(); return;
     }
 
-    // ===== GHN fee via backend route =====
-    async function calculateShippingFee(){
-        const districtId = document.getElementById('district_id').value;
-        const wardCode   = document.getElementById('ward_code').value;
-        const box        = document.getElementById('shipping-options-container');
-        const feeInput   = document.getElementById('shipping_fee_input');
+    box.innerHTML = '<div class="d-inline-flex align-items-center gap-2"><span class="spinner-border spinner-border-sm"></span> Đang tính…</div>';
 
-        if (!districtId || !wardCode) {
-            box.innerHTML = '<div class="text-muted">Vui lòng điền đủ địa chỉ.</div>';
-            feeInput.value = 0; updateFinalTotals(); return;
+    try{
+        const res = await fetch('{{ route("shipping.getFee") }}', {
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept':'application/json'
+            },
+            body: JSON.stringify({ to_district_id: districtId, to_ward_code: wardCode })
+        });
+        const result = await res.json();
+
+        if (result?.success && result.data) {
+            box.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fw-semibold">${result.data.name || 'Giao hàng'}</div>
+                        <div class="text-muted xsmall">Dự kiến: ${result.data.leadtime_text || '—'}</div>
+                    </div>
+                    <div class="fw-bold">${formatCurrency(result.data.total)}</div>
+                </div>`;
+            feeInput.value = result.data.total;
+        } else {
+            box.innerHTML = `<div class="text-danger">${result.message || 'Lỗi tính phí.'}</div>`;
+            feeInput.value = 0;
         }
+    }catch(e){
+        console.error(e);
+        box.innerHTML = '<div class="text-danger">Lỗi kết nối.</div>';
+        feeInput.value = 0;
+    }
+    updateFinalTotals();
+}
 
-        box.innerHTML = '<div class="d-inline-flex align-items-center gap-2"><span class="spinner-border spinner-border-sm"></span> Đang tính…</div>';
+// ===== Voucher apply/remove =====
+const applyBtn      = document.getElementById('apply-voucher-btn');
+const removeBtn   = document.getElementById('remove-voucher-btn') || document.getElementById('remove-voucher-btn-js');
+const voucherInput = document.getElementById('voucher-code-input');
+const voucherMsg  = document.getElementById('voucher-message');
+
+if (applyBtn) {
+    applyBtn.addEventListener('click', async function(){
+        const code = (voucherInput?.value || '').trim();
+        if (!code) return;
+        this.disabled = true; this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
         try{
-            const res = await fetch('{{ route("shipping.getFee") }}', {
+            const res = await fetch('{{ route("voucher.apply") }}', {
                 method:'POST',
                 headers:{
                     'Content-Type':'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'Accept':'application/json'
                 },
-                body: JSON.stringify({ to_district_id: districtId, to_ward_code: wardCode })
+                body: JSON.stringify({ code })
             });
             const result = await res.json();
 
-            if (result?.success && result.data) {
-                box.innerHTML = `
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="fw-semibold">${result.data.name || 'Giao hàng'}</div>
-                            <div class="text-muted xsmall">Dự kiến: ${result.data.leadtime_text || '—'}</div>
-                        </div>
-                        <div class="fw-bold">${formatCurrency(result.data.total)}</div>
-                    </div>`;
-                feeInput.value = result.data.total;
-            } else {
-                box.innerHTML = `<div class="text-danger">${result.message || 'Lỗi tính phí.'}</div>`;
-                feeInput.value = 0;
+            voucherMsg.className = result.success ? 'text-success small' : 'text-danger small';
+            voucherMsg.textContent = result.message || '';
+
+            if (result.success){
+                currentDiscount = result.discount || 0;
+                document.getElementById('voucher-form').classList.add('d-none');
+                document.getElementById('applied-voucher-code').textContent = code;
+                document.getElementById('applied-voucher-info').classList.remove('d-none');
+                updateFinalTotals();
             }
         }catch(e){
-            console.error(e);
-            box.innerHTML = '<div class="text-danger">Lỗi kết nối.</div>';
-            feeInput.value = 0;
+            voucherMsg.className = 'text-danger small';
+            voucherMsg.textContent = 'Có lỗi xảy ra, vui lòng thử lại.';
+        }finally{
+            this.disabled = false; this.innerHTML = 'Áp dụng';
         }
-        updateFinalTotals();
-    }
+    });
+}
 
-    // ===== Voucher apply/remove =====
-    const applyBtn    = document.getElementById('apply-voucher-btn');
-    const removeBtn   = document.getElementById('remove-voucher-btn') || document.getElementById('remove-voucher-btn-js');
-    const voucherInput= document.getElementById('voucher-code-input');
-    const voucherMsg  = document.getElementById('voucher-message');
-
-    if (applyBtn) {
-        applyBtn.addEventListener('click', async function(){
-            const code = (voucherInput?.value || '').trim();
-            if (!code) return;
-            this.disabled = true; this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-            try{
-                const res = await fetch('{{ route("voucher.apply") }}', {
-                    method:'POST',
-                    headers:{
-                        'Content-Type':'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept':'application/json'
-                    },
-                    body: JSON.stringify({ code })
-                });
-                const result = await res.json();
-
-                voucherMsg.className = result.success ? 'text-success small' : 'text-danger small';
-                voucherMsg.textContent = result.message || '';
-
-                if (result.success){
-                    currentDiscount = result.discount || 0;
-                    document.getElementById('voucher-form').classList.add('d-none');
-                    document.getElementById('applied-voucher-code').textContent = code;
-                    document.getElementById('applied-voucher-info').classList.remove('d-none');
-                    updateFinalTotals();
+if (removeBtn) {
+    removeBtn.addEventListener('click', async function(){
+        try{
+            const res = await fetch('{{ route("voucher.remove") }}', {
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept':'application/json'
                 }
-            }catch(e){
-                voucherMsg.className = 'text-danger small';
-                voucherMsg.textContent = 'Có lỗi xảy ra, vui lòng thử lại.';
-            }finally{
-                this.disabled = false; this.innerHTML = 'Áp dụng';
+            });
+            const result = await res.json();
+            if (result.success){
+                currentDiscount = 0;
+                voucherInput && (voucherInput.value = '');
+                voucherMsg.textContent = '';
+                document.querySelectorAll('#applied-voucher-info').forEach(el => el.classList.add('d-none'));
+                const voucherForm = document.getElementById('voucher-form');
+                if (voucherForm) voucherForm.classList.remove('d-none');
+                updateFinalTotals();
             }
-        });
-    }
+        }catch(e){
+            alert('Có lỗi xảy ra, vui lòng thử lại.');
+        }
+    });
+}
 
-    if (removeBtn) {
-        removeBtn.addEventListener('click', async function(){
-            try{
-                const res = await fetch('{{ route("voucher.remove") }}', {
-                    method:'POST',
-                    headers:{
-                        'Content-Type':'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept':'application/json'
-                    }
-                });
-                const result = await res.json();
-                if (result.success){
-                    currentDiscount = 0;
-                    voucherInput && (voucherInput.value = '');
-                    voucherMsg.textContent = '';
-                    document.querySelectorAll('#applied-voucher-info').forEach(el => el.classList.add('d-none'));
-                    const voucherForm = document.getElementById('voucher-form');
-                    if (voucherForm) voucherForm.classList.remove('d-none');
-                    updateFinalTotals();
-                }
-            }catch(e){
-                alert('Có lỗi xảy ra, vui lòng thử lại.');
-            }
-        });
-    }
-
-    document.getElementById('district_id')?.addEventListener('change', calculateShippingFee);
-    document.getElementById('ward_code')?.addEventListener('change', calculateShippingFee);
-    updateFinalTotals();
-    </script>
+document.getElementById('district_id')?.addEventListener('change', calculateShippingFee);
+document.getElementById('ward_code')?.addEventListener('change', calculateShippingFee);
+updateFinalTotals();
+</script>
 @endpush

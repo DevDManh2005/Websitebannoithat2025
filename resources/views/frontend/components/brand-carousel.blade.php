@@ -1,13 +1,10 @@
 @props(['brands'])
 
 @if(isset($brands) && $brands->count() > 0)
-<section class="brand-section py-5 bg-light" data-aos="fade-up">
+<section class="brand-carousel-section" data-aos="fade-up">
     <div class="container">
         <div class="text-center mb-5">
-            <h3 class="fw-bold text-uppercase" style="color: #E05763; position: relative; display: inline-block; padding-bottom: 10px;">
-                Đối Tác
-                <span style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 3px; width: 60px; background-color:#E05763;"></span>
-            </h3>
+            <h3 class="section-title-decorated">Đối Tác</h3>
         </div>
 
         <div class="swiper brand-swiper-component">
@@ -16,7 +13,7 @@
                     <div class="swiper-slide text-center">
                         <a href="{{ $brand->website ?? '#' }}" target="_blank" title="{{ $brand->name }}" class="d-inline-block">
                             {{-- THAY ĐỔI DUY NHẤT Ở ĐÂY: Dùng logo_url từ Model --}}
-                            <img src="{{ $brand->logo_url }}" 
+                            <img src="{{ $brand->logo_url }}"
                                  alt="{{ $brand->name }}"
                                  class="img-fluid brand-logo">
                         </a>
@@ -32,19 +29,45 @@
 @once
     @push('styles')
     <style>
-        .brand-section {
-            border-top: 1px solid #e9ecef;
-            border-bottom: 1px solid #e9ecef;
+        .brand-carousel-section {
+            padding-top: 4rem;
+            padding-bottom: 4rem;
+            background-color: var(--sand, #F6E9EC);
+            border-top: 1px solid rgba(0,0,0, .06);
+            border-bottom: 1px solid rgba(0,0,0, .06);
         }
+
+        .section-title-decorated {
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--brand, #A20E38);
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+            margin-bottom: 0;
+        }
+
+        .section-title-decorated::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 3px;
+            width: 60px;
+            background-color: var(--brand, #A20E38);
+            border-radius: 2px;
+        }
+
         .brand-logo {
             max-height: 80px;
             max-width: 150px;
             object-fit: contain;
             filter: grayscale(100%);
-            opacity: 0.7;
-            transition: all 0.3s ease-in-out;
+            opacity: 0.65;
+            transition: all 0.3s cubic-bezier(.2, .9, .3, 1);
         }
-        .brand-logo:hover {
+        .swiper-slide a:hover .brand-logo {
             filter: grayscale(0%);
             opacity: 1;
             transform: scale(1.1);

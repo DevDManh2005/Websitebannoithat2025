@@ -4,7 +4,7 @@
 
 @section('content')
     {{-- =================== BREADCRUMB =================== --}}
-    <div class="py-3 bg-white border-bottom">
+    <div class="py-3 card-glass border-bottom">
         <div class="container" data-aos="fade-in">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
@@ -71,10 +71,11 @@
                     </a>
                 </div>
 
-                <div class="product-price-box bg-light-subtle p-4 rounded-4 mb-4 border">
+                {{-- Dùng card-glass và border-brand để đồng bộ --}}
+                <div class="product-price-box card-glass p-4 rounded-4 mb-4 border-brand">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge text-bg-warning text-uppercase fw-semibold">Giá</span>
-                        <h3 class="text-danger fw-bolder mb-0" id="product-price-display">Vui lòng chọn thuộc tính</h3>
+                        <span class="badge badge-soft-brand text-uppercase fw-semibold">Giá</span>
+                        <h3 class="text-brand fw-bolder mb-0" id="product-price-display">Vui lòng chọn thuộc tính</h3>
                     </div>
                     <small class="text-muted d-block mt-2">Mã SP: <span id="product-sku">N/A</span></small>
                 </div>
@@ -92,7 +93,8 @@
                                     @foreach($values as $value)
                                         @php $id = Str::slug($name . '-' . $value); @endphp
                                         <input type="radio" class="btn-check variant-option" name="{{ $name }}" value="{{ $value }}" id="{{ $id }}" autocomplete="off">
-                                        <label class="btn btn-outline-dark btn-variant" for="{{ $id }}">{{ $value }}</label>
+                                        {{-- Dùng btn-outline-brand để đồng bộ màu sắc --}}
+                                        <label class="btn btn-outline-brand btn-variant" for="{{ $id }}">{{ $value }}</label>
                                     @endforeach
                                 </div>
                             </div>
@@ -103,24 +105,24 @@
                     <div class="d-flex align-items-center mb-4">
                         <label class="me-3 fw-semibold">Số lượng:</label>
                         <div class="input-group quantity-group">
-                            <button type="button" class="btn btn-outline-secondary" id="quantity-minus" aria-label="Giảm số lượng">−</button>
+                            <button type="button" class="btn btn-outline-brand" id="quantity-minus" aria-label="Giảm số lượng">−</button>
                             <input type="number" class="form-control text-center" name="quantity" id="quantity-selector" value="1" min="1" inputmode="numeric">
-                            <button type="button" class="btn btn-outline-secondary" id="quantity-plus" aria-label="Tăng số lượng">+</button>
+                            <button type="button" class="btn btn-outline-brand" id="quantity-plus" aria-label="Tăng số lượng">+</button>
                         </div>
                     </div>
 
                     {{-- CTA --}}
                     @auth
                         <div class="d-grid gap-2 d-sm-flex">
-                            <button type="button" class="btn btn-outline-primary btn-lg flex-grow-1 rounded-pill" id="add-to-cart-btn" disabled>
+                            <button type="button" class="btn btn-outline-brand btn-lg flex-grow-1 rounded-pill" id="add-to-cart-btn" disabled>
                                 <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
                             </button>
-                            <button type="button" class="btn btn-danger btn-lg flex-grow-1 rounded-pill" id="buy-now-btn" disabled>
+                            <button type="button" class="btn btn-brand btn-lg flex-grow-1 rounded-pill" id="buy-now-btn" disabled>
                                 <i class="bi bi-bag-check-fill me-2"></i>Mua ngay
                             </button>
                         </div>
                     @else
-                        <a href="{{ route('login.form') }}" class="btn btn-danger btn-lg mt-3 w-100 rounded-pill">
+                        <a href="{{ route('login.form') }}" class="btn btn-brand btn-lg mt-3 w-100 rounded-pill">
                             <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập để mua hàng
                         </a>
                     @endauth
@@ -144,7 +146,9 @@
                     </li>
                 </ul>
 
-                <div class="tab-content p-4 border rounded-4 mt-3">
+                {{-- Sửa lỗi: Lớp nền bị trùng lặp --}}
+                <div class="tab-content p-4 rounded-4 mt-3 card-glass">
+                    {{-- Sửa lỗi: Đã đổi thứ tự tab content --}}
                     <div class="tab-pane fade show active" id="description-content">
                         {!! nl2br(e($product->description)) !!}
                     </div>
@@ -176,40 +180,39 @@
 
 @push('styles')
 <style>
-/* ===== Breadcrumb ===== */
-.breadcrumb-item a{ text-decoration:none; color:#6c757d; }
-.breadcrumb-item a:hover{ color:#0d6efd; }
+/* CSS cục bộ để đồng bộ màu sắc và style */
+.breadcrumb-item a{ text-decoration:none; color:var(--muted); }
+.breadcrumb-item a:hover{ color:var(--brand); }
+.breadcrumb-item.active{ color:var(--brand); }
+.nav-tabs-modern .nav-link{ border: none; color:var(--muted); position:relative; padding:.5rem 0; }
+.nav-tabs-modern .nav-link.active{ color:var(--brand); }
+.nav-tabs-modern .nav-link.active::after,
+.nav-tabs-modern .nav-link:hover::after{
+    content:""; position:absolute; left:0; right:0; bottom:-8px; height:2px; background:var(--brand);
+}
+.btn-variant{ border-radius: 999px; padding:.35rem .85rem; }
+.btn-check:checked + .btn-variant{
+    background:var(--brand);
+    border-color:var(--brand);
+    color:var(--card);
+    box-shadow:0 6px 14px var(--ring);
+}
+.product-price-box h3.text-danger {
+    color: var(--brand) !important;
+}
 
-/* ===== Gallery sizes ===== */
+/* Các style còn lại được giữ nguyên */
 .product-gallery .main-image-swiper{ height: 520px; background:#fff; }
 .product-gallery .thumbnail-swiper{ height: 96px; padding: 8px 0; }
 .product-gallery .thumbnail-swiper .swiper-slide{
     width: 25%; height: 100%; opacity:.6; transition: opacity .25s ease, transform .25s ease; cursor:pointer;
 }
 .product-gallery .thumbnail-swiper .swiper-slide-thumb-active{
-    opacity:1; transform: translateY(-2px); outline:2px solid #0d6efd; outline-offset:2px; border-radius: .5rem;
+    opacity:1; transform: translateY(-2px); outline:2px solid var(--brand); outline-offset:2px; border-radius: .5rem;
 }
 .product-gallery .thumbnail-swiper img{ width:100%; height:100%; object-fit:cover; border-radius:.5rem; }
-
-/* ===== Variants ===== */
-.btn-variant{ border-radius: 999px; padding:.35rem .85rem; }
-.btn-check:checked + .btn-variant{ background:#0d6efd; border-color:#0d6efd; color:#fff; box-shadow:0 6px 14px rgba(13,110,253,.25); }
-
-/* ===== Quantity ===== */
 .quantity-group{ width: 160px; }
 .quantity-group .form-control{ border-left:0; border-right:0; }
-
-/* ===== Tabs ===== */
-.nav-tabs-modern .nav-link{
-    border: none; color:#6c757d; position:relative; padding:.5rem 0;
-}
-.nav-tabs-modern .nav-link.active{ color:#0d6efd; }
-.nav-tabs-modern .nav-link.active::after,
-.nav-tabs-modern .nav-link:hover::after{
-    content:""; position:absolute; left:0; right:0; bottom:-8px; height:2px; background:#0d6efd;
-}
-
-/* ===== Helpers ===== */
 .rounded-4{ border-radius:1rem !important; }
 .bg-light-subtle{ background:#f8f9fa; }
 </style>
@@ -256,7 +259,7 @@ function updateProductInfo() {
     } else {
         selectedVariantInput.value = '';
         skuDisplay.textContent = 'N/A';
-        priceDisplay.innerHTML = '<span class="text-warning">Phiên bản không có sẵn</span>';
+        priceDisplay.innerHTML = '<span class="text-brand">Phiên bản không có sẵn</span>';
         if (addToCartBtn) addToCartBtn.disabled = true;
         if (buyNowBtn) buyNowBtn.disabled = true;
     }
@@ -295,7 +298,6 @@ addToCartBtn?.addEventListener('click', async function() {
     const result = await handleCartAction('{{ route("cart.add") }}', formData);
 
     if (result.success) {
-        // cập nhật badge nếu có
         const cartBadgeById = document.getElementById('cart-count');
         const cartBadge = cartBadgeById || document.querySelector('[data-cart-badge]');
         if (cartBadge) {

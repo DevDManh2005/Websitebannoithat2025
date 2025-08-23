@@ -41,7 +41,7 @@
             <div class="row g-4">
                 {{-- =================== LEFT: ITEMS =================== --}}
                 <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm rounded-4" data-aos="fade-right">
+                    <div class="card card-glass rounded-4" data-aos="fade-right">
                         <div class="card-header bg-white p-3 p-md-4 rounded-top-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="form-check">
@@ -87,7 +87,7 @@
                                             @endforeach
                                         </div>
                                         <div class="mt-2">
-                                            <span class="text-danger fw-bold">{{ number_format($item->variant->sale_price ?: $item->variant->price) }} ₫</span>
+                                            <span class="text-brand fw-bold">{{ number_format($item->variant->sale_price ?: $item->variant->price) }} ₫</span>
                                         </div>
                                     </div>
 
@@ -95,9 +95,7 @@
                                         <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex align-items-center">
                                             @csrf @method('PATCH')
                                             <div class="input-group input-group-sm qty-group">
-                                                {{-- <button class="btn btn-outline-secondary" name="quantity" value="{{ max(1, $item->quantity - 1) }}" type="submit" title="Giảm">−</button> --}}
-                                                <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control text-center" style="width: 70px;" onchange="this.form.submit()">
-                                                {{-- <button class="btn btn-outline-secondary" name="quantity" value="{{ $item->quantity + 1 }}" type="submit" title="Tăng">+</button> --}}
+                                                <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control text-center form-control-modern" style="width: 70px;" onchange="this.form.submit()">
                                             </div>
                                         </form>
 
@@ -116,9 +114,9 @@
 
                 {{-- =================== RIGHT: SUMMARY =================== --}}
                 <div class="col-lg-4" data-aos="fade-left">
-                    <div class="card border-0 shadow-sm rounded-4 sticky-order">
+                    <div class="card card-glass rounded-4 sticky-order">
                         <div class="card-body p-4 p-md-5">
-                            <h5 class="card-title fw-bold mb-3">Tóm tắt đơn hàng</h5>
+                            <h5 class="card-title fw-bold text-brand mb-3">Tóm tắt đơn hàng</h5>
 
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="text-muted">Tạm tính (<span id="selected-items-count">0</span> sản phẩm)</span>
@@ -126,7 +124,7 @@
                             </div>
 
                             <div class="d-grid">
-                                <a href="{{ route('checkout.index') }}" class="btn btn-primary btn-lg rounded-pill" id="checkout-btn">Tiến hành thanh toán</a>
+                                <a href="{{ route('checkout.index') }}" class="btn btn-brand btn-lg rounded-pill" id="checkout-btn">Tiến hành thanh toán</a>
                             </div>
 
                             <div class="small text-muted mt-3">
@@ -137,12 +135,12 @@
                 </div>
             </div>
         @else
-            <div class="text-center py-5 card border-0 shadow-sm rounded-4" data-aos="zoom-in">
+            <div class="text-center py-5 card card-glass rounded-4" data-aos="zoom-in">
                 <div class="card-body">
-                    <i class="bi bi-cart-x" style="font-size: 4rem; color: #ccc;"></i>
-                    <h5 class="mt-3">Giỏ hàng của bạn đang trống</h5>
+                    <i class="bi bi-cart-x" style="font-size: 4rem; color: var(--muted);"></i>
+                    <h5 class="mt-3 fw-bold">Giỏ hàng của bạn đang trống</h5>
                     <p class="text-muted">Hãy khám phá thêm các sản phẩm tuyệt vời của chúng tôi!</p>
-                    <a href="{{ route('products.index') }}" class="btn btn-primary mt-2">Tiếp tục mua sắm</a>
+                    <a href="{{ route('products.index') }}" class="btn btn-brand mt-2 rounded-pill">Tiếp tục mua sắm</a>
                 </div>
             </div>
         @endif
@@ -152,7 +150,7 @@
 @push('styles')
 <style>
 /* ===== HERO (sáng + overlay) ===== */
-.cart-hero{ background:#fff; }
+.cart-hero{ background:var(--bg); }
 .cart-hero .hero-bg{
     position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.03);
     filter: brightness(0.7);
@@ -160,20 +158,20 @@
 .cart-hero .hero-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35)); }
 .wave-sep{
     position:absolute; left:0; right:0; bottom:-1px; height:28px;
-    background: radial-gradient(36px 11px at 50% 0, #fff 98%, transparent 100%) repeat-x;
+    background: radial-gradient(36px 11px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
     background-size:36px 18px;
 }
-.hero-bc-link{ color:#f8f9fa; text-decoration:none; }
+.hero-bc-link{ color:var(--sand); text-decoration:none; }
 .hero-bc-link:hover{ text-decoration:underline; }
 
 /* ===== Brand tone ===== */
-.btn-primary{ background-color:#A20E38; border-color:#A20E38; }
-.btn-primary:hover{ background-color:#8b0c30; border-color:#8b0c30; }
+.btn-brand{ background-color:var(--brand); border-color:var(--brand); }
+.btn-brand:hover{ background-color:var(--brand-600); border-color:var(--brand-600); }
 .rounded-4{ border-radius:1rem !important; }
 
 /* ===== Cart rows ===== */
 .cart-item-row{ transition: background .2s ease; }
-.cart-item-row:hover{ background:#fafbfc; }
+.cart-item-row:hover{ background:var(--bg); }
 .img-hover-zoom img{ transition: transform .35s ease; }
 .img-hover-zoom:hover img{ transform: scale(1.06); }
 .hover-underline:hover{ text-decoration: underline; text-underline-offset: 2px; }
@@ -193,6 +191,28 @@
 }
 /* đề phòng cha bị overflow làm mất sticky */
 .container, .row{ overflow: visible; }
+.text-brand{ color:var(--brand) !important; }
+.text-dark{ color:var(--text) !important; }
+.fw-bold{ font-weight:700 !important; }
+.card-glass {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
+    border: 1px solid rgba(15, 23, 42, .04);
+}
+.form-control-modern{
+    border-radius: .8rem;
+    border: 1px solid #e9ecef;
+    background: var(--card);
+}
+.form-check-input:checked {
+    background-color: var(--brand);
+    border-color: var(--brand);
+}
+.form-check-input:focus {
+    border-color: rgba(var(--brand-rgb), .5);
+    box-shadow: 0 0 0 .25rem rgba(var(--brand-rgb), .25);
+}
 </style>
 @endpush
 
