@@ -795,7 +795,96 @@
 .blog-section .swiper-button-next:after{ font-size:1rem; color:#333; }
 .blog-section .swiper-pagination-bullet{ opacity:.5; }
 .blog-section .swiper-pagination-bullet-active{ background: var(--main-color); opacity:1; }
+/* == Màn hình Tablet (từ 992px trở xuống) == */
+@media (max-width: 991.98px) {
+    /* Hero Section */
+    .hero-section, .hero-slide {
+        height: 600px; 
+    }
+    
+    /* About Image */
+    .about-img {
+        width: 100%; 
+        height: 500px;
+        margin-top: 2rem;
+    }
+}
 
+/* == Màn hình Mobile (từ 768px trở xuống) == */
+@media (max-width: 767.98px) {
+    /* Hero Section */
+    .hero-section, .hero-slide {
+        height: 500px;
+    }
+    .hero-title {
+        font-size: clamp(2rem, 8vw, 2.5rem);
+    }
+    .swiper-button-next, .swiper-button-prev {
+        display: none; /* Ẩn nút điều hướng trên mobile, người dùng sẽ vuốt */
+    }
+
+    /* About Image */
+    .about-img {
+        height: 400px;
+    }
+
+    /* Category Section */
+    .category-caption h3 { 
+        font-size: 1.1rem; 
+    }
+    .category-caption p { 
+        font-size: 0.85rem; 
+    }
+
+    /* Special Offer Section */
+    .special-offer-section-wrapper .time-block .time-value {
+        font-size: 1.5rem;
+    }
+    .special-offer-section-wrapper .time-block {
+        min-width: 45px;
+        padding: 6px 10px;
+    }
+    .special-offer-section-wrapper .separator {
+        font-size: 1.5rem;
+    }
+    .special-offer-section-wrapper .flash-label {
+        padding: 8px 16px;
+        width: 100%;
+        justify-content: center;
+    }
+     .special-offer-section-wrapper .offer-title {
+        font-size: 1.2rem;
+    }
+}
+
+/* == Màn hình Mobile nhỏ (từ 576px trở xuống) == */
+@media (max-width: 575.98px) {
+    /* Hero Section */
+    .hero-section, .hero-slide {
+        height: 400px;
+    }
+
+    /* Best Seller Section Tabs */
+    .best-seller-section .nav-pills {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+    .best-seller-section .nav-pills::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+    .best-seller-section .nav-pills .nav-link {
+        white-space: nowrap; /* Ngăn chữ của tab xuống dòng */
+        padding: 0.4rem 1rem;
+    }
+
+    /* Special Offer Section */
+    .special-offer-content {
+        padding: 1rem;
+    }
+    
+}
     </style>
 @endpush
 

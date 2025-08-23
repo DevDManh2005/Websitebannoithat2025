@@ -335,9 +335,10 @@
 
     {{-- Optional page bar --}}
     @hasSection('pagebar')
-      <div class="container-fluid pt-3">@yield('pagebar')</div>
-    @endif
-
+    <div class="container-fluid pt-3">
+        @yield('pagebar')
+    </div>
+@endif
     <main class="content">
       @yield('content')
       <footer class="app-footer text-center">
@@ -577,6 +578,53 @@
   }
   .pagination { gap: .25rem }
   .page-item .page-link { position: static !important }
+  /* --- CSS SỬA LỖI CUỘN SIDEBAR VÀ CONTENT --- */
+
+/* 1. Cố định layout chính, không cho toàn bộ trang cuộn */
+#wrapper {
+    height: 100vh;
+    overflow: hidden; 
+}
+
+/* 2. Cho phép sidebar tự cuộn khi nội dung quá dài */
+#sidebar-wrapper {
+    position: static; /* Bỏ 'sticky' vì không cần nữa */
+    height: 100vh;
+    overflow-y: auto; /* Thêm thanh cuộn riêng cho sidebar khi cần */
+    flex-shrink: 0;   /* Ngăn sidebar bị co lại */
+}
+
+/* 3. Cấu trúc lại phần content để chỉ khu vực main cuộn */
+#page-content-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main.content {
+    flex-grow: 1; /* Cho phép main content lấp đầy không gian còn lại */
+    overflow-y: auto; /* Thêm thanh cuộn riêng cho nội dung chính */
+}
+
+/* --- CSS RESPONSIVE BỔ SUNG CHO ADMIN LAYOUT --- */
+
+/* Áp dụng cho màn hình mobile vừa và nhỏ */
+@media (max-width: 767.98px) {
+    /* * Sắp xếp lại page-header (Bảng điều khiển, nút báo cáo...) 
+     * thành dạng dọc để không bị vỡ layout.
+    */
+    .page-header {
+        flex-direction: column; /* Chuyển sang layout dọc */
+        align-items: flex-start !important; /* Căn các mục về bên trái */
+        gap: 1rem; /* Tạo khoảng cách giữa các mục */
+    }
+
+    /* * Tinh chỉnh thanh navbar trên cùng cho gọn hơn trên mobile 
+    */
+    .app-navbar .navbar-nav .nav-item .fw-600 {
+        display: none; /* Ẩn tên người dùng, chỉ giữ lại avatar */
+    }
+}
 </style>
 
 @stack('scripts')

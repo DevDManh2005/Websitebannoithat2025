@@ -465,11 +465,7 @@
 
 <body class="{{ request()->routeIs('home') ? 'is-home' : 'is-internal' }}">
   {{-- Header: home = trong suốt; internal = sticky --}}
-  @if(request()->routeIs('home'))
-    @include('layouts.partials.header-home')
-  @else
-    @include('layouts.partials.header-internal')
-  @endif
+  @include('layouts.partials.header')
 
   <main>@yield('content')</main>
 
