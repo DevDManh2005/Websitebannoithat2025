@@ -1,21 +1,45 @@
 <footer class="site-footer-light">
     <div class="container">
-        {{-- MỚI: Phần đối tác --}}
+        {{-- Phần đối tác --}}
         <div class="footer-brands">
             <h6 class="footer-brands-title" data-aos="fade-up">Đối tác uy tín</h6>
-            <div class="footer-brands-list" data-aos="fade-up" data-aos-delay="100">
-               {{-- 4. Phần hiển thị đối tác --}}
-@include('frontend.components.brand-carousel', ['brands' => \App\Models\Brand::active()->take(6)->get()])
+            <div data-aos="fade-up" data-aos-delay="100">
+
+                {{-- =============================================== --}}
+                {{-- == HTML CỦA SLIDER ĐỐI TÁC ĐƯỢC TÍCH HỢP SẴN == --}}
+                {{-- =============================================== --}}
+                @php
+                    // Lấy dữ liệu brands một lần để sử dụng
+                    $brands = \App\Models\Brand::active()->take(8)->get();
+                @endphp
+
+                @if(isset($brands) && $brands->count() > 0)
+                    <div class="swiper brand-swiper-component">
+                        <div class="swiper-wrapper align-items-center">
+                            @foreach($brands as $brand)
+                                <div class="swiper-slide text-center">
+                                    <a href="{{ $brand->website ?? '#' }}" target="_blank" title="{{ $brand->name }}" class="d-inline-block">
+                                        <img src="{{ $brand->logo_url }}"
+                                             alt="{{ $brand->name }}"
+                                             class="img-fluid brand-logo-footer">
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+                {{-- =============================================== --}}
+
             </div>
         </div>
 
         <div class="footer-main">
             <div class="row gy-5">
                 {{-- Cột 1: Thông tin --}}
-                <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up">
+                <div class="col-12 col-md-6 col-lg-3">
                     <div class="footer-column">
                         <a href="{{ route('home') }}" class="d-inline-block mb-4">
-                            @php $logo = $settings['logo_dark'] ?? ($settings['logo_dark'] ?? null); @endphp
+                            @php $logo = $settings['logo_dark'] ?? null; @endphp
                             @if($logo)
                                 <img src="{{ asset('storage/' . $logo) }}" alt="{{ $settings['site_name'] ?? 'EternaHome' }}" style="height:100px;" loading="lazy">
                             @else
@@ -29,7 +53,7 @@
                 </div>
 
                 {{-- Cột 2: Danh mục sản phẩm (Accordion) --}}
-                <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+                <div class="col-12 col-md-6 col-lg-3">
                     <div class="footer-column">
                         <h6 class="footer-column-title">Sản phẩm</h6>
                         @if(isset($footerAccordionCategories) && $footerAccordionCategories->isNotEmpty())
@@ -60,7 +84,7 @@
                 </div>
 
                 {{-- Cột 3: Hỗ trợ & Chính sách --}}
-                <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="col-12 col-md-6 col-lg-3">
                     <div class="footer-column">
                         <h6 class="footer-column-title">Hỗ trợ & Chính sách</h6>
                         <ul class="footer-links">
@@ -73,8 +97,8 @@
                 </div>
 
                 {{-- Cột 4: Kết nối --}}
-                <div class="col-12 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
-                    <div class="footer-column">
+                <div class="col-12 col-md-6 col-lg-3">
+                     <div class="footer-column">
                         <h6 class="footer-column-title">Kết nối với chúng tôi</h6>
                          <ul class="footer-contact-info">
                              <li><i class="bi bi-telephone"></i><a href="tel:{{ preg_replace('/\s+/', '', $settings['contact_phone'] ?? '') }}">{{ $settings['contact_phone'] ?? 'Số điện thoại' }}</a></li>
@@ -94,7 +118,7 @@
         </div>
 
         <div class="footer-bottom">
-            <div class="small footer-copyright">© {{ now()->year }} {{ $settings['site_name'] ?? 'EternaHome' }}- Dự Án Tốt Nghiệp - Cao đẳng FPT Polytechnic Đà Nẵng</div>
+            <div class="small footer-copyright">© {{ now()->year }} {{ $settings['site_name'] ?? 'EternaHome' }} - Dự Án Tốt Nghiệp - Cao đẳng FPT Polytechnic Đà Nẵng</div>
              <div class="footer-contact-info">
                    <i class="bi bi-geo-alt"></i><span>{{ $settings['contact_address'] ?? 'Địa chỉ' }}</span>
              </div>
@@ -103,113 +127,131 @@
 </footer>
 
 @once
+@push('styles')
 <style>
-.site-footer-light {
-    background-color: var(--card, #FFFFFF);
-    color: var(--muted, #7D726C);
-    font-size: 0.9rem;
-    border-top: 1px solid rgba(0,0,0, .07);
-}
+    /* CSS cho layout footer chung */
+    .site-footer-light {
+        background-color: var(--card, #FFFFFF);
+        color: var(--muted, #7D726C);
+        font-size: 0.9rem;
+        border-top: 1px solid rgba(0,0,0, .07);
+    }
+    .footer-brands {
+        padding: 2.5rem 0;
+        border-bottom: 1px solid rgba(0,0,0, .07);
+        text-align: center;
+    }
+    .footer-brands-title {
+        margin-bottom: 2rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted, #7D726C);
+    }
+    .footer-main { padding: 4rem 0; }
+    .footer-column-title {
+        font-weight: 600; font-size: 1.1rem;
+        margin-bottom: 1.25rem; color: var(--text, #2B2623);
+    }
+    .footer-about-text { line-height: 1.6; }
+    .footer-contact-info {
+        list-style: none; padding: 0; margin: 0;
+        display: flex; flex-wrap: wrap; align-items: center;
+        gap: 0.5rem 1.5rem;
+    }
+    .footer-contact-info li { display: flex; align-items: center; gap: 0.5rem; }
+    .footer-contact-info i { color: var(--brand); font-size: 1.1rem; }
+    .footer-contact-info a { color: var(--muted); text-decoration: none; transition: color .2s; }
+    .footer-contact-info a:hover { color: var(--brand); }
+    .footer-accordion-item { border-bottom: 1px solid rgba(0,0,0,.07); }
+    .footer-accordion-trigger {
+        background: none; border: 0; width: 100%;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.9rem 0; font-weight: 500; color: var(--text);
+        text-align: left;
+    }
+    .footer-accordion-trigger:hover { color: var(--brand); }
+    .footer-accordion-trigger i { transition: transform .3s ease; }
+    .footer-accordion-trigger:not(.collapsed) i { transform: rotate(180deg); }
+    .footer-accordion-panel { padding: 0 0 1rem 0; }
+    .footer-accordion-panel .footer-links { gap: 0.5rem; }
+    .footer-accordion-view-all {
+        display: inline-block;
+        margin-top: 0.75rem;
+        font-size: 0.85rem; font-weight: 600;
+        color: var(--brand); text-decoration: none;
+    }
+    .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;}
+    .footer-links a {
+        color: var(--muted); text-decoration: none;
+        padding: 0.2rem 0; display: inline-block;
+        transition: color .2s;
+    }
+    .footer-links a:hover { color: var(--brand); }
+    .footer-social-link {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 38px; height: 38px; border-radius: 50%;
+        background-color: #fff; border: 1px solid rgba(0,0,0,.08);
+        color: var(--muted); text-decoration: none; transition: all .2s;
+    }
+    .footer-social-link:hover {
+        background-color: var(--brand); color: #fff;
+        border-color: var(--brand); transform: translateY(-3px);
+    }
+    .footer-bottom {
+        display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+        gap: 1.5rem; padding: 1.5rem 0;
+        border-top: 1px solid rgba(0,0,0,.07);
+    }
 
-/* MỚI: CSS CHO PHẦN ĐỐI TÁC */
-.footer-brands {
-    padding: 2.5rem 0;
-    border-bottom: 1px solid rgba(0,0,0, .07);
-    text-align: center;
-}
-.footer-brands-title {
-    margin-bottom: 1.5rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--muted, #7D726C);
-}
-.footer-brands-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 2rem 3rem;
-}
-.footer-brands-list a {
-    display: inline-block;
-}
-.footer-brands-list img {
-    height: 35px; /* Điều chỉnh chiều cao chung cho các logo */
-    max-width: 130px;
-    object-fit: contain;
-    filter: grayscale(100%);
-    opacity: 0.7;
-    transition: all 0.3s ease;
-}
-.footer-brands-list a:hover img {
-    filter: grayscale(0%);
-    opacity: 1;
-    transform: scale(1.05);
-}
-/* KẾT THÚC CSS MỚI */
-
-.footer-main { padding: 4rem 0; }
-.footer-column-title {
-    font-weight: 600; font-size: 1.1rem;
-    margin-bottom: 1.25rem; color: var(--text, #2B2623);
-}
-.footer-about-text { line-height: 1.6; }
-.footer-contact-info {
-    list-style: none; padding: 0; margin: 0;
-    display: flex; flex-wrap: wrap; align-items: center;
-    gap: 0.5rem 1.5rem;
-}
-.footer-contact-info li { display: flex; align-items: center; gap: 0.5rem; }
-.footer-contact-info i { color: var(--brand); font-size: 1.1rem; }
-.footer-contact-info a { color: var(--muted); text-decoration: none; transition: color .2s; }
-.footer-contact-info a:hover { color: var(--brand); }
-.footer-accordion-item { border-bottom: 1px solid rgba(0,0,0,.07); }
-.footer-accordion-trigger {
-    background: none; border: 0; width: 100%;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.9rem 0; font-weight: 500; color: var(--text);
-    text-align: left;
-}
-.footer-accordion-trigger:hover { color: var(--brand); }
-.footer-accordion-trigger i { transition: transform .3s ease; }
-.footer-accordion-trigger:not(.collapsed) i { transform: rotate(180deg); }
-.footer-accordion-panel { padding: 0 0 1rem 0; }
-.footer-accordion-panel .footer-links { gap: 0.5rem; }
-.footer-accordion-view-all {
-    display: inline-block;
-    margin-top: 0.75rem;
-    font-size: 0.85rem; font-weight: 600;
-    color: var(--brand); text-decoration: none;
-}
-.footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;}
-.footer-links a {
-    color: var(--muted); text-decoration: none;
-    padding: 0.2rem 0; display: inline-block;
-    transition: color .2s;
-}
-.footer-links a:hover { color: var(--brand); }
-.footer-social-link {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 38px; height: 38px; border-radius: 50%;
-    background-color: #fff; border: 1px solid rgba(0,0,0,.08);
-    color: var(--muted); text-decoration: none; transition: all .2s;
-}
-.footer-social-link:hover {
-    background-color: var(--brand); color: #fff;
-    border-color: var(--brand); transform: translateY(-3px);
-}
-.footer-bottom {
-    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-    gap: 1.5rem; padding: 1.5rem 0;
-    border-top: 1px solid rgba(0,0,0,.07); /* Di chuyển border từ .footer-brands xuống đây */
-}
+    /* =================================== */
+    /* == CSS CHO SLIDER ĐỐI TÁC         == */
+    /* =================================== */
+    .brand-swiper-component {
+        transition-timing-function: linear !important;
+    }
+    .brand-logo-footer {
+        max-height: 50px;
+        max-width: 120px;
+        object-fit: contain;
+        filter: grayscale(100%);
+        opacity: 0.65;
+        transition: all 0.3s cubic-bezier(.2, .9, .3, 1);
+    }
+    .swiper-slide a:hover .brand-logo-footer {
+        filter: grayscale(0%);
+        opacity: 1;
+        transform: scale(1.05);
+    }
 </style>
-@endonce
-{{-- Script không cần thay đổi --}}
+@endpush
+
 @push('scripts-page')
 <script>
+    // KHỞI TẠO SLIDER ĐỐI TÁC
+    document.addEventListener('DOMContentLoaded', function () {
+        if (document.querySelector('.brand-swiper-component')) {
+            const brandSwiper = new Swiper('.brand-swiper-component', {
+                loop: true,
+                spaceBetween: 30,
+                speed: 4000,
+                autoplay: {
+                    delay: 1,
+                    disableOnInteraction: false,
+                },
+                slidesPerView: 2,
+                allowTouchMove: false,
+                breakpoints: {
+                    576: { slidesPerView: 3, spaceBetween: 30, },
+                    768: { slidesPerView: 4, spaceBetween: 40, },
+                    992: { slidesPerView: 6, spaceBetween: 50, }
+                }
+            });
+        }
+    });
+
+    // Các script khác của bạn (nếu có)
     (function() {
         // Newsletter AJAX
         const form = document.getElementById('newsletter-form');

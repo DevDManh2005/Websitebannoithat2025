@@ -27,7 +27,6 @@
                         </div>
                     </div>
                 @empty
-                    {{-- Fallback slide in case there are no slides from the database --}}
                     <div class="swiper-slide hero-slide" style="background-image: url('https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80')">
                         <div class="hero-overlay">
                             <div class="container h-100 d-flex justify-content-center align-items-center text-center">
@@ -47,7 +46,7 @@
     </section>
 
     {{-- ====================================================== --}}
-    {{-- 2. KHÁM PHÁ DANH MỤC (THIẾT KẾ MỚI) --}}
+    {{-- 2. KHÁM PHÁ DANH MỤC --}}
     {{-- ====================================================== --}}
     <section class="py-5">
         <div class="container">
@@ -97,13 +96,12 @@
             <div class="tab-content" id="categoryTabContent">
                 @foreach($categories as $index => $category)
                     <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}" id="content-{{ $category->id }}" role="tabpanel">
-                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
-                            @forelse($category->products->take(4) as $product) {{-- Chỉ lấy 4 sản phẩm --}}
-                                <div class="col">
-                                    @include('frontend.components.product-card', ['product' => $product])
-                                </div>
+                        {{-- NÂNG CẤP: Dùng Lưới Tự Động --}}
+                        <div class="product-grid-fluid">
+                            @forelse($category->products->take(4) as $product)
+                                @include('frontend.components.product-card', ['product' => $product])
                             @empty
-                                <div class="col-12 text-center text-muted py-4">Chưa có sản phẩm bán chạy.</div>
+                                <p class="text-center text-muted py-4 w-100">Chưa có sản phẩm bán chạy.</p>
                             @endforelse
                         </div>
                     </div>
@@ -138,9 +136,10 @@
                         <h3 class="offer-title ms-auto mb-0">Ưu đãi đặc biệt</h3>
                     </div>
                 </div>
-                <div class="row row-cols-2 row-cols-md-4 g-4">
+                {{-- NÂNG CẤP: Dùng Lưới Tự Động --}}
+                <div class="product-grid-fluid">
                     @foreach($specialOfferProducts as $index => $product)
-                        <div class="col" data-aos="zoom-in" data-aos-delay="{{ 100 + $index * 100 }}">
+                        <div data-aos="zoom-in" data-aos-delay="{{ 100 + $index * 100 }}">
                             @include('frontend.components.product-card', ['product' => $product])
                         </div>
                     @endforeach
@@ -150,7 +149,7 @@
     </section>
 
     {{-- ====================================================== --}}
-    {{-- 5. VÌ SAO CHỌN ETERNA HOME (GỘP) --}}
+    {{-- 5. VÌ SAO CHỌN ETERNA HOME --}}
     {{-- ====================================================== --}}
     <section class="py-5 why-choose-us-reimagined">
         <div class="container">
@@ -231,16 +230,10 @@
                                     $excerpt = \Illuminate\Support\Str::limit(strip_tags($post->excerpt ?? $post->content ?? ''), 110);
                                 @endphp
                                 <article class="blog-card h-100">
-                                    <a href="{{ $url }}" class="blog-thumb d-block">
-                                        <img src="{{ $thumb }}" alt="{{ $post->title }}" loading="lazy">
-                                    </a>
+                                    <a href="{{ $url }}" class="blog-thumb d-block"><img src="{{ $thumb }}" alt="{{ $post->title }}" loading="lazy"></a>
                                     <div class="p-3">
-                                        <div class="blog-meta small text-muted mb-1">
-                                            <i class="bi bi-calendar-check me-1"></i> {{ $date ?? '' }}
-                                        </div>
-                                        <h5 class="fw-bold blog-title">
-                                            <a href="{{ $url }}" class="text-dark text-decoration-none">{{ $post->title }}</a>
-                                        </h5>
+                                        <div class="blog-meta small text-muted mb-1"><i class="bi bi-calendar-check me-1"></i> {{ $date ?? '' }}</div>
+                                        <h5 class="fw-bold blog-title"><a href="{{ $url }}" class="text-dark text-decoration-none">{{ $post->title }}</a></h5>
                                         <p class="text-muted mb-3">{{ $excerpt }}</p>
                                         <a href="{{ $url }}" class="btn btn-sm btn-outline-danger">Đọc tiếp</a>
                                     </div>
@@ -271,10 +264,14 @@
     }
 
     /* --- Hero Section --- */
-    .hero-section { position: relative; height: 700px; }
-    .hero-slide { height: 700px; background-size: cover; background-position: center; position: relative; }
+    .hero-section { position: relative; }
+    .hero-slide { 
+        height: 700px; 
+        background-size: cover; 
+        background-position: center; 
+        position: relative; 
+    }
     .hero-overlay { background: rgba(0, 0, 0, 0.4); width: 100%; height: 100%; }
-    .hero-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: bold; line-height: 1.2; }
     .swiper-button-next, .swiper-button-prev {
         width: 44px; height: 44px;
         background-color: rgba(255, 255, 255, 0.9);
@@ -300,20 +297,15 @@
         box-shadow: 0 12px 35px rgba(0,0,0,0.15);
     }
     .category-card-new img {
-        width: 100%;
-        height: 100%;
+        width: 100%; height: 100%;
         object-fit: cover;
         aspect-ratio: 3/4;
         transition: transform 0.4s ease;
     }
-    .category-card-new:hover img {
-        transform: scale(1.05);
-    }
+    .category-card-new:hover img { transform: scale(1.05); }
     .category-card-new-caption {
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        bottom: 0; left: 0; right: 0;
         padding: 1.5rem 1.25rem;
         background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
         color: white;
@@ -358,7 +350,7 @@
         background-color: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
         border-radius: 20px;
-        padding: 1.5rem;
+        padding: 2.5rem; /* Tăng padding cho đẹp hơn */
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 4px 15px rgba(0,0,0,0.1);
         border-top: 4px solid #ff9900;
     }
@@ -376,14 +368,9 @@
     .special-offer-section-wrapper .offer-timer-wrapper { display: flex; align-items: center; gap: 1rem; width: 100%; }
     .special-offer-section-wrapper .flash-label {
         background: linear-gradient(45deg, #ffc107, #ff9900);
-        color: #000;
-        padding: 10px 20px;
-        border-radius: 50px;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-weight: 700;
-        flex-shrink: 0;
+        color: #000; padding: 10px 20px; border-radius: 50px;
+        display: flex; align-items: center; gap: 0.75rem;
+        font-weight: 700; flex-shrink: 0;
     }
     .special-offer-section-wrapper .flash-label i { font-size: 1.5rem; }
     .special-offer-section-wrapper .flash-label div { display: flex; flex-direction: column; line-height: 1.1; }
@@ -391,33 +378,24 @@
     .special-offer-section-wrapper .countdown { display: flex; align-items: center; gap: 0.5rem; }
     .special-offer-section-wrapper .time-block {
         background: linear-gradient(145deg, #e53935, #b71c1c);
-        color: white;
-        padding: 8px 14px;
-        border-radius: 8px;
-        text-align: center;
-        min-width: 55px;
-        line-height: 1;
+        color: white; padding: 8px 14px; border-radius: 8px;
+        text-align: center; min-width: 55px; line-height: 1;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.2);
     }
     .special-offer-section-wrapper .time-block .time-value { font-size: 2rem; font-weight: 900; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
     .special-offer-section-wrapper .time-block .time-label { font-size: 0.6rem; display: block; text-transform: uppercase; opacity: 0.8; letter-spacing: 0.5px; }
     .special-offer-section-wrapper .separator { font-size: 2rem; color: #333; font-weight: 700; }
     .special-offer-section-wrapper .offer-title {
-        font-weight: 800;
-        font-size: 1.5rem;
-        margin: 0 0 0 auto;
-        padding-right: 1.5rem;
-        white-space: nowrap;
+        font-weight: 800; font-size: 1.5rem;
+        margin: 0 0 0 auto; padding-right: 1.5rem; white-space: nowrap;
         background: linear-gradient(45deg, #b71c1c, #e53935);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         background-clip: text; text-fill-color: transparent;
     }
 
-    /* --- Review Section --- */
+    /* --- Review & Blog Section --- */
     .review-swiper .swiper-slide { display: flex; flex-direction: column; }
     .review-card { background-color: #fffaf5; border-radius: 10px; height: 100%; }
-
-    /* --- Blog Section --- */
     .blog-card{
         border:1px solid #eee; border-radius:14px; overflow:hidden; background:#fff;
         box-shadow:0 6px 18px rgba(0,0,0,.06); transition:transform .25s, box-shadow .25s;
@@ -428,86 +406,65 @@
     .blog-card:hover .blog-thumb img{ transform:scale(1.05); }
     .blog-title{ line-height:1.25; }
     .blog-section .swiper{ overflow:visible; }
-    .blog-section .swiper-button-prev,
-    .blog-section .swiper-button-next{
+    .blog-section .swiper-button-prev, .blog-section .swiper-button-next{
         width:44px; height:44px; background:#fff; border-radius:50%;
         box-shadow:0 4px 14px rgba(0,0,0,.12); z-index:5;
     }
-    .blog-section .swiper-button-prev:after,
-    .blog-section .swiper-button-next:after{ font-size:1rem; color:#333; }
+    .blog-section .swiper-button-prev:after, .blog-section .swiper-button-next:after{ font-size:1rem; color:#333; }
     .blog-section .swiper-pagination-bullet{ opacity:.5; }
     .blog-section .swiper-pagination-bullet-active{ background: var(--main-color); opacity:1; }
 
 
     /*
     ============================================
-    == CODE RESPONSIVE TỐI ƯU CHO TABLET & MOBILE
+    == CODE RESPONSIVE TỰ ĐỘNG (FLUID & AUTOMATIC)
     ============================================
     */
-
-    /* --- Màn hình Tablet (bước đệm) --- */
-    @media (max-width: 991.98px) {
-        .hero-section, .hero-slide {
-            height: 600px;
-        }
-        .special-offer-section-wrapper .offer-header {
-            flex-direction: column;
-            border-radius: 12px;
-            align-items: stretch;
-            text-align: center;
-        }
-        .special-offer-section-wrapper .offer-timer-wrapper {
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .special-offer-section-wrapper .offer-title {
-            margin: 0.5rem 0 0 0;
-            padding: 0;
-        }
+    
+    /* --- Font chữ & Kích thước tự động co giãn --- */
+    h1, .h1, .hero-title { font-size: clamp(2.25rem, 1.5rem + 3vw, 4rem); }
+    h2, .h2 { font-size: clamp(1.75rem, 1.25rem + 2vw, 2.5rem); }
+    h3, .h3 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); }
+    h4, .h4 { font-size: clamp(1.25rem, 1rem + 1vw, 1.5rem); }
+    body { font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1rem); }
+    .py-5 {
+        padding-top: clamp(2.5rem, 1rem + 5vw, 4rem) !important;
+        padding-bottom: clamp(2.5rem, 1rem + 5vw, 4rem) !important;
     }
 
-    /* --- Màn hình Mobile (Tối ưu chính) --- */
+    /* --- Lưới sản phẩm tự động sắp xếp --- */
+    .product-grid-fluid {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    }
+
+    /* --- Dùng Breakpoint cho các thay đổi cấu trúc LỚN --- */
+    @media (max-width: 991.98px) {
+        .hero-slide { height: 600px; }
+        .special-offer-section-wrapper .offer-header {
+            flex-direction: column; border-radius: 12px;
+            align-items: stretch; text-align: center;
+        }
+        .special-offer-section-wrapper .offer-timer-wrapper { flex-direction: column; gap: 1rem; }
+        .special-offer-section-wrapper .offer-title { margin: 0.5rem 0 0 0; padding: 0; }
+    }
+
     @media (max-width: 767.98px) {
-        /* == CHUNG == */
-        body { font-size: 15px; }
-        h1, .h1 { font-size: 2rem; }
-        h2, .h2 { font-size: 1.75rem; }
-        h3, .h3 { font-size: 1.5rem; }
-        h4, .h4 { font-size: 1.25rem; }
-        .py-5 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
-
-        /* == 1. Hero Section == */
-        .hero-section, .hero-slide { height: 60vh; min-height: 450px; }
-        .hero-title { font-size: clamp(2rem, 8vw, 2.5rem); }
+        .hero-slide { height: 70vh; min-height: 450px; }
         .swiper-button-next, .swiper-button-prev { display: none; }
-
-        /* == 2. Danh mục sản phẩm == */
         .category-card-new img { aspect-ratio: 4/5; }
-        
-        /* == 4. Ưu đãi đặc biệt == */
         .special-offer-content { padding: 1.5rem 1rem; }
         .special-offer-section-wrapper .flash-label { width: 100%; justify-content: center; }
-        .special-offer-section-wrapper .time-block .time-value { font-size: 1.5rem; }
-        .special-offer-section-wrapper .time-block { min-width: 45px; padding: 6px 10px; }
-        .special-offer-section-wrapper .separator { font-size: 1.5rem; }
-        .special-offer-section-wrapper .offer-title { font-size: 1.25rem; }
-
-        /* == 5. Về Chúng Tôi == */
         .why-choose-us-reimagined .feature-item { flex-direction: column; text-align: center; gap: 0.5rem; }
-
-        /* == 8. Sản phẩm bán chạy == */
         .best-seller-section .nav-pills {
-            flex-wrap: nowrap;
-            overflow-x: auto;
+            flex-wrap: nowrap; overflow-x: auto;
             justify-content: flex-start !important;
             padding-bottom: 10px;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            -ms-overflow-style: none; scrollbar-width: none;
         }
         .best-seller-section .nav-pills::-webkit-scrollbar { display: none; }
         .best-seller-section .nav-pills .nav-link { white-space: nowrap; }
-
-        /* == 7. Bài viết mới (Blog) == */
         .blog-section .d-flex {
             flex-direction: column;
             align-items: flex-start !important;
@@ -544,7 +501,7 @@
         });
     }
 
-    // 3. Hiệu ứng đếm số
+    // 3. Hiệu ứng đếm số (Nếu có)
     const counters = document.querySelectorAll('.counter');
     if (counters.length > 0) {
         const observer = new IntersectionObserver(entries => {
@@ -576,7 +533,8 @@
         const hoursEl = document.getElementById("hours");
         const minutesEl = document.getElementById("minutes");
         const secondsEl = document.getElementById("seconds");
-        const saleEndTime = new Date("2025-12-31T23:59:59").getTime(); // Cập nhật ngày kết thúc sale
+        // Cập nhật ngày kết thúc sale cho phù hợp
+        const saleEndTime = new Date("2025-12-31T23:59:59").getTime();
 
         const updateCountdown = () => {
             const now = new Date().getTime();
