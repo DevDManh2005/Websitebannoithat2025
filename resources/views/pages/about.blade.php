@@ -19,7 +19,7 @@
         </div>
         <div class="col-lg-6" data-aos="fade-left">
             
-            <img src="https://via.placeholder.com/600x400" alt="Không gian nội thất hiện đại" class="img-fluid rounded shadow-lg">
+            <img src="https://www.lanha.vn/wp-content/uploads/2023/06/thiet-ke-noi-that-nha-pho-32.jpeg.webp" alt="Không gian nội thất hiện đại" class="img-fluid rounded shadow-lg">
         </div>
     </div>
 

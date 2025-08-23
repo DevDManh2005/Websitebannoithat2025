@@ -17,22 +17,22 @@
                 <div class="d-flex align-items-start mb-4">
                     <i class="bi bi-geo-alt-fill text-brand fs-4 me-3 mt-1"></i>
                     <div>
-                        <strong class="d-block">Địa chỉ Showroom:</strong>
-                        123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
+                        <strong class="d-block">Địa chỉ :</strong>
+                     Đường Số 5 , Hòa Hiệp Nam , Liên Chiểu , Đà Nẵng
                     </div>
                 </div>
                 <div class="d-flex align-items-start mb-4">
                     <i class="bi bi-envelope-fill text-brand fs-4 me-3 mt-1"></i>
                     <div>
                         <strong class="d-block">Email:</strong>
-                        <a href="mailto:info@yourcompany.com" class="text-decoration-none text-dark">info@yourcompany.com</a>
+                        <a href="mailto:info@yourcompany.com" class="text-decoration-none text-dark">Manhldpd10554@gmail.com</a>
                     </div>
                 </div>
                 <div class="d-flex align-items-start mb-4">
                     <i class="bi bi-telephone-fill text-brand fs-4 me-3 mt-1"></i>
                     <div>
                         <strong class="d-block">Hotline:</strong>
-                        <a href="tel:+84123456789" class="text-decoration-none text-dark">(+84) 123 456 789</a>
+                        <a href="tel:+84123456789" class="text-decoration-none text-dark">(+84) 865024471</a>
                     </div>
                 </div>
                 <div class="d-flex align-items-start">
@@ -55,15 +55,15 @@
             <div class="row g-3">
                 <div class="col-12">
                      
-                    <img src="https://via.placeholder.com/600x400" class="img-fluid rounded shadow-lg" alt="Nội thất phòng khách">
+                    <img src="https://media.loveitopcdn.com/39292/thiet-ke-noi-that-phong-khach-go-mdf-dep-hien-dai-dang-cap-02.jpg" class="img-fluid rounded shadow-lg" alt="Nội thất phòng khách">
                 </div>
                 <div class="col-6">
                     
-                    <img src="https://via.placeholder.com/300x200" class="img-fluid rounded shadow" alt="Nội thất phòng ngủ">
+                    <img src="https://www.lanha.vn/wp-content/uploads/2023/06/thiet-ke-noi-that-phong-ngu-10.jpeg.webp" class="img-fluid rounded shadow" alt="Nội thất phòng ngủ">
                 </div>
                 <div class="col-6">
                     
-                    <img src="https://via.placeholder.com/300x200" class="img-fluid rounded shadow" alt="Nội thất nhà bếp">
+                    <img src="https://kinhphucdat.com/wp-content/uploads/2024/08/top-99-mau-nha-bep-dep-hot-nhat-2024.png" class="img-fluid rounded shadow" alt="Nội thất nhà bếp">
                 </div>
             </div>
         </div>

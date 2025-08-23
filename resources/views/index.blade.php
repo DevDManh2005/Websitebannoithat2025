@@ -445,34 +445,72 @@
         </div>
     </section>
 
-    {{-- 12. Phần đánh giá từ khách hàng --}}
-    <section class="py-5 bg-white" data-aos="fade-up">
-        <div class="container">
-            <h2 class="text-center fw-bold mb-4 text-primary-custom">Khách hàng nói gì về Eterna Home</h2>
-            <div class="swiper review-swiper">
-                <div class="swiper-wrapper">
-                    <div class="swiper-slide">
-                        @include('frontend.components.review-card', [ 'name' => 'Nguyễn Văn A', 'content' => 'Tôi rất hài lòng với sản phẩm và dịch vụ của Eterna Home. Giao hàng đúng hẹn và chất lượng tuyệt vời.', 'avatar' => 'https://i.pravatar.cc/100?img=1' ])
-                        @include('frontend.components.review-card', [ 'name' => 'Trần Thị B', 'content' => 'Thiết kế đẹp, chất liệu bền và sang trọng. Nhân viên tư vấn cực kỳ dễ thương.', 'avatar' => 'https://i.pravatar.cc/100?img=2' ])
-                        @include('frontend.components.review-card', [ 'name' => 'Lê Văn C', 'content' => 'Mua lần đầu nhưng rất ấn tượng. Sẽ quay lại ủng hộ tiếp!', 'avatar' => 'https://i.pravatar.cc/100?img=3' ])
-                    </div>
-                    <div class="swiper-slide">
-                        @include('frontend.components.review-card', [ 'name' => 'Phạm Thị D', 'content' => 'Mọi thứ từ tư vấn đến lắp đặt đều rất chuyên nghiệp. Tôi cực kỳ yên tâm khi lựa chọn.', 'avatar' => 'https://i.pravatar.cc/100?img=4' ])
-                        @include('frontend.components.review-card', [ 'name' => 'Đỗ Văn E', 'content' => 'Eterna Home thực sự xứng đáng với danh tiếng. Không gian sống của tôi được nâng tầm rõ rệt.', 'avatar' => 'https://i.pravatar.cc/100?img=5' ])
-                        @include('frontend.components.review-card', [ 'name' => 'Ngô Thị F', 'content' => 'Dịch vụ hậu mãi chu đáo, hỗ trợ nhanh chóng. Rất đáng tin cậy!', 'avatar' => 'https://i.pravatar.cc/100?img=6' ])
-                    </div>
-                    <div class="swiper-slide">
-                        @include('frontend.components.review-card', [ 'name' => 'Bùi Văn G', 'content' => 'Giao hàng nhanh, đóng gói cẩn thận. Mọi thứ đều vượt kỳ vọng!', 'avatar' => 'https://i.pravatar.cc/100?img=7' ])
-                        @include('frontend.components.review-card', [ 'name' => 'Hoàng Thị H', 'content' => 'Sản phẩm quá đẹp, không gian nhà tôi trông hiện đại hơn hẳn.', 'avatar' => 'https://i.pravatar.cc/100?img=8' ])
-                        @include('frontend.components.review-card', [ 'name' => 'Vũ Văn I', 'content' => 'Tôi đã giới thiệu Eterna Home cho nhiều người bạn. Ai cũng hài lòng.', 'avatar' => 'https://i.pravatar.cc/100?img=9' ])
-                    </div>
+   {{-- 12. Phần đánh giá từ khách hàng --}}
+<section class="py-5 bg-white" data-aos="fade-up">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-4 text-primary-custom">Khách hàng nói gì về Eterna Home</h2>
+        <div class="swiper review-swiper">
+            <div class="swiper-wrapper">
+                {{-- Slide 1 --}}
+                <div class="swiper-slide">
+                    @include('frontend.components.review-card', [
+                        'name' => 'Phan Thu Hoài',
+                        'content' => 'Chiếc sofa màu be thực sự là điểm nhấn cho phòng khách nhà mình. Chất vải mềm mịn, form dáng hiện đại. Rất ưng ý!',
+                        'avatar' => 'https://i.pravatar.cc/100?img=1'
+                    ])
+                    @include('frontend.components.review-card', [
+                        'name' => 'Trần Minh Quang',
+                        'content' => 'Lúc đầu cũng hơi ngại mua bàn ăn giá trị cao online, nhưng các bạn nhân viên tư vấn rất kiên nhẫn, gửi ảnh thật chi tiết. Nhận hàng còn đẹp hơn mong đợi.',
+                        'avatar' => 'https://i.pravatar.cc/100?img=2'
+                    ])
+                    @include('frontend.components.review-card', [
+                        'name' => 'Lê Thị Hồng Nhung',
+                        'content' => 'Giường ngủ chắc chắn, nằm rất êm. Từ ngày có giường mới cả nhà mình ngủ ngon hơn hẳn. Giao hàng và lắp đặt tận nơi nên mình không phải lo gì cả.',
+                        'avatar' => 'https://i.pravatar.cc/100?img=3'
+                    ])
                 </div>
-                <div class="swiper-pagination mt-4"></div>
+                {{-- Slide 2 --}}
+                <div class="swiper-slide">
+                    @include('frontend.components.review-card', [
+                        'name' => 'Đặng Quốc Tuấn',
+                        'content' => 'Mọi thứ rất chuyên nghiệp, từ khâu xác nhận đơn hàng đến việc giao và lắp đặt. Các bạn đến đúng hẹn, làm việc nhanh gọn. Rất hài lòng với dịch vụ của Eterna.',
+                        'avatar' => 'https://i.pravatar.cc/100?img=4'
+                    ])
+                    @include('frontend.components.review-card', [
+                        'name' => 'Hoàng Mai Anh',
+                        'content' => 'Tìm mãi mới được chiếc kệ tivi phong cách tối giản hợp ý. Lắp lên phòng khách trông gọn gàng và sang trọng hơn hẳn. Chất gỗ sờ rất thích tay.',
+                        'avatar' => 'https://i.pravatar.cc/100?img=5'
+                    ])
+                    @include('frontend.components.review-card', [
+                        'name' => 'Vũ Tiến Dũng',
+                        'content' => 'Đã mua hàng ở đây 2 lần. Lần nào cũng hài lòng tuyệt đối. Sản phẩm dùng bền, sau một năm vẫn như mới. Sẽ tiếp tục ủng hộ shop.',
+                        'avatar' => 'https://i.pravatar.cc/100?img=6'
+                    ])
+                </div>
+                {{-- Slide 3 --}}
+                <div class="swiper-slide">
+                    @include('frontend.components.review-card', [
+                        'name' => 'Nguyễn Thảo Chi',
+                        'content' => 'Chiếc ghế armchair đọc sách siêu xinh. Đóng gói rất cẩn thận, không một vết xước. Giao hàng cũng nhanh hơn mình nghĩ.',
+                        'avatar' => 'https://i.pravatar.cc/100?img=7'
+                    ])
+                    @include('frontend.components.review-card', [
+                        'name' => 'Bùi Gia Khiêm',
+                        'content' => 'Dịch vụ khách hàng tuyệt vời. Mình có chút thắc mắc về bảo hành và được các bạn hỗ trợ rất nhiệt tình và nhanh chóng. Rất đáng tin cậy!',
+                        'avatar' => 'https://i.pravatar.cc/100?img=8'
+                    ])
+                    @include('frontend.components.review-card', [
+                        'name' => 'Trịnh Lan Phương',
+                        'content' => 'Chất lượng sản phẩm vượt xa giá tiền. Mình đã giới thiệu cho mấy người bạn và ai cũng khen. Chúc Eterna Home ngày càng phát triển nhé!',
+                        'avatar' => 'https://i.pravatar.cc/100?img=9'
+                    ])
+                </div>
             </div>
+            <div class="swiper-pagination mt-4"></div>
         </div>
-    </section>
-
-    {{-- 8.5. Bài viết mới (Blog) --}}
+    </div>
+</section>
+    {{-- 13. Bài viết mới (Blog) --}}
 <section class="py-5 bg-white blog-section" data-aos="fade-up">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between mb-3">
