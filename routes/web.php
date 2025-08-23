@@ -131,7 +131,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/don-hang/{order}',         [OrderController::class, 'show'])->name('orders.show');
     Route::post('/don-hang/{order}/huy',    [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/don-hang/{order}/da-nhan', [OrderController::class, 'receive'])->name('orders.receive');
-    Route::patch('/don-hang/{order}/xac-nhan', [OrderController::class, 'receive'])->name('orders.receive');
     Route::patch('/don-hang/{order}/cap-nhat-dia-chi', [OrderController::class, 'updateAddress'])->name('orders.update-address');
 
     Route::post('/products/{product}/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');
