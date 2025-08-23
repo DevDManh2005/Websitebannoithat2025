@@ -327,11 +327,10 @@
                                     <button type="submit" class="btn btn-danger w-100 rounded-pill">Hủy đơn hàng</button>
                                 </form>
                             @elseif($order->status === 'delivered')
-                                <form action="{{ route('orders.receive', $order->id) }}" method="POST"
-                                    onsubmit="return confirm('Xác nhận bạn đã nhận đủ hàng?');">
-                                    @csrf
-                                    <button type="submit" class="btn btn-success w-100 rounded-pill">Đã nhận được hàng</button>
-                                </form>
+                               <form action="{{ route('orders.receive', $order->id) }}" method="POST" onsubmit="return confirm('Xác nhận bạn đã nhận đủ hàng?');">
+                            @csrf
+                            <button type="submit" class="btn btn-success w-100 rounded-pill">Đã nhận được hàng</button>
+                            </form>
                             @elseif($order->status === 'received')
                                 <div class="alert alert-success">Đã xác nhận nhận hàng. Cảm ơn bạn!</div>
                             @elseif($order->status === 'cancelled')
