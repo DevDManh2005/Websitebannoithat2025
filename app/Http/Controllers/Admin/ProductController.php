@@ -20,43 +20,44 @@ class ProductController extends Controller
     /**
      * Hiển thị danh sách sản phẩm.
      */
-   public function index(Request $request)
-{
-    $query = Product::query()
-        ->with([
-            'categories:id,name',
-            'brand:id,name',
-            'variants.inventory',
-            'images' => fn($q) => $q->orderByDesc('is_primary')->orderBy('id'),
-        ])
-        ->latest();
+    public function index(Request $request)
+    {
+        $query = Product::query()
+            ->with([
+                'categories:id,name',
+                'brand:id,name',
+                'variants.inventory',
+                'images' => fn($q) => $q->orderByDesc('is_primary')->orderBy('id'),
+            ])
+            ->latest();
 
-    if ($q = $request->input('q')) {
-        $query->where(fn($sub) =>
-            $sub->where('name', 'like', "%{$q}%")
-                ->orWhere('sku', 'like', "%{$q}%")
-        );
+        if ($q = $request->input('q')) {
+            $query->where(
+                fn($sub) =>
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('sku', 'like', "%{$q}%")
+            );
+        }
+
+        if ($request->filled('status') && in_array($request->status, ['0', '1'], true)) {
+            $query->where('is_active', (int) $request->status);
+        }
+
+        if ($catId = $request->input('category_id')) {
+            $query->whereHas('categories', fn($c) => $c->where('categories.id', $catId));
+        }
+
+        $products = $query->paginate(15);
+        // giữ query string trên phân trang (hết cảnh báo IDE)
+        $products->appends($request->query());
+
+        $allCategories = Category::query()
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('admins.products.index', compact('products', 'allCategories'));
     }
-
-    if ($request->filled('status') && in_array($request->status, ['0','1'], true)) {
-        $query->where('is_active', (int) $request->status);
-    }
-
-    if ($catId = $request->input('category_id')) {
-        $query->whereHas('categories', fn($c) => $c->where('categories.id', $catId));
-    }
-
-    $products = $query->paginate(15);
-    // giữ query string trên phân trang (hết cảnh báo IDE)
-    $products->appends($request->query());
-
-    $allCategories = Category::query()
-        ->where('is_active', 1)
-        ->orderBy('name')
-        ->get(['id','name']);
-
-    return view('admins.products.index', compact('products','allCategories'));
-}
 
     /**
      * Hiển thị form tạo sản phẩm mới.
@@ -132,11 +133,17 @@ class ProductController extends Controller
                     $product->images()->create(['image_url' => $path, 'is_primary' => false]);
                 }
             }
-            if (!empty($data['images_urls'][0])) {
-                $urls = is_string($data['images_urls'][0]) ? explode(',', $data['images_urls'][0]) : $data['images_urls'];
-                foreach ($urls as $url) {
-                    if (trim($url)) {
-                        $product->images()->create(['image_url' => trim($url), 'is_primary' => false]);
+            if (!empty($data['images_urls'])) {
+                // Gộp tất cả các link (dù là mảng hay chuỗi) thành một chuỗi duy nhất
+                $urlString = is_array($data['images_urls']) ? implode(',', $data['images_urls']) : $data['images_urls'];
+
+                // Tách chuỗi đó ra thành một mảng các URL, loại bỏ các giá trị rỗng
+                $urls = array_filter(array_map('trim', explode(',', $urlString)));
+
+                // Lặp qua mảng URL đã được xử lý đúng
+                if (!empty($urls)) {
+                    foreach ($urls as $url) {
+                        $product->images()->create(['image_url' => $url, 'is_primary' => false]);
                     }
                 }
             }

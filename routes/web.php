@@ -64,7 +64,7 @@ Route::get('/gioi-thieu', [PageController::class, 'about'])->name('about');
 Route::get('/dieu-khoan-dich-vu', [PageController::class, 'terms'])->name('terms.show');
 Route::get('/lien-he', [PageController::class, 'contact'])->name('contact');
 Route::get('/chinh-sach-bao-hanh', [PageController::class, 'warranty'])->name('warranty.show');
-Route::get('/giao-hang-doi-tra', [PageController::class, 'shippingReturns'])->name('shipping_returns.show'); 
+Route::get('/giao-hang-doi-tra', [PageController::class, 'shippingReturns'])->name('shipping_returns.show');
 Route::get('/cau-hoi-thuong-gap', [PageController::class, 'faq'])->name('faq.show'); // <-- THÊM DÒNG NÀY
 
 
@@ -130,7 +130,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/don-hang',                 [OrderController::class, 'index'])->name('orders.index');
     Route::get('/don-hang/{order}',         [OrderController::class, 'show'])->name('orders.show');
     Route::post('/don-hang/{order}/huy',    [OrderController::class, 'cancel'])->name('orders.cancel');
-    Route::post('/don-hang/{order}/da-nhan', [OrderController::class, 'markAsReceived'])->name('orders.markAsReceived');
+    Route::post('/don-hang/{order}/da-nhan', [OrderController::class, 'receive'])->name('orders.receive');
     Route::patch('/don-hang/{order}/xac-nhan', [OrderController::class, 'receive'])->name('orders.receive');
     Route::patch('/don-hang/{order}/cap-nhat-dia-chi', [OrderController::class, 'updateAddress'])->name('orders.update-address');
 
