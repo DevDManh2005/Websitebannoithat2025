@@ -104,23 +104,26 @@
                                 {{-- Items --}}
                                 <div class="order-items">
                                     @foreach($order->items as $item)
-                                        <div class="d-flex align-items-center py-2">
-                                            <a href="{{ route('product.show', $item->variant->product->slug) }}"
-                                               class="rounded-3 overflow-hidden flex-shrink-0 img-hover-zoom"
-                                               style="width:60px;height:60px;">
-                                                <img src="{{ optional(optional($item->variant)->product->primaryImage)->image_url_path ?? 'https://placehold.co/80x80' }}" ... >
-                                                     class="w-100 h-100 object-fit-cover" alt="{{ $item->variant->product->name }}">
-                                            </a>
-                                            <div class="ms-3 flex-grow-1">
-                                                <p class="mb-0 small fw-semibold text-truncate-2">
-                                                    {{ $item->variant->product->name }}
-                                                </p>
-                                                <small class="text-muted">SL: {{ $item->quantity }}</small>
+                                        {{-- BẢO VỆ: Chỉ hiển thị item nếu variant và product còn tồn tại để tránh lỗi 500 --}}
+                                        @if($item->variant && $item->variant->product)
+                                            <div class="d-flex align-items-center py-2">
+                                                <a href="{{ route('product.show', $item->variant->product->slug) }}"
+                                                   class="rounded-3 overflow-hidden flex-shrink-0 img-hover-zoom"
+                                                   style="width:60px;height:60px;">
+                                                    <img src="{{ optional($item->variant->product->primaryImage)->image_url_path ?? 'https://placehold.co/80x80' }}"
+                                                         class="w-100 h-100 object-fit-cover" alt="{{ $item->variant->product->name }}">
+                                                </a>
+                                                <div class="ms-3 flex-grow-1">
+                                                    <p class="mb-0 small fw-semibold text-truncate-2">
+                                                        {{ $item->variant->product->name }}
+                                                    </p>
+                                                    <small class="text-muted">SL: {{ $item->quantity }}</small>
+                                                </div>
+                                                <div class="ms-auto text-end">
+                                                    <span class="text-muted small">{{ number_format($item->price) }} ₫</span>
+                                                </div>
                                             </div>
-                                            <div class="ms-auto text-end">
-                                                <span class="text-muted small">{{ number_format($item->price) }} ₫</span>
-                                            </div>
-                                        </div>
+                                        @endif
                                     @endforeach
                                 </div>
 
@@ -131,22 +134,21 @@
                                     <span class="text-muted">Tổng tiền:</span>
                                     <strong class="fs-5 text-brand">{{ number_format($order->final_amount) }} ₫</strong>
 
-                                    {{-- Cho phép người dùng xác nhận "Đã nhận" khi đơn đã giao --}}
                                     @if($order->status === 'delivered')
                                         <form action="{{ route('orders.receive', $order) }}" method="POST" onsubmit="return confirm('Xác nhận bạn đã nhận đủ hàng?');">
                                             @csrf
-                                            @method('PATCH')
                                             <button type="submit" class="btn btn-sm btn-success rounded-pill">
                                                 Xác nhận đã nhận hàng
                                             </button>
                                         </form>
                                     @endif
 
-                                    {{-- Nút viết đánh giá --}}
-                                    @if($order->status === 'delivered' || $order->status === 'received')
-                                    <a href="{{ route('product.show', $order->items->first()->variant->product->slug) }}#reviews-content" class="btn btn-sm btn-brand rounded-pill" data-aos="fade-up" data-aos-delay="200">
-                                        <i class="bi bi-pencil-square me-1"></i>Viết đánh giá
-                                    </a>
+                                    {{-- BẢO VỆ: Chỉ hiển thị nút đánh giá nếu sản phẩm đầu tiên còn tồn tại --}}
+                                    @php $firstItemProduct = $order->items->first()?->variant?->product; @endphp
+                                    @if($firstItemProduct && in_array($order->status, ['delivered', 'received']))
+                                        <a href="{{ route('product.show', $firstItemProduct->slug) }}#reviews-content" class="btn btn-sm btn-brand rounded-pill">
+                                            <i class="bi bi-pencil-square me-1"></i>Viết đánh giá
+                                        </a>
                                     @endif
 
                                     <a href="{{ route('orders.show', $order) }}" class="btn btn-sm btn-outline-brand rounded-pill">
@@ -227,26 +229,21 @@
     .img-hover-zoom img { transition: transform .35s ease; display: block; }
     .img-hover-zoom:hover img { transform: scale(1.06); }
     .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-    /* Status classes (giữ nguyên để không ảnh hưởng đến logic PHP) */
-    .badge.bg-success { background-color: #198754 !important; color: #fff; }
-    .badge.bg-warning { background-color: #ffc107 !important; color: #000; }
-    .badge.bg-info { background-color: #0dcaf0 !important; color: #000; }
-    .badge.bg-secondary { background-color: #6c757d !important; color: #fff; }
-    .badge.bg-danger { background-color: #dc3545 !important; color: #fff; }
+    
+    /* BẢO VỆ: Thêm CSS responsive cho mục này */
     @media (max-width: 575.98px) {
-    /*
-     * Trên màn hình điện thoại nhỏ, cho ảnh và tên sản phẩm trong
-     * danh sách đơn hàng xếp chồng lên nhau để dễ nhìn hơn.
-    */
-    .order-item .order-items .d-flex.align-items-center {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 0.75rem;
+        /*
+        * Trên màn hình điện thoại nhỏ, cho ảnh và tên sản phẩm trong
+        * danh sách đơn hàng xếp chồng lên nhau để dễ nhìn hơn.
+        */
+        .order-item .order-items .d-flex.align-items-center {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+        }
+        .order-item .order-items .ms-3 {
+            margin-left: 0 !important;
+        }
     }
-    .order-item .order-items .ms-3 {
-        margin-left: 0 !important;
-    }
-}
 </style>
 @endpush
