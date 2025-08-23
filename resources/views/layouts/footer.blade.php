@@ -4,12 +4,8 @@
         <div class="footer-brands">
             <h6 class="footer-brands-title" data-aos="fade-up">Đối tác uy tín</h6>
             <div class="footer-brands-list" data-aos="fade-up" data-aos-delay="100">
-                {{-- Thay thế logo và link của bạn ở đây --}}
-                <a href="#" target="_blank" aria-label="Partner A"><img src="https://logodownload.org/wp-content/uploads/2019/09/fpt-logo-0.png" alt="FPT"></a>
-                <a href="#" target="_blank" aria-label="Partner B"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/The_Green_Solutions_Logo.svg/1200px-The_Green_Solutions_Logo.svg.png" alt="The Green Solutions"></a>
-                <a href="#" target="_blank" aria-label="Partner C"><img src="https://cdn.haitrieu.com/wp-content/uploads/2021/11/Logo-The-Gioi-Di-Dong-MWG.png" alt="Thế Giới Di Động"></a>
-                <a href="#" target="_blank" aria-label="Partner D"><img src="https://inanhoangha.com/wp-content/uploads/2022/10/logo-hoa-phat-1.jpg" alt="Hòa Phát"></a>
-                <a href="#" target="_blank" aria-label="Partner E"><img src="https://brademar.com/wp-content/uploads/2022/10/Vingroup-Logo-PNG-1.png" alt="Vingroup"></a>
+               {{-- 4. Phần hiển thị đối tác --}}
+@include('frontend.components.brand-carousel', ['brands' => \App\Models\Brand::active()->take(6)->get()])
             </div>
         </div>
 
