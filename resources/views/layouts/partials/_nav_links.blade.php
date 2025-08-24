@@ -1,6 +1,8 @@
 @php
     // Logic này có thể giữ lại hoặc chuyển vào View Composer nếu muốn
     $productActive = request()->routeIs(['products.*', 'product.*', 'category.*']);
+
+    // Biến $supportUnread sẽ tự động được cung cấp bởi View Composer
 @endphp
 
 <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-lg-center main-navbar-nav">
@@ -10,7 +12,7 @@
     </li>
 
     <li class="nav-item dropdown mega">
-        <a class="nav-link {{ $productActive ? 'active' : '' }}" href="#categories" id="open-category-modal">
+        <a class="nav-link" href="#categories" id="open-category-modal">
             Sản phẩm
         </a>
         @include('frontend.components.category-mega', ['categories' => $sharedCategoriesTree ?? collect()])
@@ -35,35 +37,26 @@
     </li>
 
     <li class="nav-item">
-        <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">Giới thiệu</a>
+        <a class="nav-link" href="{{ route('about') }}">Giới thiệu</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}" href="{{ route('contact') }}">Liên hệ</a>
+        <a class="nav-link" href="{{ route('contact') }}">Liên hệ</a>
     </li>
 </ul>
 
 @once
     @push('styles')
         <style>
-            /* --- CSS CHO NAV LINKS --- */
-            :root {
-                --text: #2B2623;
-                --brand: #A20E38;
-                --card: #fff;
-            }
-
-            /* Desktop Styles */
-            .main-navbar-nav {
-                gap: 0.5rem;
-            }
+            /* --- CSS MẶC ĐỊNH CHO NAV LINKS (DESKTOP) --- */
             .main-navbar-nav .nav-link {
                 font-weight: 600;
-                color: var(--text);
-                font-size: clamp(0.9rem, 2vw, 1rem);
-                padding: 0.5rem 0.75rem;
+                color: var(--text, #2B2623);
+                padding: 0.5rem 1rem;
                 position: relative;
-                transition: color 0.2s ease;
+                transition: color .2s ease;
             }
+
+            /* Underline effect */
             .main-navbar-nav .nav-link::after {
                 content: '';
                 position: absolute;
@@ -73,22 +66,20 @@
                 width: 60%;
                 height: 2px;
                 background-color: var(--brand);
-                transition: transform 0.25s ease-out;
+                transition: transform .25s ease-out;
             }
             .main-navbar-nav .nav-link.active::after,
-            .main-navbar-nav .nav-link:hover::after,
-            .main-navbar-nav .nav-link:focus::after {
+            .main-navbar-nav .nav-link:hover::after {
                 transform: translateX(-50%) scaleX(1);
             }
             .main-navbar-nav .nav-link.active {
                 color: var(--brand);
             }
-            .main-navbar-nav .nav-link:hover,
-            .main-navbar-nav .nav-link:focus {
+            .main-navbar-nav .nav-link:hover {
                 color: var(--brand);
             }
 
-            /* Header Home Overrides */
+            /* --- Overrides cho Header Trang chủ (trong suốt) --- */
             .header-home .main-navbar-nav .nav-link {
                 color: #fff;
                 text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -97,145 +88,94 @@
                 background-color: #fff;
             }
             .header-home .main-navbar-nav .nav-link.active,
-            .header-home .main-navbar-nav .nav-link:hover,
-            .header-home .main-navbar-nav .nav-link:focus {
-                color: #fff;
+            .header-home .main-navbar-nav .nav-link:hover {
+                color: #fff; /* Giữ màu trắng khi hover/active */
             }
+            /* Khi cuộn, link chữ chuyển màu tối */
             .header-home.is-scrolled .main-navbar-nav .nav-link {
-                color: var(--text);
-                text-shadow: none;
+                color: var(--text, #2B2623);
             }
             .header-home.is-scrolled .main-navbar-nav .nav-link::after {
                 background-color: var(--brand);
             }
             .header-home.is-scrolled .main-navbar-nav .nav-link.active,
-            .header-home.is-scrolled .main-navbar-nav .nav-link:hover,
-            .header-home.is-scrolled .main-navbar-nav .nav-link:focus {
+            .header-home.is-scrolled .main-navbar-nav .nav-link:hover {
                 color: var(--brand);
             }
 
-            /* Notification Pill */
+            /* --- Notification Pill --- */
             .notification-pill {
                 position: absolute;
-                top: 0;
-                right: 0;
+                top: 0; right: 0;
                 transform: translate(40%, -40%);
                 background-color: var(--brand);
                 color: white;
-                font-size: clamp(0.55rem, 1.5vw, 0.65rem);
+                font-size: 0.65rem;
                 font-weight: 700;
                 border-radius: 99px;
-                min-width: 18px;
-                height: 18px;
+                min-width: 18px; height: 18px;
                 display: inline-flex;
-                align-items: center;
-                justify-content: center;
+                align-items: center; justify-content: center;
                 padding: 0 5px;
-                border: 2px solid var(--card);
+                border: 2px solid var(--card, #fff);
             }
             .header-home .notification-pill {
                 border-color: transparent;
             }
             .header-home.is-scrolled .notification-pill {
-                border-color: var(--card);
+                border-color: var(--card, #fff);
             }
 
-            /* Responsive Styles */
+            /* === CSS RESPONSIVE CHO NAV LINKS (MOBILE DROPDOWN) === */
             @media (max-width: 991.98px) {
-                .main-navbar-nav {
-                    flex-direction: column;
-                    align-items: flex-start !important;
-                    margin-top: 0.5rem;
-                    padding-top: 0.5rem;
-                    border-top: 1px solid rgba(0,0,0,0.1);
-                }
-                .main-navbar-nav .nav-link {
-                    font-size: clamp(0.85rem, 2vw, 0.9rem);
-                    padding: 0.6rem 0;
-                    width: 100%;
-                }
+                /* 1. Tắt hiệu ứng gạch chân không cần thiết trên mobile */
                 .main-navbar-nav .nav-link::after {
                     display: none;
                 }
+                
+                /* 2. Tùy chỉnh lại khoảng cách cho menu dọc */
+                .main-navbar-nav .nav-link {
+                    padding: 0.8rem 0;
+                    width: 100%;
+                }
+
+                /* 3. Xử lý Mega Menu và Dropdown để hiển thị đúng trong menu dọc */
                 .nav-item.dropdown.mega,
                 .nav-item.dropdown {
                     position: static;
                 }
+
+                /* Biến Mega Menu thành một khối nội dung tĩnh, không còn bay lơ lửng */
                 .dropdown-menu.catmega,
                 .dropdown-menu.blog-category-menu {
                     position: static !important;
-                    width: 100% !important;
+                    width: auto !important;
                     transform: none !important;
                     border: none !important;
                     box-shadow: none !important;
                     background-color: transparent !important;
-                    padding: 0 0 0 1rem;
-                    display: none;
+                    padding: 0 0 0 1rem; /* Thụt vào để tạo cấp bậc */
+                    display: none; /* Mặc định ẩn, sẽ được JS bật/tắt */
                 }
+
+                /* Khi được JS bật class 'show' */
                 .dropdown-menu.catmega.show,
                 .dropdown-menu.blog-category-menu.show {
                     display: block;
                 }
+                
+                /* Định dạng lại lưới của Mega Menu cho mobile */
                 .catmega-grid {
-                    grid-template-columns: 1fr;
-                    gap: 0.25rem;
+                    grid-template-columns: 1fr; /* Chỉ 1 cột */
+                    gap: 0;
                 }
                 .catmega-col {
                     border-right: none;
                     padding-bottom: 0.5rem;
                 }
                 .catmega-link {
-                    font-size: clamp(0.8rem, 2vw, 0.85rem);
-                    padding: 0.4rem 0;
+                    padding: 6px 0;
                     white-space: normal;
-                }
-                .notification-pill {
-                    font-size: clamp(0.5rem, 1.5vw, 0.6rem);
-                    min-width: 16px;
-                    height: 16px;
-                    padding: 0 4px;
-                }
-            }
-
-            @media (max-width: 767.98px) {
-                .main-navbar-nav {
-                    margin-top: 0.4rem;
-                    padding-top: 0.4rem;
-                }
-                .main-navbar-nav .nav-link {
-                    font-size: clamp(0.8rem, 2vw, 0.85rem);
-                    padding: 0.5rem 0;
-                }
-                .catmega-link {
-                    font-size: clamp(0.75rem, 2vw, 0.8rem);
-                    padding: 0.3rem 0;
-                }
-                .notification-pill {
-                    font-size: clamp(0.45rem, 1.5vw, 0.55rem);
-                    min-width: 14px;
-                    height: 14px;
-                    padding: 0 3px;
-                }
-            }
-
-            @media (max-width: 575.98px) {
-                .main-navbar-nav {
-                    margin-top: 0.3rem;
-                    padding-top: 0.3rem;
-                }
-                .main-navbar-nav .nav-link {
-                    font-size: clamp(0.75rem, 2vw, 0.8rem);
-                    padding: 0.4rem 0;
-                }
-                .catmega-link {
-                    font-size: clamp(0.7rem, 2vw, 0.75rem);
-                    padding: 0.25rem 0;
-                }
-                .notification-pill {
-                    font-size: clamp(0.4rem, 1.5vw, 0.5rem);
-                    min-width: 12px;
-                    height: 12px;
-                    padding: 0 2px;
                 }
             }
         </style>
@@ -243,24 +183,17 @@
 
     @push('scripts-page')
         <script>
-            // Xử lý toggle dropdown trên mobile
+            // Xử lý việc click để mở/đóng dropdown trên mobile
             document.addEventListener('DOMContentLoaded', function() {
                 const toggles = document.querySelectorAll('.main-navbar-nav .nav-item.dropdown > .nav-link');
 
                 toggles.forEach(toggle => {
                     toggle.addEventListener('click', function(e) {
+                        // Chỉ chạy trên màn hình mobile
                         if (window.innerWidth < 992) {
                             e.preventDefault();
                             const dropdownMenu = this.nextElementSibling;
                             if (dropdownMenu) {
-                                const isShown = dropdownMenu.classList.contains('show');
-                                // Đóng tất cả dropdown khác
-                                document.querySelectorAll('.main-navbar-nav .dropdown-menu').forEach(menu => {
-                                    if (menu !== dropdownMenu) {
-                                        menu.classList.remove('show');
-                                    }
-                                });
-                                // Toggle dropdown hiện tại
                                 dropdownMenu.classList.toggle('show');
                             }
                         }
