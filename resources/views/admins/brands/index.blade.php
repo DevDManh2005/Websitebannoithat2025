@@ -1,5 +1,6 @@
 {{-- resources/views/admins/brands/index.blade.php --}}
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
+
 
 @section('title', 'Quản lý Thương hiệu')
 

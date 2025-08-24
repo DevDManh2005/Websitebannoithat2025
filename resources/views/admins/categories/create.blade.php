@@ -1,5 +1,6 @@
 {{-- resources/views/admins/categories/create.blade.php --}}
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
+
 
 @section('title', 'Tạo danh mục mới')
 

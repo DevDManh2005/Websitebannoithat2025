@@ -1,4 +1,5 @@
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
+
 
 @section('title', 'Chi tiết Kho hàng')
 

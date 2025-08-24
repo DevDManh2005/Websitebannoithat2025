@@ -1,5 +1,5 @@
 {{-- resources/views/admins/blog_categories/index.blade.php --}}
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
 
 @section('title','Danh mục bài viết')
 

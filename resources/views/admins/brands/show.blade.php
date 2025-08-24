@@ -1,5 +1,6 @@
 {{-- resources/views/admins/brands/show.blade.php --}}
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
+
 
 @section('title','Chi tiết Thương hiệu')
 

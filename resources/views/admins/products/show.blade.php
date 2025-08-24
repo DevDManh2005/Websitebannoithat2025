@@ -1,5 +1,6 @@
 
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
+
 
 @section('title', 'Chi tiết sản phẩm: ' . $product->name)
 

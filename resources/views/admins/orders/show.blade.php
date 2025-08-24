@@ -1,5 +1,5 @@
 
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
 
 @section('title', 'Chi tiết Đơn hàng #' . $order->order_code)
 

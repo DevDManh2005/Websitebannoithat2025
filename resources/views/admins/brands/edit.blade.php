@@ -1,5 +1,6 @@
 {{-- resources/views/admins/brands/edit.blade.php --}}
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
+
 
 @section('title','Chỉnh sửa Thương hiệu')
 

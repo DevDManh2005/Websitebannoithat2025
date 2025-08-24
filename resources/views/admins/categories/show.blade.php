@@ -1,5 +1,5 @@
 {{-- resources/views/admins/categories/show.blade.php --}}
-@extends('admins.layouts.app')
+@extends('admins::layouts.app')
 
 @section('title', 'Chi tiết danh mục: ' . $category->name)
 
