@@ -707,6 +707,24 @@
         const loadProvinces = async () => {
             const provinces = await fetchJson('{{ route("address.provinces") }}');
             renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành', 'ProvinceID', 'ProvinceName', saved.province);
+            // Nếu có tỉnh/thành được chọn, tự động tải quận/huyện
+            if (saved.province && provinceSelect.value) {
+                await loadDistricts(provinceSelect.value);
+            }
+        };
+
+        const loadDistricts = async (provinceId) => {
+            const districts = await fetchJson(`{{ route("address.districts") }}?province_id=${provinceId}`);
+            renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', saved.district);
+            // Nếu có quận/huyện được chọn, tự động tải phường/xã
+            if (saved.district && districtSelect.value) {
+                await loadWards(districtSelect.value);
+            }
+        };
+
+        const loadWards = async (districtId) => {
+            const wards = await fetchJson(`{{ route("address.wards") }}?district_id=${districtId}`);
+            renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', saved.ward);
         };
 
         provinceSelect.addEventListener('change', async function () {
@@ -714,8 +732,7 @@
             renderOptions(districtSelect, [], 'Vui lòng chờ...', 'DistrictID', 'DistrictName');
             renderOptions(wardSelect, [], 'Chọn Phường/Xã', 'WardCode', 'WardName');
             if (this.value) {
-                const districts = await fetchJson(`{{ route("address.districts") }}?province_id=${this.value}`);
-                renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', saved.district);
+                await loadDistricts(this.value);
             }
             saved.district = '';
             saved.ward = '';
@@ -725,8 +742,7 @@
             if (districtNameInput) districtNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
             renderOptions(wardSelect, [], 'Vui lòng chờ...', 'WardCode', 'WardName');
             if (this.value) {
-                const wards = await fetchJson(`{{ route("address.wards") }}?district_id=${this.value}`);
-                renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', saved.ward);
+                await loadWards(this.value);
             }
             saved.ward = '';
         });
