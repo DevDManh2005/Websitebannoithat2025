@@ -64,15 +64,16 @@
                                 {{-- Checkout form --}}
                                 <div class="col-md-6">
                                     <label for="phone" class="form-label">Số điện thoại</label>
-                                    <input type="text"
-                                        class="form-control form-control-modern @error('phone') is-invalid @enderror"
-                                        name="phone" value="{{ old('phone', optional($user->profile)->phone) }}" required>
+                                    <input type="text" class="form-control form-control-modern" name="phone"
+                                        value="{{ old('phone', optional($user->profile)->phone) }}"
+                                        pattern="^(0[1-9][0-9]{8,9}|(\+84)[1-9][0-9]{7,9})$"
+                                        title="Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng." required>
+
                                     @error('phone')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
 
                                 </div>
-
 
                                 <div class="col-md-4">
                                     <label for="province_id" class="form-label">Tỉnh/Thành <span
@@ -670,13 +671,13 @@
 
                 if (result?.success && result.data) {
                     box.innerHTML = `
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="fw-semibold">${result.data.name || 'Giao hàng'}</div>
-                                <div class="text-muted xsmall">Dự kiến: ${result.data.leadtime_text || '—'}</div>
-                            </div>
-                            <div class="fw-bold">${formatCurrency(result.data.total)}</div>
-                        </div>`;
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="fw-semibold">${result.data.name || 'Giao hàng'}</div>
+                                        <div class="text-muted xsmall">Dự kiến: ${result.data.leadtime_text || '—'}</div>
+                                    </div>
+                                    <div class="fw-bold">${formatCurrency(result.data.total)}</div>
+                                </div>`;
                     feeInput.value = result.data.total;
                 } else {
                     box.innerHTML = `<div class="text-danger">${result.message || 'Lỗi tính phí.'}</div>`;
