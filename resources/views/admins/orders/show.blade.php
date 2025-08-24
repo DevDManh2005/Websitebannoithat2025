@@ -1,3 +1,4 @@
+
 @extends('admins.layouts.app')
 
 @section('title', 'Chi tiết Đơn hàng #' . $order->order_code)
@@ -11,12 +12,19 @@
   .badge.bg-info-soft{ background:#e6f1ff; color:#0b4a8b }
   .badge.bg-primary-soft{ background:#e8ebff; color:#2a3cff }
   .badge.bg-warning-soft{ background:#fff4d6; color:#8b6b00 }
+  @media print {
+    .no-print { display: none; }
+    .invoice { width: 100%; margin: 0; padding: 20px; }
+    .invoice-header { text-align: center; }
+    .invoice-table { width: 100%; border-collapse: collapse; }
+    .invoice-table th, .invoice-table td { border: 1px solid #000; padding: 8px; }
+  }
 </style>
 
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h5 mb-0 fw-bold">Chi tiết Đơn hàng #{{ $order->order_code }}</h1>
-    <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">
+    <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary no-print">
       <i class="bi bi-arrow-left"></i> Quay lại
     </a>
   </div>
@@ -84,46 +92,30 @@
       <div class="card card-soft mt-3">
         <div class="card-header"><h5 class="card-title mb-0">Thông tin giao hàng</h5></div>
         <div class="card-body">
-          <form action="{{ route('admin.orders.updateShippingInfo', $order) }}" method="POST">
-            @csrf
-            @method('PATCH')
-
-            <div class="mb-3">
-              <label class="form-label">Người nhận</label>
-              <input type="text" name="receiver_name" class="form-control" value="{{ optional($order->shipment)->receiver_name }}">
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Điện thoại</label>
-              <input type="text" name="phone" class="form-control" value="{{ optional($order->shipment)->phone }}">
-            </div>
-
-            {{-- text Province/District/Ward (để Controller nhận tên) --}}
-            <input type="hidden" name="city" id="province_name_input"   value="{{ optional($order->shipment)->city }}">
-            <input type="hidden" name="district" id="district_name_input" value="{{ optional($order->shipment)->district }}">
-            <input type="hidden" name="ward" id="ward_name_input"         value="{{ optional($order->shipment)->ward }}">
-
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Tỉnh/Thành phố</label>
-                <select class="form-select" id="province"></select>
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Quận/Huyện</label>
-                <select class="form-select" id="district" name="district_id"></select>
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Phường/Xã</label>
-                <select class="form-select" id="ward" name="ward_code"></select>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Địa chỉ chi tiết</label>
-              <input type="text" name="address" class="form-control" value="{{ optional($order->shipment)->address }}">
-            </div>
-
-            <button type="submit" class="btn btn-warning"><i class="bi bi-save"></i> Cập nhật giao hàng</button>
-          </form>
+          <div class="mb-3">
+            <label class="form-label">Người nhận</label>
+            <p class="form-control-static">{{ optional($order->shipment)->receiver_name ?? 'Không có' }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Điện thoại</label>
+            <p class="form-control-static">{{ optional($order->shipment)->phone ?? 'Không có' }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tỉnh/Thành phố</label>
+            <p class="form-control-static">{{ optional($order->shipment)->city ?? 'Không có' }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Quận/Huyện</label>
+            <p class="form-control-static">{{ optional($order->shipment)->district ?? 'Không có' }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Phường/Xã</label>
+            <p class="form-control-static">{{ optional($order->shipment)->ward ?? 'Không có' }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Địa chỉ chi tiết</label>
+            <p class="form-control-static">{{ optional($order->shipment)->address ?? 'Không có' }}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -135,7 +127,7 @@
         <div class="card-body">
           <p class="mb-1"><strong>Tên:</strong> {{ $order->user->name }}</p>
           <p class="mb-1"><strong>Email:</strong> {{ $order->user->email }}</p>
-          @if(optional($order->shipment)->tracking_code)
+          @if($order->shipment && $order->shipment->tracking_code)
             <p class="mb-0"><strong>Mã vận đơn:</strong> <span class="text-primary fw-bold">{{ $order->shipment->tracking_code }}</span></p>
           @endif
         </div>
@@ -145,13 +137,15 @@
       <div class="card card-soft mt-3">
         <div class="card-header"><h5 class="card-title mb-0">Hành động</h5></div>
         <div class="card-body">
+          <button onclick="printInvoice()" class="btn btn-outline-primary mb-3 no-print">In hóa đơn</button>
+          
           @if(in_array($order->status, ['cancelled', 'received']))
             <div class="alert alert-info mb-0">
               Đơn hàng đã ở trạng thái cuối ({{ $order->status == 'cancelled' ? 'Đã hủy' : 'Khách đã nhận' }}) và không thể thay đổi.
             </div>
           @else
             {{-- Cập nhật trạng thái (không có "received") --}}
-            <form action="{{ route('admin.orders.updateStatus', $order) }}" method="POST" class="mb-3">
+            <form action="{{ route('admin.orders.updateStatus', $order) }}" method="POST" class="mb-3 no-print">
               @csrf @method('PATCH')
               <label for="order_status" class="form-label">Cập nhật trạng thái:</label>
               <div class="input-group">
@@ -172,17 +166,17 @@
               $isPaid = (($order->payment_status ?? 'unpaid') === 'paid') || ($order->is_paid ?? false);
             @endphp
             @if($isCod && !$isPaid)
-              <form action="{{ route('admin.orders.cod-paid', $order) }}" method="POST" class="d-grid mb-3">
+              <form action="{{ route('admin.orders.cod-paid', $order) }}" method="POST" class="d-grid mb-3 no-print">
                 @csrf @method('PATCH')
                 <button type="submit" class="btn btn-outline-success">Đã thu COD</button>
               </form>
             @endif
 
-            <hr>
+            <hr class="no-print">
 
             {{-- Nội bộ: ready to ship --}}
             @if(!optional($order->shipment)->tracking_code && in_array($order->status, ['pending','processing']))
-              <form action="{{ route('admin.orders.ready-to-ship', $order) }}" method="POST" class="d-grid">
+              <form action="{{ route('admin.orders.ready-to-ship', $order) }}" method="POST" class="d-grid no-print">
                 @csrf
                 <button type="submit" class="btn btn-success">Sẵn sàng giao (nội bộ)</button>
               </form>
@@ -192,11 +186,93 @@
       </div>
     </div>
   </div>
+
+  {{-- Template Hóa đơn để in --}}
+  <div id="invoice" class="invoice" style="display: none;">
+    <div class="invoice-header">
+      <h2>Hóa đơn #{{ $order->order_code }}</h2>
+      <p>Ngày đặt hàng: {{ $order->created_at->format('d/m/Y H:i') }}</p>
+    </div>
+    <hr>
+    <h4>Thông tin khách hàng</h4>
+    <p><strong>Tên:</strong> {{ $order->user->name }}</p>
+    <p><strong>Email:</strong> {{ $order->user->email }}</p>
+    @if($order->shipment && $order->shipment->tracking_code)
+      <p><strong>Mã vận đơn:</strong> {{ $order->shipment->tracking_code }}</p>
+    @endif
+    <h4>Thông tin giao hàng</h4>
+    <p><strong>Người nhận:</strong> {{ optional($order->shipment)->receiver_name ?? 'Không có' }}</p>
+    <p><strong>Điện thoại:</strong> {{ optional($order->shipment)->phone ?? 'Không có' }}</p>
+    <p><strong>Địa chỉ:</strong> {{ optional($order->shipment)->address ?? 'Không có' }}, {{ optional($order->shipment)->ward ?? 'Không có' }}, {{ optional($order->shipment)->district ?? 'Không có' }}, {{ optional($order->shipment)->city ?? 'Không có' }}</p>
+    <h4>Sản phẩm</h4>
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Sản phẩm</th>
+          <th>Số lượng</th>
+          <th>Đơn giá</th>
+          <th>Tổng</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($order->items as $item)
+          <tr>
+            <td>{{ $item->variant->product->name }}<br>
+                <small>
+                  @forelse((array)$item->variant->attributes as $key => $value)
+                    {{ ucfirst($key) }}: {{ $value }}@if(!$loop->last), @endif
+                  @empty
+                    Sản phẩm gốc
+                  @endforelse
+                </small>
+            </td>
+            <td>{{ $item->quantity }}</td>
+            <td>{{ number_format($item->price) }} ₫</td>
+            <td>{{ number_format($item->subtotal) }} ₫</td>
+          </tr>
+        @empty
+          <tr><td colspan="4">Không có sản phẩm.</td></tr>
+        @endforelse
+      </tbody>
+    </table>
+    <h4>Tổng cộng</h4>
+    <p><strong>Tạm tính:</strong> {{ number_format($order->total_amount) }} ₫</p>
+    @if($order->discount > 0)
+      <p><strong>Giảm giá (Voucher):</strong> -{{ number_format($order->discount) }} ₫</p>
+    @endif
+    <p><strong>Phí vận chuyển:</strong> {{ number_format(optional($order->shipment)->shipping_fee ?? 0) }} ₫</p>
+    <p><strong>Thành tiền:</strong> {{ number_format($order->final_amount) }} ₫</p>
+  </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
+function printInvoice() {
+  const invoice = document.getElementById('invoice').innerHTML;
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Hóa đơn #{{ $order->order_code }}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .invoice { width: 100%; max-width: 800px; margin: auto; }
+          .invoice-header { text-align: center; }
+          .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          .invoice-table th, .invoice-table td { border: 1px solid #000; padding: 8px; text-align: left; }
+          .invoice-table th { background: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        ${invoice}
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   const provinceSelect = document.getElementById('province');
   const districtSelect = document.getElementById('district');
