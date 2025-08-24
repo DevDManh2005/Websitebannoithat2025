@@ -22,9 +22,9 @@
         @endphp
         
         @if($popularPosts->count() > 0)
-          <div class="card border-0 shadow-sm rounded-3 mt-4">
+          <div class="card card-glass border-0 rounded-4 mt-4" data-aos="fade-right">
             <div class="card-header bg-transparent py-3">
-              <h6 class="mb-0 fw-bold">
+              <h6 class="mb-0 fw-bold text-dark">
                 <i class="bi bi-fire text-danger me-2"></i>
                 Bài viết nổi bật
               </h6>
@@ -55,8 +55,8 @@
       {{-- Main Content --}}
       <div class="col-lg-9">
         {{-- Page Header --}}
-        <div class="page-header mb-5">
-          <div class="row align-items-center">
+        <div class="page-header card-glass rounded-4 mb-5" data-aos="fade-down">
+          <div class="row align-items-center p-4">
             <div class="col-md-6">
               @php
                 $currentCategory = null;
@@ -79,7 +79,7 @@
                 <div class="input-group shadow-sm rounded-pill">
                   <input type="text" 
                          name="q" 
-                         class="form-control border-0 rounded-pill" 
+                         class="form-control border-0 rounded-pill form-control-modern" 
                          placeholder="Tìm kiếm bài viết..."
                          value="{{ request('q') }}"
                          aria-label="Tìm kiếm bài viết">
@@ -97,14 +97,14 @@
           <div class="row g-4">
             @foreach($posts as $post)
               <div class="col-md-6 col-lg-4">
-                <div class="card post-card border-0 shadow-sm h-100">
+                <div class="card post-card card-glass border-0 h-100" data-aos="fade-up" data-aos-delay="{{ $loop->index * 100 }}">
                   <div class="post-image">
                     <a href="{{ route('blog.show', $post->slug) }}">
                       <img src="{{ $post->thumbnail ? Storage::url($post->thumbnail) : 'https://placehold.co/600x400?text=Blog' }}" 
                            class="card-img-top" alt="{{ $post->title }}">
                     </a>
                     @if($post->category)
-                      <div class="post-category">
+                      <div class="post-category badge badge-soft-brand rounded-pill">
                         {{ $post->category->name }}
                       </div>
                     @endif
@@ -122,7 +122,7 @@
                       </small>
                     </div>
                     <h5 class="card-title">
-                      <a href="{{ route('blog.show', $post->slug) }}" class="text-dark text-decoration-none">
+                      <a href="{{ route('blog.show', $post->slug) }}" class="text-dark text-decoration-none hover-underline">
                         {{ Str::limit($post->title, 60) }}
                       </a>
                     </h5>
@@ -145,10 +145,10 @@
             {{ $posts->links() }}
           </div>
         @else
-          <div class="text-center py-5">
-            <div class="empty-state">
+          <div class="text-center py-5 card card-glass rounded-4" data-aos="zoom-in">
+            <div class="card-body">
               <i class="bi bi-search display-1 text-muted opacity-25"></i>
-              <h4 class="mt-3 text-muted">Không tìm thấy bài viết nào</h4>
+              <h4 class="mt-3 text-muted fw-bold">Không tìm thấy bài viết nào</h4>
               <p class="text-muted">Hãy thử tìm kiếm với từ khóa khác hoặc duyệt danh mục khác</p>
               <a href="{{ route('blog.index') }}" class="btn btn-brand mt-3 rounded-pill">
                 <i class="bi bi-arrow-left me-2"></i>Quay lại blog
@@ -161,137 +161,245 @@
   </div>
 </section>
 
+@push('styles')
 <style>
+/* =================== Blog Page =================== */
 .blog-page {
-  background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+  background: var(--bg);
   padding-top: 2rem;
 }
 
+/* =================== Page Header =================== */
 .page-header {
-  padding: 2rem;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.25s ease;
+}
+.page-header:hover {
+  transform: translateY(-4px);
 }
 
+/* =================== Post Card =================== */
 .post-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 12px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-radius: var(--radius);
   overflow: hidden;
 }
-
 .post-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+  box-shadow: var(--shadow);
 }
-
 .post-image {
   position: relative;
   overflow: hidden;
 }
-
 .post-image img {
   transition: transform 0.5s ease;
   height: 200px;
   object-fit: cover;
 }
-
 .post-card:hover .post-image img {
   transform: scale(1.05);
 }
-
 .post-category {
   position: absolute;
   top: 15px;
   left: 15px;
-  background: var(--brand);
-  color: white;
+  background: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand);
   padding: 5px 12px;
-  border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 500;
 }
-
 .post-meta {
   font-size: 0.85rem;
 }
-
 .card-title a {
   transition: color 0.2s ease;
 }
-
 .card-title a:hover {
   color: var(--brand) !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
+/* =================== Search Form =================== */
+.blog-search .input-group {
+  background: var(--card);
+  border-radius: 50px;
+  padding: 5px;
+}
+.blog-search .form-control-modern {
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  transition: box-shadow 0.2s ease;
+}
+.blog-search .form-control-modern:focus {
+  box-shadow: 0 0 0 0.2rem var(--ring);
+}
+.blog-search .btn-brand {
+  padding: 0.5rem 1.2rem;
+}
+
+/* =================== Pagination =================== */
+.pagination {
+  margin-bottom: 0;
+}
+.page-link {
+  border-radius: 8px;
+  margin: 0 3px;
+  border: 1px solid #dee2e6;
+  color: var(--brand);
+  transition: all 0.2s ease;
+}
+.page-item.active .page-link {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.page-link:hover {
+  color: var(--brand);
+  background-color: rgba(var(--brand-rgb), 0.1);
+  border-color: var(--brand);
+}
+
+/* =================== Empty State =================== */
 .empty-state {
   padding: 4rem 2rem;
 }
 
-/* Pagination styling */
-.pagination {
-  margin-bottom: 0;
-}
-
-.page-link {
-  border-radius: 8px !important;
-  margin: 0 3px;
-  border: 1px solid #dee2e6;
-  color: var(--brand);
-}
-
-.page-item.active .page-link {
+/* =================== Buttons =================== */
+.btn-brand {
   background-color: var(--brand);
   border-color: var(--brand);
+  color: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-
-.page-link:hover {
+.btn-brand:hover {
+  background-color: var(--brand-600);
+  border-color: var(--brand-600);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.btn-outline-brand {
+  border-color: var(--brand);
   color: var(--brand);
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
+  transition: all 0.2s ease;
+}
+.btn-outline-brand:hover {
+  background-color: var(--brand);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Search form styling */
-.blog-search .input-group {
-  background: white;
-  border-radius: 50px;
-  padding: 5px;
+/* =================== Card Glass =================== */
+.card-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-glass:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
-.blog-search .form-control {
-  border: none;
-  background: transparent;
-  box-shadow: none !important;
-}
-
-.blog-search .form-control:focus {
-  box-shadow: none !important;
-}
-
-.blog-search .btn {
-  padding: 0.5rem 1.2rem;
-}
-
-@media (max-width: 992px) {
+/* =================== Responsive Design =================== */
+@media (max-width: 991px) {
+  .blog-page {
+    padding-top: 1.5rem;
+  }
+  .col-lg-3, .col-lg-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
   .page-header {
     text-align: center;
     padding: 1.5rem;
   }
-  
   .blog-search {
     margin-top: 1.5rem;
   }
+  .post-image img {
+    height: 180px;
+  }
 }
 
-@media (max-width: 768px) {
-  .post-card {
-    margin-bottom: 1.5rem;
-  }
-  
+@media (max-width: 767px) {
   .page-header h1 {
     font-size: 2rem;
   }
+  .page-header {
+    padding: 1.25rem;
+  }
+  .post-card {
+    margin-bottom: 1.5rem;
+  }
+  .post-image img {
+    height: 160px;
+  }
+  .post-meta, .card-text {
+    font-size: 0.8rem;
+  }
+  .btn-sm {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.8rem;
+  }
+  .empty-state {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 575px) {
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+  .page-header {
+    padding: 1rem;
+  }
+  .post-image img {
+    height: 140px;
+  }
+  .post-meta, .card-text {
+    font-size: 0.75rem;
+  }
+  .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+  }
+  .blog-search .form-control-modern {
+    font-size: 0.85rem;
+  }
+  .blog-search .btn-brand {
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+  }
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+  .empty-state .display-1 {
+    font-size: 3rem;
+  }
 }
 </style>
+@endpush
 
+@push('scripts-page')
+<script>
+(function(){
+  // AOS init
+  if (typeof AOS !== 'undefined') {
+    AOS.init({
+      duration: 600,
+      once: true,
+      offset: 80
+    });
+  }
+})();
+</script>
+@endpush
 @endsection

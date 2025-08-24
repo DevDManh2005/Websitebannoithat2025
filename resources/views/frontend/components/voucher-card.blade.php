@@ -20,8 +20,7 @@
 
     {{-- Right Panel (Content) --}}
     <div class="voucher-right-panel">
-        
-        {{-- Main Offer - Nâng cấp quan trọng nhất --}}
+        {{-- Main Offer --}}
         <div class="voucher-main-offer">
             <h5 class="voucher-value">
                 GIẢM 
@@ -58,48 +57,40 @@
 @once
     @push('styles')
     <style>
-        :root {
-            /* Đảm bảo bạn đã có các biến màu này */
-            --brand: #A20E38;
-            --brand-rgb: 162, 14, 56;
-            --text: #2B2623;
-            --muted: #7D726C;
-            --card: #FFFFFF;
-            --bg: #FFF6F8;
-            --radius: 12px;
-            --shadow: 0 8px 24px rgba(32, 25, 21, .07);
-        }
-
+        /* =================== Voucher Card =================== */
         .voucher-card-v3 {
             display: flex;
             position: relative;
-            background: var(--card, #fff);
-            border-radius: var(--radius, 12px);
+            background: var(--card);
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
             min-height: 110px;
             max-width: 420px;
             margin: 0.75rem auto;
-            transition: transform .2s ease, box-shadow .2s ease;
-            overflow: hidden; /* Important for rip effect */
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            overflow: hidden;
         }
         .voucher-card-v3:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 14px 32px rgba(32, 25, 21, .1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
 
+        /* =================== Left Panel =================== */
         .voucher-left-panel {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 70px; /* Slimmer */
+            width: 70px;
             background-color: var(--brand);
             color: #fff;
             font-size: 2.2rem;
             flex-shrink: 0;
-            border-right: 2px dotted rgba(255,255,255,0.5); /* Replaces separator */
+            border-right: 2px dotted rgba(255, 255, 255, 0.5);
+            transition: background 0.2s ease;
         }
-        
-        /* New Rip Separator - simpler and cleaner */
+
+        /* =================== Rip Separator =================== */
         .voucher-rip-separator {
             position: absolute;
             left: 70px;
@@ -113,7 +104,7 @@
             position: absolute;
             width: 20px;
             height: 20px;
-            background: var(--bg, #FFF6F8); /* Match page background */
+            background: var(--bg);
             border-radius: 50%;
             left: 50%;
             transform: translateX(-50%);
@@ -122,21 +113,22 @@
         .voucher-rip-separator::before { top: -10px; }
         .voucher-rip-separator::after { bottom: -10px; }
 
+        /* =================== Right Panel =================== */
         .voucher-right-panel {
             display: flex;
-            flex-direction: column; /* Changed to column */
-            justify-content: space-between; /* Space out items */
+            flex-direction: column;
+            justify-content: space-between;
             flex-grow: 1;
             padding: 0.75rem 1rem 0.75rem 1.25rem;
-            gap: 0.5rem; /* Add gap between elements */
+            gap: 0.5rem;
         }
 
-        /* NEW: Main Offer Styling */
+        /* =================== Main Offer =================== */
         .voucher-main-offer {
             line-height: 1.2;
         }
         .voucher-value {
-            font-size: 1.4rem; /* Larger font */
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--brand);
             margin: 0;
@@ -147,27 +139,50 @@
             margin: 0;
         }
 
-        /* NEW: Code and Actions Styling */
+        /* =================== Code and Actions =================== */
         .voucher-actions {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
         }
-        .voucher-code-wrapper {
-            /* No changes needed */
-        }
         .voucher-code {
             font-family: 'Courier New', Courier, monospace;
             background: rgba(var(--brand-rgb), 0.1);
             color: var(--brand);
-            padding: .2em .5em;
+            padding: 0.2em 0.5em;
             border-radius: 4px;
             font-size: 1rem;
             font-weight: 700;
             border: 1px dashed rgba(var(--brand-rgb), 0.3);
+            transition: background 0.2s ease, color 0.2s ease;
         }
-        
+
+        /* =================== Buttons =================== */
+        .btn-brand {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .btn-brand:hover {
+            background-color: var(--brand-600);
+            border-color: var(--brand-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
         .btn-icon-info {
             position: absolute;
             top: 0.5rem;
@@ -175,30 +190,126 @@
             background: transparent;
             border: 0;
             border-radius: 50%;
-            width: 28px; height: 28px;
+            width: 28px;
+            height: 28px;
             color: var(--muted);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: background .2s, color .2s;
+            transition: background 0.2s ease, color 0.2s ease;
         }
         .btn-icon-info:hover {
-            background: rgba(0,0,0,0.05);
-            color: var(--text);
+            background: rgba(var(--brand-rgb), 0.1);
+            color: var(--brand);
         }
-        
-        /* SweetAlert Customization (no changes needed) */
+
+        /* =================== SweetAlert Customization =================== */
         .swal2-popup .swal2-html-container ul {
-            padding-left: 1rem; margin-top: 1rem; text-align: left;
+            padding-left: 1rem;
+            margin-top: 1rem;
+            text-align: left;
         }
         .swal2-popup .swal2-html-container li {
             margin-bottom: 0.5rem;
+        }
+
+        /* =================== Responsive Design =================== */
+        @media (max-width: 991px) {
+            .voucher-card-v3 {
+                min-height: 100px;
+                max-width: 100%;
+            }
+            .voucher-left-panel {
+                width: 60px;
+                font-size: 2rem;
+            }
+            .voucher-rip-separator {
+                left: 60px;
+            }
+            .voucher-value {
+                font-size: 1.3rem;
+            }
+            .voucher-condition {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .voucher-card-v3 {
+                min-height: 90px;
+            }
+            .voucher-left-panel {
+                width: 50px;
+                font-size: 1.8rem;
+            }
+            .voucher-rip-separator {
+                left: 50px;
+            }
+            .voucher-right-panel {
+                padding: 0.5rem 0.75rem 0.5rem 1rem;
+            }
+            .voucher-value {
+                font-size: 1.2rem;
+            }
+            .voucher-condition {
+                font-size: 0.75rem;
+            }
+            .voucher-code {
+                font-size: 0.9rem;
+                padding: 0.15em 0.4em;
+            }
+            .btn-sm {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .btn-icon-info {
+                width: 24px;
+                height: 24px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .voucher-card-v3 {
+                min-height: 80px;
+            }
+            .voucher-left-panel {
+                width: 40px;
+                font-size: 1.6rem;
+            }
+            .voucher-rip-separator {
+                left: 40px;
+            }
+            .voucher-right-panel {
+                padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+            }
+            .voucher-value {
+                font-size: 1.1rem;
+            }
+            .voucher-condition {
+                font-size: 0.7rem;
+            }
+            .voucher-code {
+                font-size: 0.85rem;
+                padding: 0.1em 0.3em;
+            }
+            .btn-sm {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .btn-icon-info {
+                width: 22px;
+                height: 22px;
+                font-size: 0.85rem;
+            }
+            .swal2-popup .swal2-html-container ul {
+                font-size: 0.85rem;
+            }
         }
     </style>
     @endpush
 
     @push('scripts-page')
-    {{-- PHẦN SCRIPT GIỮ NGUYÊN - ĐÃ RẤT TỐT --}}
     <script>
         if (!window.copyVoucherListenerAdded) {
             document.body.addEventListener('click', function (event) {

@@ -5,7 +5,8 @@
 @section('content')
     {{-- =================== HERO / BREADCRUMB =================== --}}
     <section class="cart-hero position-relative overflow-hidden mb-5">
-        <img src="https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg" alt="Cart Banner" class="hero-bg">
+        <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop"
+             alt="Cart Banner" class="hero-bg">
         <div class="hero-overlay"></div>
         <div class="container position-relative" data-aos="fade-down">
             <div class="row align-items-center" style="min-height: 220px;">
@@ -42,7 +43,7 @@
                 {{-- =================== LEFT: ITEMS =================== --}}
                 <div class="col-lg-8">
                     <div class="card card-glass rounded-4" data-aos="fade-right">
-                        <div class="card-header bg-white p-3 p-md-4 rounded-top-4">
+                        <div class="card-header bg-transparent p-3 p-md-4 rounded-top-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="select-all-items">
@@ -149,69 +150,284 @@
 
 @push('styles')
 <style>
-/* ===== HERO (sáng + overlay) ===== */
-.cart-hero{ background:var(--bg); }
-.cart-hero .hero-bg{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.03);
+/* =================== Hero Section =================== */
+.cart-hero {
+    background: var(--bg);
+}
+.cart-hero .hero-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.03);
     filter: brightness(0.7);
 }
-.cart-hero .hero-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35)); }
-.wave-sep{
-    position:absolute; left:0; right:0; bottom:-1px; height:28px;
+.cart-hero .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35));
+}
+.wave-sep {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 28px;
     background: radial-gradient(36px 11px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
-    background-size:36px 18px;
+    background-size: 36px 18px;
 }
-.hero-bc-link{ color:var(--sand); text-decoration:none; }
-.hero-bc-link:hover{ text-decoration:underline; }
-
-/* ===== Brand tone ===== */
-.btn-brand{ background-color:var(--brand); border-color:var(--brand); }
-.btn-brand:hover{ background-color:var(--brand-600); border-color:var(--brand-600); }
-.rounded-4{ border-radius:1rem !important; }
-
-/* ===== Cart rows ===== */
-.cart-item-row{ transition: background .2s ease; }
-.cart-item-row:hover{ background:var(--bg); }
-.img-hover-zoom img{ transition: transform .35s ease; }
-.img-hover-zoom:hover img{ transform: scale(1.06); }
-.hover-underline:hover{ text-decoration: underline; text-underline-offset: 2px; }
-.text-truncate-2{
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+.hero-bc-link {
+    color: var(--sand);
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
-.xsmall{ font-size:.8rem; }
-
-/* ===== Quantity group ===== */
-.qty-group .btn{ min-width:2.2rem; }
-
-/* ===== Sticky Summary (không đè header) ===== */
-.sticky-order{
-    position: sticky;
-    top: var(--sticky-offset, 88px); /* sẽ được tính động bằng JS */
-    z-index: 1;
+.hero-bc-link:hover {
+    color: var(--brand);
 }
-/* đề phòng cha bị overflow làm mất sticky */
-.container, .row{ overflow: visible; }
-.text-brand{ color:var(--brand) !important; }
-.text-dark{ color:var(--text) !important; }
-.fw-bold{ font-weight:700 !important; }
+.breadcrumb-item.active {
+    color: var(--muted);
+}
+
+/* =================== Card and Elements =================== */
 .card-glass {
-    background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
-    border: 1px solid rgba(15, 23, 42, .04);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(15, 23, 42, 0.04);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-.form-control-modern{
-    border-radius: .8rem;
+.card-glass:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+.rounded-4 {
+    border-radius: 1rem !important;
+}
+.text-brand {
+    color: var(--brand) !important;
+}
+.text-dark {
+    color: var(--text) !important;
+}
+.text-muted {
+    color: var(--muted) !important;
+}
+.fw-bold {
+    font-weight: 700 !important;
+}
+.xsmall {
+    font-size: 0.825rem;
+}
+
+/* =================== Cart Rows =================== */
+.cart-item-row {
+    transition: background 0.2s ease;
+}
+.cart-item-row:hover {
+    background: rgba(var(--brand-rgb), 0.05);
+}
+.img-hover-zoom img {
+    transition: transform 0.35s ease;
+    display: block;
+}
+.img-hover-zoom:hover img {
+    transform: scale(1.06);
+}
+.hover-underline:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* =================== Form Controls =================== */
+.form-control-modern {
+    border-radius: 0.8rem;
     border: 1px solid #e9ecef;
     background: var(--card);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.form-control-modern:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 0.2rem var(--ring);
+}
+.form-check-input {
+    border-color: var(--muted);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 .form-check-input:checked {
     background-color: var(--brand);
     border-color: var(--brand);
 }
 .form-check-input:focus {
-    border-color: rgba(var(--brand-rgb), .5);
-    box-shadow: 0 0 0 .25rem rgba(var(--brand-rgb), .25);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 0.2rem var(--ring);
+}
+
+/* =================== Buttons =================== */
+.btn-brand {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn-brand:hover {
+    background-color: var(--brand-600);
+    border-color: var(--brand-600);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+    transform: translateY(-2px);
+}
+.btn-light {
+    background-color: var(--card);
+    border-color: #e9ecef;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.btn-light:hover {
+    background-color: #f8f9fa;
+    color: var(--text);
+    transform: translateY(-2px);
+}
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+/* =================== Sticky Summary =================== */
+.sticky-order {
+    position: sticky;
+    top: var(--sticky-offset, 88px);
+    z-index: 1;
+}
+.container, .row {
+    overflow: visible;
+}
+
+/* =================== Empty Cart =================== */
+.bi-cart-x {
+    transition: color 0.2s ease;
+}
+
+/* =================== Responsive Design =================== */
+@media (max-width: 991px) {
+    .cart-hero {
+        min-height: 180px;
+    }
+    .cart-hero h1 {
+        font-size: 2rem;
+    }
+    .col-lg-8, .col-lg-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .sticky-order {
+        position: static !important;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .img-hover-zoom {
+        width: 72px !important;
+        height: 72px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .cart-hero {
+        min-height: 160px;
+    }
+    .cart-hero h1 {
+        font-size: 1.8rem;
+    }
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .card-body {
+        padding: 1rem;
+    }
+    .cart-item-row {
+        padding: 1rem;
+    }
+    .img-hover-zoom {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    .form-control-modern {
+        width: 60px !important;
+        font-size: 0.9rem;
+    }
+    .btn-sm {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.85rem;
+    }
+    .xsmall {
+        font-size: 0.75rem;
+    }
+    .btn-lg {
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .cart-hero {
+        min-height: 140px;
+    }
+    .cart-hero h1 {
+        font-size: 1.6rem;
+    }
+    .breadcrumb {
+        font-size: 0.85rem;
+    }
+    .card-body {
+        padding: 0.75rem;
+    }
+    .cart-item-row {
+        padding: 0.75rem;
+    }
+    .img-hover-zoom {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    .form-control-modern {
+        width: 50px !important;
+        font-size: 0.85rem;
+    }
+    .btn-sm {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    .xsmall {
+        font-size: 0.7rem;
+    }
+    .alert {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+    .bi-cart-x {
+        font-size: 3rem;
+    }
 }
 </style>
 @endpush
@@ -229,6 +445,15 @@
         window.addEventListener('load', updateStickyOffset);
         window.addEventListener('resize', updateStickyOffset);
         setTimeout(updateStickyOffset, 300);
+
+        // AOS init
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 600,
+                once: true,
+                offset: 80
+            });
+        }
     })();
 
     // ===== Logic chọn / tính tiền
@@ -288,5 +513,5 @@
 
     // Init on load
     updateTotalsAndUI();
-    </script>
+</script>
 @endpush

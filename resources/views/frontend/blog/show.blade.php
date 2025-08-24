@@ -1,225 +1,226 @@
-  @extends('layouts.app')
+@extends('layouts.app')
 
-  @section('title', $post->title . ' - ' . ($settings['site_name'] ?? config('app.name')))
+@section('title', $post->title . ' - ' . ($settings['site_name'] ?? config('app.name')))
 
-  @section('content')
-  <section class="blog-detail-section py-5">
-    <div class="container">
-      <div class="row justify-content-center">
-        {{-- Main Content --}}
-        <div class="col-lg-8">
-          {{-- Breadcrumb với hiệu ứng --}}
-          <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb blog-breadcrumb animate__animated animate__fadeInDown">
-              <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-brand">Trang chủ</a></li>
-              <li class="breadcrumb-item"><a href="{{ route('blog.index') }}" class="text-decoration-none text-brand">Blog</a></li>
-              @if($post->category)
-                <li class="breadcrumb-item">
-                  <a href="{{ route('blog.index', ['danh-muc' => $post->category->slug]) }}" class="text-decoration-none text-brand">
-                    {{ $post->category->name }}
-                  </a>
-                </li>
-              @endif
-              <li class="breadcrumb-item active text-muted">{{ Str::limit($post->title, 30) }}</li>
-            </ol>
-          </nav>
-
-          <article class="blog-article card blog-article-card border-0 shadow-sm rounded-4 overflow-hidden animate__animated animate__fadeInUp">
-            {{-- Header --}}
-            <header class="blog-header px-4 pt-4">
-              <h1 class="display-5 fw-bold text-dark mb-3 slide-in-left">{{ $post->title }}</h1>
-
-              <div class="d-flex flex-wrap align-items-center gap-3 text-muted mb-3 fade-in">
-                <span class="d-flex align-items-center gap-1">
-                  <i class="bi bi-person-circle text-brand"></i>
-                  {{ $post->author->name }}
-                </span>
-                <span class="d-flex align-items-center gap-1">
-                  <i class="bi bi-calendar-event text-brand"></i>
-                  {{ ($post->published_at ?? $post->created_at)->format('d/m/Y') }}
-                </span>
-                <span class="d-flex align-items-center gap-1">
-                  <i class="bi bi-eye text-brand"></i>
-                  {{ number_format($post->view_count) }} lượt xem
-                </span>
-              </div>
-
-              @if($post->category)
-                <span class="badge bg-brand text-white px-3 py-2 rounded-pill mb-3 pop-in">
-                  <i class="bi bi-tag me-1"></i>{{ $post->category->name }}
-                </span>
-              @endif
-            </header>
-
-            {{-- Featured Image với hiệu ứng --}}
-            @if($post->thumbnail)
-              <div class="blog-featured-image mb-4 zoom-in">
-                <img src="{{ Storage::url($post->thumbnail) }}" 
-                    alt="{{ $post->title }}" 
-                    class="img-fluid w-100">
-                <div class="image-overlay"></div>
-              </div>
+@section('content')
+<section class="blog-detail-section py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      {{-- Main Content --}}
+      <div class="col-lg-8">
+        {{-- Breadcrumb --}}
+        <nav aria-label="breadcrumb" class="mb-4" data-aos="fade-down">
+          <ol class="breadcrumb blog-breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-brand">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('blog.index') }}" class="text-decoration-none text-brand">Blog</a></li>
+            @if($post->category)
+              <li class="breadcrumb-item">
+                <a href="{{ route('blog.index', ['danh-muc' => $post->category->slug]) }}" class="text-decoration-none text-brand">
+                  {{ $post->category->name }}
+                </a>
+              </li>
             @endif
+            <li class="breadcrumb-item active text-muted">{{ Str::limit($post->title, 30) }}</li>
+          </ol>
+        </nav>
 
-            {{-- Content --}}
-            <div class="blog-content px-4 pb-4">
-              <div class="content-wrapper">
-                {!! $post->content !!}
-              </div>
+        <article class="blog-article card card-glass border-0 rounded-4 overflow-hidden" data-aos="fade-up">
+          {{-- Header --}}
+          <header class="blog-header px-4 pt-4">
+            <h1 class="display-5 fw-bold text-dark mb-3">{{ $post->title }}</h1>
+
+            <div class="d-flex flex-wrap align-items-center gap-3 text-muted mb-3">
+              <span class="d-flex align-items-center gap-1">
+                <i class="bi bi-person-circle text-brand"></i>
+                {{ $post->author->name }}
+              </span>
+              <span class="d-flex align-items-center gap-1">
+                <i class="bi bi-calendar-event text-brand"></i>
+                {{ ($post->published_at ?? $post->created_at)->format('d/m/Y') }}
+              </span>
+              <span class="d-flex align-items-center gap-1">
+                <i class="bi bi-eye text-brand"></i>
+                {{ number_format($post->view_count) }} lượt xem
+              </span>
             </div>
 
-            {{-- Like Button & Social Share --}}
-            <div class="blog-actions px-4 pb-4 border-top pt-4 d-flex flex-wrap justify-content-between align-items-center">
-              <form action="{{ route('blog.like.toggle', $post) }}" method="POST" class="d-inline">
-                @csrf
-                <button type="submit" class="btn btn-like heartbeat" 
-                        data-liked="{{ auth()->check() && $post->likes->contains('user_id', auth()->id()) ? 'true' : 'false' }}">
-                  <span class="like-icon">
-                    <i class="bi bi-heart{{ auth()->check() && $post->likes->contains('user_id', auth()->id()) ? '-fill' : '' }}"></i>
-                  </span>
-                  <span class="like-count">{{ $post->likes->count() }}</span>
-                  <span class="like-text">Thích bài viết</span>
-                </button>
-              </form>
-              
-              <div class="share-buttons">
-                <span class="me-2 text-muted">Chia sẻ:</span>
-                <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" 
-                  target="_blank" class="btn btn-sm btn-share fb bounce-in">
-                  <i class="bi bi-facebook"></i>
-                </a>
-                <a href="https://twitter.com/intent/tweet?url={{ urlencode(url()->current()) }}&text={{ urlencode($post->title) }}" 
-                  target="_blank" class="btn btn-sm btn-share tw bounce-in" style="animation-delay: 0.1s;">
-                  <i class="bi bi-twitter"></i>
-                </a>
-                <a href="https://pinterest.com/pin/create/button/?url={{ urlencode(url()->current()) }}&media={{ urlencode(Storage::url($post->thumbnail)) }}&description={{ urlencode($post->title) }}" 
-                  target="_blank" class="btn btn-sm btn-share pin bounce-in" style="animation-delay: 0.2s;">
-                  <i class="bi bi-pinterest"></i>
-                </a>
-              </div>
+            @if($post->category)
+              <span class="badge badge-soft-brand rounded-pill px-3 py-2 mb-3">
+                <i class="bi bi-tag me-1"></i>{{ $post->category->name }}
+              </span>
+            @endif
+          </header>
+
+          {{-- Featured Image --}}
+          @if($post->thumbnail)
+            <div class="blog-featured-image mb-4">
+              <img src="{{ Storage::url($post->thumbnail) }}" 
+                   alt="{{ $post->title }}" 
+                   class="img-fluid w-100">
+              <div class="image-overlay"></div>
             </div>
-          </article>
+          @endif
 
-          {{-- Related Posts --}}
-          @include('frontend.components.blog-related', ['post' => $post])
-
-          {{-- Comments Section --}}
-          <div class="blog-comments mt-5">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden fade-in-up">
-              <div class="card-header bg-light py-3">
-                <h4 class="mb-0 d-flex align-items-center">
-                  <i class="bi bi-chat-text-fill me-2 text-brand"></i>
-                  Bình luận ({{ $post->comments->count() }})
-                </h4>
-              </div>
-              
-              <div class="card-body">
-                {{-- Comment Form --}}
-                @auth
-                  <form action="{{ route('blog.comments.store', $post) }}" method="POST" class="comment-form mb-5">
-                    @csrf
-                    <div class="mb-3">
-                      <label for="comment" class="form-label fw-semibold">Thêm bình luận</label>
-                      <textarea name="comment" id="comment" rows="4" class="form-control shadow-sm"
-                                placeholder="Viết bình luận của bạn..." required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-brand px-4 pulse">
-                      <i class="bi bi-send me-2"></i>Gửi bình luận
-                    </button>
-                  </form>
-                @else
-                  <div class="alert alert-light border fade-in">
-                    <div class="d-flex align-items-center">
-                      <i class="bi bi-info-circle-fill text-brand me-2 fs-5"></i>
-                      <div>
-                        <a href="{{ route('login.form') }}" class="text-brand fw-semibold">Đăng nhập</a> 
-                        để bình luận bài viết
-                      </div>
-                    </div>
-                  </div>
-                @endauth
-
-                {{-- Comments List --}}
-                <div class="comments-list">
-                  @forelse($post->comments as $comment)
-                    @include('frontend.blog.partials.comment', ['comment' => $comment])
-                  @empty
-                    <div class="text-center py-4 text-muted fade-in">
-                      <i class="bi bi-chat-dots display-4 opacity-25"></i>
-                      <p class="mt-3">Chưa có bình luận nào</p>
-                    </div>
-                  @endforelse
-                </div>
-              </div>
+          {{-- Content --}}
+          <div class="blog-content px-4 pb-4">
+            <div class="content-wrapper">
+              {!! $post->content !!}
             </div>
           </div>
-        </div>
 
-        {{-- Sidebar --}}
-        <div class="col-lg-4">
-          <div class="sticky-sidebar">
-            @include('frontend.components.blog-categories-sidebar')
+          {{-- Like Button & Social Share --}}
+          <div class="blog-actions px-4 pb-4 border-top pt-4 d-flex flex-wrap justify-content-between align-items-center">
+            <form action="{{ route('blog.like.toggle', $post) }}" method="POST" class="d-inline">
+              @csrf
+              <button type="submit" class="btn btn-like" 
+                      data-liked="{{ auth()->check() && $post->likes->contains('user_id', auth()->id()) ? 'true' : 'false' }}">
+                <span class="like-icon">
+                  <i class="bi bi-heart{{ auth()->check() && $post->likes->contains('user_id', auth()->id()) ? '-fill' : '' }}"></i>
+                </span>
+                <span class="like-count">{{ $post->likes->count() }}</span>
+                <span class="like-text">Thích bài viết</span>
+              </button>
+            </form>
             
-            {{-- Popular Posts --}}
-            @php
-              $popularPosts = App\Models\Blog::published()
-                ->orderBy('view_count', 'desc')
-                ->take(4)
-                ->get();
-            @endphp
+            <div class="share-buttons">
+              <span class="me-2 text-muted">Chia sẻ:</span>
+              <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" 
+                 target="_blank" class="btn btn-sm btn-share fb">
+                <i class="bi bi-facebook"></i>
+              </a>
+              <a href="https://twitter.com/intent/tweet?url={{ urlencode(url()->current()) }}&text={{ urlencode($post->title) }}" 
+                 target="_blank" class="btn btn-sm btn-share tw">
+                <i class="bi bi-twitter"></i>
+              </a>
+              <a href="https://pinterest.com/pin/create/button/?url={{ urlencode(url()->current()) }}&media={{ urlencode(Storage::url($post->thumbnail)) }}&description={{ urlencode($post->title) }}" 
+                 target="_blank" class="btn btn-sm btn-share pin">
+                <i class="bi bi-pinterest"></i>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        {{-- Related Posts --}}
+        @include('frontend.components.blog-related', ['post' => $post])
+
+        {{-- Comments Section --}}
+        <div class="blog-comments mt-5">
+          <div class="card card-glass border-0 rounded-4 overflow-hidden" data-aos="fade-up">
+            <div class="card-header bg-transparent py-3">
+              <h4 class="mb-0 d-flex align-items-center">
+                <i class="bi bi-chat-text-fill me-2 text-brand"></i>
+                Bình luận ({{ $post->comments->count() }})
+              </h4>
+            </div>
             
-            @if($popularPosts->count() > 0)
-              <div class="card border-0 shadow-sm rounded-4 overflow-hidden mt-4 slide-in-right">
-                <div class="card-header bg-light py-3">
-                  <h5 class="mb-0 d-flex align-items-center">
-                    <i class="bi bi-fire text-brand me-2"></i>
-                    Bài viết nổi bật
-                  </h5>
-                </div>
-                <div class="card-body">
-                  <div class="list-group list-group-flush">
-                    @foreach($popularPosts as $popularPost)
-                      <a href="{{ route('blog.show', $popularPost->slug) }}" class="list-group-item list-group-item-action border-0 px-0 py-3 hover-lift">
-                        <div class="d-flex align-items-center">
-                          <div class="flex-shrink-0">
-                            <img src="{{ $popularPost->thumbnail ? Storage::url($popularPost->thumbnail) : 'https://placehold.co/60x40?text=Thumb' }}" 
-                                class="rounded me-3" alt="{{ $popularPost->title }}" width="60" height="40" style="object-fit: cover;">
-                          </div>
-                          <div class="flex-grow-1">
-                            <h6 class="mb-1">{{ Str::limit($popularPost->title, 40) }}</h6>
-                            <small class="text-muted">{{ ($popularPost->published_at ?? $popularPost->created_at)->format('d/m/Y') }}</small>
-                            <div class="d-flex align-items-center mt-1">
-                              <i class="bi bi-eye me-1 text-muted small"></i>
-                              <small class="text-muted">{{ number_format($popularPost->view_count) }} lượt xem</small>
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-                    @endforeach
+            <div class="card-body">
+              {{-- Comment Form --}}
+              @auth
+                <form action="{{ route('blog.comments.store', $post) }}" method="POST" class="comment-form mb-5">
+                  @csrf
+                  <div class="mb-3">
+                    <label for="comment" class="form-label fw-semibold">Thêm bình luận</label>
+                    <textarea name="comment" id="comment" rows="4" class="form-control form-control-modern shadow-sm"
+                              placeholder="Viết bình luận của bạn..." required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-brand px-4">
+                    <i class="bi bi-send me-2"></i>Gửi bình luận
+                  </button>
+                </form>
+              @else
+                <div class="alert alert-light border card-glass fade-in">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill text-brand me-2 fs-5"></i>
+                    <div>
+                      <a href="{{ route('login.form') }}" class="text-brand fw-semibold">Đăng nhập</a> 
+                      để bình luận bài viết
+                    </div>
                   </div>
                 </div>
+              @endauth
+
+              {{-- Comments List --}}
+              <div class="comments-list">
+                @forelse($post->comments as $comment)
+                  @include('frontend.blog.partials.comment', ['comment' => $comment])
+                @empty
+                  <div class="text-center py-4 text-muted" data-aos="zoom-in">
+                    <i class="bi bi-chat-dots display-4 opacity-25"></i>
+                    <p class="mt-3">Chưa có bình luận nào</p>
+                  </div>
+                @endforelse
               </div>
-            @endif
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <style>
- /* ====== Layout chung ====== */
+      {{-- Sidebar --}}
+      <div class="col-lg-4">
+        <div class="sticky-sidebar">
+          @include('frontend.components.blog-categories-sidebar')
+          
+          {{-- Popular Posts --}}
+          @php
+            $popularPosts = App\Models\Blog::published()
+              ->orderBy('view_count', 'desc')
+              ->take(4)
+              ->get();
+          @endphp
+          
+          @if($popularPosts->count() > 0)
+            <div class="card card-glass border-0 rounded-4 overflow-hidden mt-4" data-aos="fade-left">
+              <div class="card-header bg-transparent py-3">
+                <h5 class="mb-0 d-flex align-items-center">
+                  <i class="bi bi-fire text-brand me-2"></i>
+                  Bài viết nổi bật
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="list-group list-group-flush">
+                  @foreach($popularPosts as $popularPost)
+                    <a href="{{ route('blog.show', $popularPost->slug) }}" class="list-group-item list-group-item-action border-0 px-0 py-3 hover-lift">
+                      <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                          <img src="{{ $popularPost->thumbnail ? Storage::url($popularPost->thumbnail) : 'https://placehold.co/60x40?text=Thumb' }}" 
+                               class="rounded me-3" alt="{{ $popularPost->title }}" width="60" height="40" style="object-fit: cover;">
+                        </div>
+                        <div class="flex-grow-1">
+                          <h6 class="mb-1">{{ Str::limit($popularPost->title, 40) }}</h6>
+                          <small class="text-muted">{{ ($popularPost->published_at ?? $popularPost->created_at)->format('d/m/Y') }}</small>
+                          <div class="d-flex align-items-center mt-1">
+                            <i class="bi bi-eye me-1 text-muted small"></i>
+                            <small class="text-muted">{{ number_format($popularPost->view_count) }} lượt xem</small>
+                          </div>
+                        </div>
+                      </div>
+                    </a>
+                  @endforeach
+                </div>
+              </div>
+            </div>
+          @endif
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+@push('styles')
+<style>
+/* =================== Blog Detail Section =================== */
 .blog-detail-section {
-  background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
-  padding-top: 4rem;
-  padding-bottom: 4rem;
+  background: var(--bg);
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 }
 
-/* ====== Breadcrumb ====== */
+/* =================== Breadcrumb =================== */
 .blog-breadcrumb {
   background: rgba(var(--brand-rgb), 0.08);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 0.75rem 1.25rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow);
   font-size: 0.95rem;
 }
 .blog-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
@@ -227,42 +228,43 @@
   font-weight: bold;
 }
 .blog-breadcrumb a {
-  transition: color 0.2s;
+  color: var(--brand);
+  transition: color 0.2s ease;
 }
 .blog-breadcrumb a:hover {
   color: var(--brand-600);
 }
+.breadcrumb-item.active {
+  color: var(--muted);
+}
 
-/* ====== Article Card ====== */
+/* =================== Article Card =================== */
 .blog-article-card {
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(8px);
-  border-radius: 20px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  transition: transform 0.25s, box-shadow 0.25s;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+  box-shadow: var(--shadow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .blog-article-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
-
-/* ====== Header ====== */
 .blog-header h1 {
   font-size: 2.2rem;
   line-height: 1.4;
   color: var(--text);
 }
-.blog-header .badge {
+.blog-header .badge-soft-brand {
   font-size: 0.85rem;
-  letter-spacing: 0.3px;
+  background: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand);
 }
 
-/* ====== Featured Image ====== */
+/* =================== Featured Image =================== */
 .blog-featured-image {
-  border-radius: 16px;
+  border-radius: var(--radius);
   overflow: hidden;
   margin: 0 -1rem 2rem;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow);
 }
 .blog-featured-image img {
   transition: transform 0.6s ease;
@@ -270,8 +272,13 @@
 .blog-featured-image:hover img {
   transform: scale(1.05);
 }
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1), transparent);
+}
 
-/* ====== Content ====== */
+/* =================== Content =================== */
 .blog-content .content-wrapper {
   font-size: 1.08rem;
   line-height: 1.85;
@@ -286,36 +293,37 @@
 .blog-content blockquote {
   border-left: 4px solid var(--brand);
   padding: 1rem 1.5rem;
-  background: rgba(var(--brand-rgb),0.05);
-  border-radius: 12px;
+  background: rgba(var(--brand-rgb), 0.05);
+  border-radius: var(--radius);
   font-style: italic;
   color: var(--muted);
   margin: 1.5rem 0;
 }
 
-/* ====== Like button ====== */
+/* =================== Like Button =================== */
 .btn-like {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 0.6rem 1.4rem;
   border-radius: 999px;
-  background: rgba(var(--brand-rgb),0.1);
+  background: rgba(var(--brand-rgb), 0.1);
   border: none;
   color: var(--brand);
   font-weight: 500;
   transition: all 0.25s ease;
 }
 .btn-like:hover {
-  background: rgba(var(--brand-rgb),0.2);
+  background: rgba(var(--brand-rgb), 0.2);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .btn-like[data-liked="true"] {
   background: var(--brand);
   color: white;
 }
 
-/* ====== Share buttons ====== */
+/* =================== Share Buttons =================== */
 .btn-share {
   width: 38px;
   height: 38px;
@@ -324,337 +332,239 @@
   align-items: center;
   justify-content: center;
   margin-left: 0.4rem;
-  transition: transform 0.25s, box-shadow 0.25s;
+  border: 1px solid var(--light-border);
+  color: var(--brand);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .btn-share:hover {
   transform: translateY(-2px) scale(1.08);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+.btn-share.fb { background: #4267B2; color: white; }
+.btn-share.tw { background: #1DA1F2; color: white; }
+.btn-share.pin { background: #E60023; color: white; }
+
+/* =================== Comments =================== */
+.blog-comments .card-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+  box-shadow: var(--shadow);
+}
+.comment-form textarea {
+  border-radius: var(--radius);
+  border: 1px solid var(--light-border);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.comment-form textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 0.2rem var(--ring);
+}
+.comments-list .comment-card {
+  border-radius: var(--radius);
 }
 
-/* ====== Sidebar ====== */
-.sticky-sidebar .card {
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  background: #fff;
+/* =================== Sidebar =================== */
+.sticky-sidebar {
+  position: sticky;
+  top: var(--sticky-offset, 88px);
+}
+.sticky-sidebar .card-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+  box-shadow: var(--shadow);
 }
 .sticky-sidebar .card-header {
-  background: rgba(var(--brand-rgb),0.05);
+  background: rgba(var(--brand-rgb), 0.05);
   font-weight: 600;
 }
-
-/* ====== Popular Posts ====== */
 .list-group-item {
-  border: none;
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 .list-group-item:hover {
-  background: rgba(var(--brand-rgb),0.05);
+  background: rgba(var(--brand-rgb), 0.05);
   transform: translateX(3px);
 }
 
-/* ====== Comments ====== */
-.blog-comments .card {
-  border-radius: 16px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+/* =================== Buttons =================== */
+.btn-brand {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.comment-form textarea {
-  border-radius: 12px;
-  border: 1px solid var(--light-border);
+.btn-brand:hover {
+  background-color: var(--brand-600);
+  border-color: var(--brand-600);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
-.comments-list .comment-card {
-  border-radius: 12px;
-  background: rgba(0,0,0,0.02);
-  padding: 1rem;
-  margin-bottom: 1rem;
+.btn-outline-secondary {
+  transition: all 0.2s ease;
 }
-.comments-list .comment-card:hover {
-  background: rgba(0,0,0,0.04);
+.btn-outline-secondary:hover {
+  background-color: var(--brand);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translate3d(0, -20px, 0);
-    }
-    to {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
+/* =================== Responsive Design =================== */
+@media (max-width: 991px) {
+  .blog-detail-section {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
   }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translate3d(0, 20px, 0);
-    }
-    to {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
+  .col-lg-8, .col-lg-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
   }
-
-  .slide-in-left {
-    animation: slideInLeft 0.8s ease;
+  .sticky-sidebar {
+    position: static;
   }
-
-  @keyframes slideInLeft {
-    from {
-      opacity: 0;
-      transform: translateX(-30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  .blog-header h1 {
+    font-size: 2rem;
   }
-
-  .fade-in {
-    animation: fadeIn 1s ease;
+  .blog-featured-image {
+    margin: 0;
+    border-radius: var(--radius);
   }
+}
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@media (max-width: 767px) {
+  .blog-header h1 {
+    font-size: 1.8rem;
   }
-
-  .pop-in {
-    animation: popIn 0.5s ease;
+  .blog-content .content-wrapper {
+    font-size: 1rem;
   }
-
-  @keyframes popIn {
-    0% {
-      opacity: 0;
-      transform: scale(0.8);
-    }
-    50% {
-      transform: scale(1.1);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
+  .blog-featured-image {
+    margin: 0;
   }
-
-  .zoom-in {
-    animation: zoomIn 0.8s ease;
+  .blog-actions {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
   }
-
-  @keyframes zoomIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+  .share-buttons {
+    width: 100%;
   }
-
-  .heartbeat {
-    animation: heartbeat 1.5s ease-in-out infinite both;
+  .blog-breadcrumb {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
   }
-
-  @keyframes heartbeat {
-    from {
-      transform: scale(1);
-      transform-origin: center center;
-      animation-timing-function: ease-out;
-    }
-    10% {
-      transform: scale(0.91);
-      animation-timing-function: ease-in;
-    }
-    17% {
-      transform: scale(0.98);
-      animation-timing-function: ease-out;
-    }
-    33% {
-      transform: scale(0.87);
-      animation-timing-function: ease-in;
-    }
-    45% {
-      transform: scale(1);
-      animation-timing-function: ease-out;
-    }
+  .comment-form textarea {
+    font-size: 0.9rem;
   }
-
-  .bounce-in {
-    animation: bounceIn 0.6s ease;
+  .btn-brand, .btn-outline-secondary {
+    font-size: 0.85rem;
+    padding: 0.4rem 1rem;
   }
+}
 
-  @keyframes bounceIn {
-    0% {
-      opacity: 0;
-      transform: scale(0.3);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.05);
-    }
-    70% {
-      transform: scale(0.9);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
+@media (max-width: 575px) {
+  .blog-header h1 {
+    font-size: 1.6rem;
   }
-
-  .fade-in-up {
-    animation: fadeInUp 0.8s ease;
+  .blog-content .content-wrapper {
+    font-size: 0.95rem;
   }
-
-  .pulse {
-    animation: pulse 2s infinite;
+  .blog-breadcrumb {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
   }
-
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-    100% {
-      transform: scale(1);
-    }
+  .blog-header .badge-soft-brand {
+    font-size: 0.75rem;
   }
-
-  .slide-in-right {
-    animation: slideInRight 0.8s ease;
+  .btn-like {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
   }
-
-  @keyframes slideInRight {
-    from {
-      opacity: 0;
-      transform: translateX(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  .btn-share {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
   }
-
-  @media (max-width: 768px) {
-    .blog-header h1 {
-      font-size: 1.8rem;
-    }
-    
-    .blog-content .content-wrapper {
-      font-size: 1rem;
-    }
-    
-    .blog-featured-image {
-      margin: 0;
-      border-radius: 8px;
-    }
-    
-    .blog-actions {
-      flex-direction: column;
-      gap: 1rem;
-      align-items: flex-start;
-    }
-    
-    .share-buttons {
-      width: 100%;
-    }
-    
-    .sticky-sidebar {
-      position: static;
-    }
+  .comment-form textarea {
+    font-size: 0.85rem;
   }
-  </style>
+  .btn-brand, .btn-outline-secondary {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.8rem;
+  }
+}
+</style>
+@endpush
 
-  @endsection
+@push('scripts-page')
+<script>
+// ===== Tính khoảng cách sticky theo chiều cao header =====
+(function(){
+  function updateStickyOffset(){
+    const header = document.querySelector('header.sticky-top, header.navbar-transparent, header'); 
+    const headerHeight = header ? header.offsetHeight : 72;
+    const gap = 16;
+    document.documentElement.style.setProperty('--sticky-offset', (headerHeight + gap) + 'px');
+  }
+  window.addEventListener('load', updateStickyOffset);
+  window.addEventListener('resize', updateStickyOffset);
+  setTimeout(updateStickyOffset, 300);
 
-  @push('scripts-page')
-  <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Initialize animations on scroll
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.visibility = 'visible';
-          if (entry.target.classList.contains('slide-in-left')) {
-            entry.target.style.animation = 'slideInLeft 0.8s ease forwards';
-          } else if (entry.target.classList.contains('fade-in')) {
-            entry.target.style.animation = 'fadeIn 1s ease forwards';
-          } else if (entry.target.classList.contains('slide-in-right')) {
-            entry.target.style.animation = 'slideInRight 0.8s ease forwards';
-          }
-          observer.unobserve(entry.target);
-        }
-      });
-    }, observerOptions);
-
-    // Observe elements for animation
-    document.querySelectorAll('.slide-in-left, .fade-in, .slide-in-right').forEach(el => {
-      el.style.visibility = 'hidden';
-      observer.observe(el);
+  // AOS init
+  if (typeof AOS !== 'undefined') {
+    AOS.init({
+      duration: 600,
+      once: true,
+      offset: 80
     });
+  }
+})();
 
-    // Like button animation
-    const likeBtn = document.querySelector('.btn-like');
-    if (likeBtn) {
-      likeBtn.addEventListener('click', function() {
-        this.classList.add('heartbeat');
-        setTimeout(() => {
-          this.classList.remove('heartbeat');
-        }, 1500);
-      });
+// Like button animation
+document.querySelector('.btn-like')?.addEventListener('click', function() {
+  const liked = this.dataset.liked === 'true';
+  this.dataset.liked = !liked;
+  const icon = this.querySelector('.like-icon i');
+  icon.classList.toggle('bi-heart', liked);
+  icon.classList.toggle('bi-heart-fill', !liked);
+});
+
+// Reply functionality
+document.querySelectorAll('.reply-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const commentId = this.dataset.commentId;
+    const username = this.dataset.username;
+
+    // Remove any existing reply forms
+    document.querySelectorAll('.reply-form').forEach(form => form.remove());
+
+    // Create reply form
+    const replyForm = `
+      <form action="{{ route('blog.comments.store', $post) }}" method="POST" class="reply-form mt-3 p-3 card-glass rounded-3" data-aos="fade-up">
+        @csrf
+        <input type="hidden" name="parent_id" value="${commentId}">
+        <div class="mb-2">
+          <textarea name="comment" class="form-control form-control-modern" rows="2" 
+                    placeholder="Trả lời ${username}..." required></textarea>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-sm btn-brand">Gửi</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary cancel-reply">Hủy</button>
+        </div>
+      </form>
+    `;
+
+    // Insert form
+    this.closest('.comment-card').insertAdjacentHTML('beforeend', replyForm);
+
+    // Focus on textarea
+    const textarea = document.querySelector('.reply-form textarea');
+    if (textarea) {
+      textarea.focus();
     }
 
-    // Reply functionality
-    const replyButtons = document.querySelectorAll('.reply-btn');
-    replyButtons.forEach(btn => {
-      btn.addEventListener('click', function () {
-        const commentId = this.dataset.commentId;
-        const username = this.dataset.username;
-
-        // Create reply form
-        const replyForm = `
-          <form action="{{ route('blog.comments.store', $post) }}" method="POST" class="reply-form mt-3 p-3 bg-light rounded-3">
-            @csrf
-            <input type="hidden" name="parent_id" value="${commentId}">
-            <div class="mb-2">
-              <textarea name="comment" 
-                        class="form-control" 
-                        rows="2" 
-                        placeholder="Trả lời ${username}..."
-                        required></textarea>
-            </div>
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-sm btn-brand">Gửi</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary cancel-reply">Hủy</button>
-            </div>
-          </form>
-        `;
-
-        // Remove any existing reply forms
-        document.querySelectorAll('.reply-form').forEach(form => form.remove());
-
-        // Insert form
-        this.closest('.comment-card').insertAdjacentHTML('beforeend', replyForm);
-
-        // Focus on textarea
-        const textarea = document.querySelector('.reply-form textarea');
-        if (textarea) {
-          textarea.focus();
-        }
-
-        // Cancel button handler
-        document.querySelector('.cancel-reply').addEventListener('click', function () {
-          this.closest('.reply-form').remove();
-        });
-      });
+    // Cancel button handler
+    document.querySelector('.cancel-reply').addEventListener('click', function () {
+      this.closest('.reply-form').remove();
     });
   });
-  </script>
-  @endpush
+});
+</script>
+@endpush
+@endsection

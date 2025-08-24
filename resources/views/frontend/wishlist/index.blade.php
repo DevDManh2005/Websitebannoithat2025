@@ -77,56 +77,135 @@
 
 @push('styles')
 <style>
+/* =================== CSS Variables =================== */
+:root {
+    --bg: #fff;
+    --brand: #A20E38;
+    --brand-600: #8b0c30;
+    --muted: #6c757d;
+}
+
 /* =================== HERO =================== */
-.wishlist-hero { background:var(--bg); }
-.wishlist-hero .hero-bg{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform: scale(1.03);
+.wishlist-hero {
+    background: var(--bg);
+}
+.wishlist-hero .hero-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.03);
     filter: brightness(0.65);
 }
-.wishlist-hero .hero-overlay{
-    position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35));
+.wishlist-hero .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.35));
 }
-.wave-sep{
-    position:absolute; left:0; right:0; bottom:-1px; height:32px; background:
-        radial-gradient(40px 12px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
+.wave-sep {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 32px;
+    background: radial-gradient(40px 12px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
     background-size: 40px 20px;
 }
 
-/* =================== Cards hover (không đụng vào component bên trong) =================== */
-.card-hover-raise { transition: transform .25s ease, filter .25s ease; }
-.card-hover-raise:hover { transform: translateY(-4px); }
+/* =================== Cards hover =================== */
+.card-hover-raise {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-hover-raise:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
 
-.empty-icon i{
-    font-size: 3.25rem; line-height:1; color:var(--muted);
+/* =================== Empty state =================== */
+.empty-icon i {
+    font-size: 3.25rem;
+    line-height: 1;
+    color: var(--muted);
 }
-.text-brand{ color:var(--brand); }
-.btn-brand{
-    background-color:var(--brand);
-    border-color:var(--brand);
+.text-brand {
+    color: var(--brand);
 }
-.btn-brand:hover{
-    background-color:var(--brand-600);
-    border-color:var(--brand-600);
+.btn-brand {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
 }
-.btn-outline-brand{
-    color:var(--brand);
-    border-color:var(--brand);
+.btn-brand:hover {
+    background-color: var(--brand-600);
+    border-color: var(--brand-600);
 }
-.btn-outline-brand:hover{
-    background-color:var(--brand);
-    color:#fff;
+.btn-outline-brand {
+    color: var(--brand);
+    border-color: var(--brand);
 }
-.card-glass{
-    background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
+.btn-outline-brand:hover {
+    background-color: var(--brand);
+    color: #fff;
+}
+.card-glass {
+    background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.98));
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
-    border: 1px solid rgba(15, 23, 42, .04);
+    box-shadow: 0 10px 30px rgba(32,25,21,0.08);
+    border: 1px solid rgba(15,23,42,0.04);
 }
-.rounded-4{ border-radius:1rem !important; }
+.rounded-4 {
+    border-radius: 1rem !important;
+}
 
-/* =================== Banner text tweaks on small =================== */
-@media (max-width: 575.98px){
-    .wishlist-hero .display-6{ font-size: 1.6rem; }
+/* =================== Responsive Design =================== */
+@media (max-width: 991px) {
+    .wishlist-hero .display-6 {
+        font-size: 2rem;
+    }
+    .wishlist-hero .row {
+        min-height: 200px;
+    }
+    .product-card-wrapper {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 767px) {
+    .wishlist-hero .display-6 {
+        font-size: 1.8rem;
+    }
+    .wishlist-hero .row {
+        min-height: 180px;
+    }
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .card-glass {
+        padding: 2rem 1rem;
+    }
+    .empty-icon i {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .wishlist-hero .display-6 {
+        font-size: 1.6rem;
+    }
+    .wishlist-hero .row {
+        min-height: 160px;
+    }
+    .product-card-wrapper {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
 }
 </style>
 @endpush

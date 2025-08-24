@@ -5,7 +5,8 @@
 @section('content')
     {{-- =================== HERO / BREADCRUMB =================== --}}
     <section class="checkout-hero position-relative overflow-hidden mb-5">
-        <img src="https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg" alt="Checkout Banner" class="hero-bg">
+        <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop"
+             alt="Checkout Banner" class="hero-bg">
         <div class="hero-overlay"></div>
         <div class="container position-relative" data-aos="fade-down">
             <div class="row align-items-center" style="min-height: 220px;">
@@ -222,79 +223,281 @@
 
 @push('styles')
 <style>
-/* ===== HERO (sáng, overlay) ===== */
-.checkout-hero{ background:#fff; }
-.checkout-hero .hero-bg{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.03);
+/* =================== Hero Section =================== */
+.checkout-hero {
+    background: var(--bg);
+}
+.checkout-hero .hero-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.03);
     filter: brightness(0.7);
 }
-.checkout-hero .hero-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.35)); }
-.wave-sep{
-    position:absolute; left:0; right:0; bottom:-1px; height:28px;
-    background: radial-gradient(36px 11px at 50% 0, #fff 98%, transparent 100%) repeat-x;
-    background-size:36px 18px;
+.checkout-hero .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35));
 }
-.hero-bc-link{ color:#f8f9fa; text-decoration:none; }
-.hero-bc-link:hover{ text-decoration:underline; }
-
-/* ===== Modern inputs ===== */
-.form-control-modern, .form-select.form-control-modern{
-    border-radius: .8rem;
-    border: 1px solid #e9ecef;
-    background: var(--card);
+.wave-sep {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 28px;
+    background: radial-gradient(36px 11px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
+    background-size: 36px 18px;
 }
-.form-control-modern:focus, .form-select.form-control-modern:focus{
-    border-color:var(--brand);
-    box-shadow: 0 0 0 .2rem rgba(var(--brand-rgb, 162,14,56),.15);
+.hero-bc-link {
+    color: var(--sand);
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
-
-/* ===== Card tweaks ===== */
-.rounded-4{ border-radius:1rem !important; }
-.card-title{ color:var(--text); }
-.step-badge{
-    display:inline-flex; width:28px; height:28px; border-radius:50%;
-    align-items:center; justify-content:center;
-    background:var(--brand); color:var(--card); font-weight:700; font-size:.9rem;
-}
-
-/* ===== Order summary ===== */
-.order-summary-items{ max-height: 230px; overflow-y:auto; }
-.summary-item{ transition: background .2s ease; border-radius: .8rem; padding:.25rem; }
-.summary-item:hover{ background: var(--bg); }
-.text-truncate-2{
-    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
-.badge-soft-brand{
-    background: rgba(var(--brand-rgb, 162, 14, 56), .1);
+.hero-bc-link:hover {
     color: var(--brand);
 }
-.border-dashed{ border-top:1px dashed #dee2e6; }
-
-/* ===== Buttons ===== */
-.btn-brand{
-    background-color:var(--brand); border-color:var(--brand); color:#fff;
-}
-.btn-brand:hover{ background-color:var(--brand-600); border-color:var(--brand-600); }
-
-@media (max-width: 575.98px){
-    .checkout-hero h1{ font-size:1.5rem; }
+.breadcrumb-item.active {
+    color: var(--muted);
 }
 
-.sticky-order{
-    position: sticky;
-    top: var(--sticky-offset, 88px);
-    z-index: 1; 
+/* =================== Card and Elements =================== */
+.card-glass {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(15, 23, 42, 0.04);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-.container, .row { overflow: visible; }
+.card-glass:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+.rounded-4 {
+    border-radius: 1rem !important;
+}
+.text-brand {
+    color: var(--brand) !important;
+}
+.text-dark {
+    color: var(--text) !important;
+}
+.text-muted {
+    color: var(--muted) !important;
+}
+.fw-bold {
+    font-weight: 700 !important;
+}
+.xsmall {
+    font-size: 0.825rem;
+}
+.step-badge {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand);
+    color: var(--card);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
 
-/* Fix checkbox color */
+/* =================== Form Controls =================== */
+.form-control-modern, .form-select.form-control-modern {
+    border-radius: 0.8rem;
+    border: 1px solid #e9ecef;
+    background: var(--card);
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.form-control-modern:focus, .form-select.form-control-modern:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 0.2rem var(--ring);
+}
+.form-check-input {
+    border-color: var(--muted);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
 .form-check-input:checked {
     background-color: var(--brand);
     border-color: var(--brand);
 }
 .form-check-input:focus {
-    border-color: rgba(var(--brand-rgb), .5);
-    box-shadow: 0 0 0 .25rem rgba(var(--brand-rgb), .25);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 0.2rem var(--ring);
+}
+
+/* =================== Order Summary =================== */
+.order-summary-items {
+    max-height: 230px;
+    overflow-y: auto;
+}
+.summary-item {
+    transition: background 0.2s ease;
+    border-radius: 0.8rem;
+    padding: 0.25rem;
+}
+.summary-item:hover {
+    background: rgba(var(--brand-rgb), 0.05);
+}
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.badge-soft-brand {
+    background: rgba(var(--brand-rgb), 0.1);
+    color: var(--brand);
+}
+.border-dashed {
+    border-top: 1px dashed #dee2e6;
+}
+
+/* =================== Buttons =================== */
+.btn-brand {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn-brand:hover {
+    background-color: var(--brand-600);
+    border-color: var(--brand-600);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+    transform: translateY(-2px);
+}
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+/* =================== Sticky Summary =================== */
+.sticky-order {
+    position: sticky;
+    top: var(--sticky-offset, 88px);
+    z-index: 1;
+}
+.container, .row {
+    overflow: visible;
+}
+
+/* =================== Responsive Design =================== */
+@media (max-width: 991px) {
+    .checkout-hero {
+        min-height: 180px;
+    }
+    .checkout-hero h1 {
+        font-size: 2rem;
+    }
+    .col-lg-7, .col-lg-5 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .sticky-order {
+        position: static !important;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .order-summary-items img {
+        width: 56px !important;
+        height: 56px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .checkout-hero {
+        min-height: 160px;
+    }
+    .checkout-hero h1 {
+        font-size: 1.8rem;
+    }
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .card-body {
+        padding: 1rem;
+    }
+    .form-control-modern, .form-select.form-control-modern {
+        font-size: 0.9rem;
+    }
+    .step-badge {
+        width: 24px;
+        height: 24px;
+        font-size: 0.85rem;
+    }
+    .order-summary-items img {
+        width: 48px !important;
+        height: 48px !important;
+    }
+    .btn-lg {
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+    }
+    .xsmall {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .checkout-hero {
+        min-height: 140px;
+    }
+    .checkout-hero h1 {
+        font-size: 1.6rem;
+    }
+    .breadcrumb {
+        font-size: 0.85rem;
+    }
+    .card-body {
+        padding: 0.75rem;
+    }
+    .form-control-modern, .form-select.form-control-modern {
+        font-size: 0.85rem;
+    }
+    .step-badge {
+        width: 22px;
+        height: 22px;
+        font-size: 0.8rem;
+    }
+    .order-summary-items img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    .btn-sm {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    .xsmall {
+        font-size: 0.7rem;
+    }
+    .alert {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+    .order-summary-items {
+        max-height: 200px;
+    }
 }
 </style>
 @endpush
@@ -312,6 +515,15 @@
     window.addEventListener('load', updateStickyOffset);
     window.addEventListener('resize', updateStickyOffset);
     setTimeout(updateStickyOffset, 300);
+
+    // AOS init
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 600,
+            once: true,
+            offset: 80
+        });
+    }
 })();
 
 // ===== Currency helper =====

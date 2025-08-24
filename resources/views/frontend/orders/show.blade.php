@@ -3,8 +3,8 @@
 @section('title', 'Chi tiết đơn hàng #' . $order->order_code)
 
 @section('content')
-    <section class="order-hero position-relative overflow-hidden mb-5">
-        <img src="https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg"
+    <section class="support-hero position-relative overflow-hidden mb-5">
+        <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop"
             alt="Order Banner" class="hero-bg">
         <div class="hero-overlay"></div>
         <div class="container position-relative" data-aos="fade-down">
@@ -53,7 +53,7 @@
         <div class="alert alert-danger shadow-sm" data-aos="fade-up">{{ session('error') }}</div> @endif
 
         {{-- HEADER --}}
-        <div class="card card-glass shadow-sm rounded-4 mb-4" data-aos="fade-right">
+        <div class="card card-glass rounded-4 mb-4" data-aos="fade-right">
             <div class="card-body p-4 p-md-5">
                 @php
                     $statusConfig = [
@@ -125,8 +125,8 @@
         <div class="row g-4 g-lg-5">
             {{-- LEFT: ITEMS --}}
             <div class="col-lg-8">
-                <div class="card card-glass shadow-sm rounded-4 mb-4" data-aos="fade-right" data-aos-delay="50">
-                    <div class="card-header bg-white border-0 px-4 pt-4">
+                <div class="card card-glass rounded-4 mb-4" data-aos="fade-right" data-aos-delay="50">
+                    <div class="card-header bg-transparent border-0 px-4 pt-4">
                         <h5 class="mb-0 fw-bold text-brand">Sản phẩm trong đơn hàng</h5>
                     </div>
                     <div class="card-body p-4 pt-0">
@@ -166,8 +166,8 @@
                 </div>
 
                 {{-- Shipping info --}}
-                <div class="card card-glass shadow-sm rounded-4" data-aos="fade-right" data-aos-delay="100">
-                    <div class="card-header bg-white border-0 px-4 pt-4 d-flex justify-content-between align-items-center">
+                <div class="card card-glass rounded-4" data-aos="fade-right" data-aos-delay="100">
+                    <div class="card-header bg-transparent border-0 px-4 pt-4 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold text-brand">Thông tin giao hàng</h5>
                         @if(in_array($order->status, ['pending', 'processing']))
                             <button type="button" class="btn btn-sm btn-outline-brand rounded-pill" id="edit-address-btn">
@@ -176,7 +176,6 @@
                         @endif
                     </div>
                     <div class="card-body p-4 pt-0">
-                        {{-- Hiển thị thông tin địa chỉ --}}
                         <div id="address-display">
                             <div class="row g-4">
                                 <div class="col-md-7">
@@ -216,7 +215,7 @@
                                     </div>
                                     @if($isOnline && !empty($order->payment_ref))
                                         <div class="xsmall text-muted mt-1">
-                                            Mã giao dịch VNPAY: <span class="text-primary">{{ $order->payment_ref }}</span>
+                                            Mã giao dịch VNPAY: <span class="text-brand">{{ $order->payment_ref }}</span>
                                         </div>
                                     @endif
                                     @if(!$isPaid && $isOnline && in_array($order->status, ['pending', 'processing']))
@@ -229,7 +228,6 @@
                             </div>
                         </div>
 
-                        {{-- Form chỉnh sửa địa chỉ --}}
                         <div id="address-edit-form" style="display:none;">
                             <form action="{{ route('orders.update-address', $order) }}" method="POST"
                                 id="update-address-form">
@@ -292,8 +290,8 @@
 
             {{-- RIGHT: SUMMARY + ACTIONS --}}
             <div class="col-lg-4">
-                <div class="card card-glass shadow-sm rounded-4 sticky-lg-top" style="top: 96px;" data-aos="fade-left">
-                    <div class="card-header bg-white border-0 px-4 pt-4">
+                <div class="card card-glass rounded-4 sticky-lg-top" style="top: 96px;" data-aos="fade-left">
+                    <div class="card-header bg-transparent border-0 px-4 pt-4">
                         <h5 class="mb-0 fw-bold text-brand">Tổng cộng</h5>
                     </div>
                     <div class="card-body p-4 pt-0">
@@ -350,263 +348,401 @@
 @endsection
 
 @push('styles')
-    <style>
-        /* ... (giữ nguyên style cũ) ... */
-        .order-hero {
-            background: #fff;
-        }
+<style>
+    /* =================== Hero Section =================== */
+    .support-hero {
+        background: var(--bg);
+    }
+    .support-hero .hero-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scale(1.03);
+        filter: brightness(0.7);
+    }
+    .support-hero .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35));
+    }
+    .wave-sep {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 28px;
+        background: radial-gradient(36px 11px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
+        background-size: 36px 18px;
+    }
+    .hero-bc-link {
+        color: var(--sand);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .hero-bc-link:hover {
+        color: var(--brand);
+    }
+    .breadcrumb-item.active {
+        color: var(--muted);
+    }
 
-        .order-hero .hero-bg {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scale(1.03);
-            filter: brightness(0.7);
-        }
+    /* =================== Card and Elements =================== */
+    .card-glass {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(15, 23, 42, 0.04);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .card-glass:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    .rounded-4 {
+        border-radius: 1rem !important;
+    }
+    .border-dashed {
+        border-top: 1px dashed #dee2e6;
+    }
+    .xsmall {
+        font-size: 0.825rem;
+    }
 
-        .order-hero .hero-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(0, 0, 0, .35), rgba(0, 0, 0, .35));
-        }
+    /* =================== Order Steps =================== */
+    .order-steps {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+    }
+    .order-steps .step {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--muted);
+        transition: color 0.2s ease;
+    }
+    .order-steps .step .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ced4da;
+        display: inline-block;
+        transition: background 0.2s ease;
+    }
+    .order-steps .step.done {
+        color: #28a745;
+        font-weight: 600;
+    }
+    .order-steps .step.done .dot {
+        background: #28a745;
+    }
 
-        .wave-sep {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: -1px;
-            height: 28px;
-            background: radial-gradient(36px 11px at 50% 0, #fff 98%, transparent 100%) repeat-x;
-            background-size: 36px 18px;
-        }
+    /* =================== Buttons and Badges =================== */
+    .btn-brand {
+        background-color: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+        padding: 0.5rem 1rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .btn-brand:hover {
+        background-color: var(--brand-600);
+        border-color: var(--brand-600);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .btn-outline-brand {
+        color: var(--brand);
+        border-color: var(--brand);
+        padding: 0.45rem 0.9rem;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    .btn-outline-brand:hover {
+        background-color: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+    }
+    .btn-outline-secondary {
+        color: var(--muted);
+        border-color: var(--muted);
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    .btn-outline-secondary:hover {
+        background-color: var(--muted);
+        border-color: var(--muted);
+        color: #fff;
+    }
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .badge-soft-brand {
+        background: rgba(var(--brand-rgb), 0.1);
+        color: var(--brand);
+        font-size: 0.85rem;
+    }
+    .text-brand {
+        color: var(--brand) !important;
+    }
+    .text-muted {
+        color: var(--muted);
+    }
 
-        .hero-bc-link {
-            color: #f8f9fa;
-            text-decoration: none;
-        }
+    /* =================== Form Controls =================== */
+    .form-control-modern,
+    .form-select.form-control-modern {
+        border-radius: 0.8rem;
+        border: 1px solid #e9ecef;
+        background: #fff;
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .form-control-modern:focus,
+    .form-select.form-control-modern:focus {
+        border-color: var(--brand);
+        box-shadow: 0 0 0 0.2rem var(--ring);
+    }
 
-        .hero-bc-link:hover {
-            text-decoration: underline;
-        }
+    /* =================== Links and Images =================== */
+    a {
+        color: var(--brand);
+        text-decoration: none;
+    }
+    a:hover {
+        color: var(--brand-600);
+    }
+    .img-hover-zoom img {
+        transition: transform 0.35s ease;
+        display: block;
+    }
+    .img-hover-zoom:hover img {
+        transform: scale(1.06);
+    }
 
-        .rounded-4 {
-            border-radius: 1rem !important;
+    /* =================== Responsive Design =================== */
+    @media (max-width: 991px) {
+        .support-hero {
+            min-height: 180px;
         }
-
-        .border-dashed {
-            border-top: 1px dashed #dee2e6;
+        .support-hero h1 {
+            font-size: 2rem;
         }
-
-        .xsmall {
-            font-size: .825rem;
+        .col-lg-8, .col-lg-4 {
+            flex: 0 0 100%;
+            max-width: 100%;
         }
-
+        .sticky-lg-top {
+            position: static !important;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
         .order-steps {
-            display: flex;
-            gap: 1.25rem;
-            flex-wrap: wrap;
+            gap: 1rem;
         }
+    }
 
-        .order-steps .step {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            color: #6c757d;
+    @media (max-width: 767px) {
+        .support-hero {
+            min-height: 160px;
         }
-
+        .support-hero h1 {
+            font-size: 1.8rem;
+        }
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        .card-body {
+            padding: 1rem;
+        }
+        .btn-sm {
+            padding: 0.35rem 0.7rem;
+            font-size: 0.85rem;
+        }
         .order-steps .step .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ced4da;
-            display: inline-block;
+            width: 8px;
+            height: 8px;
         }
-
-        .order-steps .step.done {
-            color: #198754;
-            font-weight: 600;
+        .order-steps .step .label {
+            font-size: 0.9rem;
         }
-
-        .order-steps .step.done .dot {
-            background: #198754;
+        .img-hover-zoom {
+            width: 60px !important;
+            height: 60px !important;
         }
+    }
 
-        .img-hover-zoom img {
-            transition: transform .35s ease;
-            display: block;
+    @media (max-width: 575px) {
+        .support-hero {
+            min-height: 140px;
         }
-
-        .img-hover-zoom:hover img {
-            transform: scale(1.06);
+        .support-hero h1 {
+            font-size: 1.6rem;
         }
-
-        @media (max-width: 991.98px) {
-            .sticky-lg-top {
-                position: static !important;
-            }
+        .breadcrumb {
+            font-size: 0.85rem;
         }
-
-        /* New & Updated Styles */
-        .card-glass {
-            background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
-            border: 1px solid rgba(15, 23, 42, .04);
+        .card-body {
+            padding: 0.75rem;
         }
-
-        .text-brand {
-            color: #A20E38 !important;
+        .btn-sm {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
         }
-
-        .btn-brand {
-            background: #A20E38;
-            color: #fff;
-            border: 1px solid #A20E38;
-            border-radius: 10px;
+        .badge, .badge-soft-brand {
+            font-size: 0.8rem;
         }
-
-        .btn-outline-brand {
-            background: transparent;
-            color: #A20E38;
-            border: 1px solid #A20E38;
-            border-radius: 10px;
+        .order-steps {
+            gap: 0.75rem;
         }
-
-        .badge-soft-brand {
-            background: rgba(162, 14, 56, .08);
-            color: #A20E38;
-            border-radius: 999px;
-            padding: .22rem .5rem;
-            font-size: .78rem;
+        .order-steps .step .dot {
+            width: 6px;
+            height: 6px;
         }
-
+        .order-steps .step .label {
+            font-size: 0.85rem;
+        }
+        .img-hover-zoom {
+            width: 50px !important;
+            height: 50px !important;
+        }
+        .xsmall {
+            font-size: 0.75rem;
+        }
+        .alert {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+        }
         .form-control-modern,
         .form-select.form-control-modern {
-            border-radius: .8rem;
-            border: 1px solid #e9ecef;
-            background: #fff;
+            font-size: 0.9rem;
         }
-
-        .form-control-modern:focus,
-        .form-select.form-control-modern:focus {
-            border-color: #A20E38;
-            box-shadow: 0 0 0 .2rem rgba(162, 14, 56, .15);
-        }
-
-        .fw-bold {
-            font-weight: 700 !important;
-        }
-
-        .text-danger {
-            color: #A20E38 !important;
-        }
-
-        .btn-primary {
-            background-color: #A20E38;
-            border-color: #A20E38;
-        }
-
-        .btn-primary:hover {
-            background-color: #8b0c30;
-            border-color: #8b0c30;
-        }
-    </style>
+    }
+</style>
 @endpush
 
 @push('scripts-page')
-    <script>
-        // GHN address select logic
-        (function () {
-            const orderStatus = "{{ $order->status }}";
-            if (!['pending', 'processing'].includes(orderStatus)) return;
+<script>
+    // GHN address select logic
+    (function () {
+        const orderStatus = "{{ $order->status }}";
+        if (!['pending', 'processing'].includes(orderStatus)) return;
 
-            const editBtn = document.getElementById('edit-address-btn');
-            const cancelBtn = document.getElementById('cancel-edit-btn');
-            const displayDiv = document.getElementById('address-display');
-            const editFormDiv = document.getElementById('address-edit-form');
-            const form = document.getElementById('update-address-form');
+        const editBtn = document.getElementById('edit-address-btn');
+        const cancelBtn = document.getElementById('cancel-edit-btn');
+        const displayDiv = document.getElementById('address-display');
+        const editFormDiv = document.getElementById('address-edit-form');
+        const form = document.getElementById('update-address-form');
 
-            if (!editBtn || !cancelBtn || !displayDiv || !editFormDiv || !form) return;
+        if (!editBtn || !cancelBtn || !displayDiv || !editFormDiv || !form) return;
 
-            // Populate initial values
-            const provinceSelect = document.getElementById('province_id_edit');
-            const districtSelect = document.getElementById('district_id_edit');
-            const wardSelect = document.getElementById('ward_code_edit');
-            const provinceNameInput = document.getElementById('province_name_input_edit');
-            const districtNameInput = document.getElementById('district_name_input_edit');
-            const wardNameInput = document.getElementById('ward_name_input_edit');
+        // Populate initial values
+        const provinceSelect = document.getElementById('province_id_edit');
+        const districtSelect = document.getElementById('district_id_edit');
+        const wardSelect = document.getElementById('ward_code_edit');
+        const provinceNameInput = document.getElementById('province_name_input_edit');
+        const districtNameInput = document.getElementById('district_name_input_edit');
+        const wardNameInput = document.getElementById('ward_name_input_edit');
 
-            let saved = {
-                province: provinceNameInput?.value || '',
-                district: districtNameInput?.value || '',
-                ward: wardNameInput?.value || ''
-            };
+        let saved = {
+            province: provinceNameInput?.value || '',
+            district: districtNameInput?.value || '',
+            ward: wardNameInput?.value || ''
+        };
 
-            const fetchJson = async (url) => {
-                try {
-                    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
-                    return r.ok ? r.json() : [];
-                }
-                catch { return []; }
-            };
-            const renderOptions = (select, list, placeholder, valKey, textKey, pickedText = '') => {
-                select.innerHTML = `<option value="">${placeholder}</option>`;
-                if (!Array.isArray(list)) return;
-                let pickedVal = null;
-                for (const item of list) {
-                    const opt = new Option(item[textKey], item[valKey]);
-                    if (pickedText && item[textKey] === pickedText) { opt.selected = true; pickedVal = item[valKey]; }
-                    select.add(opt);
-                }
-                if (pickedVal) {
-                    select.value = pickedVal;
-                    setTimeout(() => select.dispatchEvent(new Event('change', { bubbles: true })), 0);
-                }
-            };
+        const fetchJson = async (url) => {
+            try {
+                const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                return r.ok ? r.json() : [];
+            }
+            catch { return []; }
+        };
+        const renderOptions = (select, list, placeholder, valKey, textKey, pickedText = '') => {
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            if (!Array.isArray(list)) return;
+            let pickedVal = null;
+            for (const item of list) {
+                const opt = new Option(item[textKey], item[valKey]);
+                if (pickedText && item[textKey] === pickedText) { opt.selected = true; pickedVal = item[valKey]; }
+                select.add(opt);
+            }
+            if (pickedVal) {
+                select.value = pickedVal;
+                setTimeout(() => select.dispatchEvent(new Event('change', { bubbles: true })), 0);
+            }
+        };
 
-            const loadProvinces = async () => {
-                const provinces = await fetchJson('{{ route("address.provinces") }}');
-                renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành', 'ProvinceID', 'ProvinceName', saved.province);
-            };
+        const loadProvinces = async () => {
+            const provinces = await fetchJson('{{ route("address.provinces") }}');
+            renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành', 'ProvinceID', 'ProvinceName', saved.province);
+        };
 
-            provinceSelect.addEventListener('change', async function () {
-                if (provinceNameInput) provinceNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
-                renderOptions(districtSelect, [], 'Vui lòng chờ...', 'DistrictID', 'DistrictName');
-                renderOptions(wardSelect, [], 'Chọn Phường/Xã', 'WardCode', 'WardName');
-                if (this.value) {
-                    const districts = await fetchJson(`{{ route("address.districts") }}?province_id=${this.value}`);
-                    renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', saved.district);
-                }
-                saved.district = '';
-                saved.ward = '';
+        provinceSelect.addEventListener('change', async function () {
+            if (provinceNameInput) provinceNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+            renderOptions(districtSelect, [], 'Vui lòng chờ...', 'DistrictID', 'DistrictName');
+            renderOptions(wardSelect, [], 'Chọn Phường/Xã', 'WardCode', 'WardName');
+            if (this.value) {
+                const districts = await fetchJson(`{{ route("address.districts") }}?province_id=${this.value}`);
+                renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', saved.district);
+            }
+            saved.district = '';
+            saved.ward = '';
+        });
+
+        districtSelect.addEventListener('change', async function () {
+            if (districtNameInput) districtNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+            renderOptions(wardSelect, [], 'Vui lòng chờ...', 'WardCode', 'WardName');
+            if (this.value) {
+                const wards = await fetchJson(`{{ route("address.wards") }}?district_id=${this.value}`);
+                renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', saved.ward);
+            }
+            saved.ward = '';
+        });
+
+        wardSelect.addEventListener('change', function () {
+            if (wardNameInput) wardNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+        });
+
+        editBtn.addEventListener('click', () => {
+            displayDiv.style.display = 'none';
+            editFormDiv.style.display = 'block';
+            loadProvinces();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            editFormDiv.style.display = 'none';
+            displayDiv.style.display = 'block';
+        });
+
+        // AOS init
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 600,
+                once: true,
+                offset: 80
             });
-
-            districtSelect.addEventListener('change', async function () {
-                if (districtNameInput) districtNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
-                renderOptions(wardSelect, [], 'Vui lòng chờ...', 'WardCode', 'WardName');
-                if (this.value) {
-                    const wards = await fetchJson(`{{ route("address.wards") }}?district_id=${this.value}`);
-                    renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', saved.ward);
-                }
-                saved.ward = '';
-            });
-
-            wardSelect.addEventListener('change', function () {
-                if (wardNameInput) wardNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
-            });
-
-            editBtn.addEventListener('click', () => {
-                displayDiv.style.display = 'none';
-                editFormDiv.style.display = 'block';
-                loadProvinces();
-            });
-
-            cancelBtn.addEventListener('click', () => {
-                editFormDiv.style.display = 'none';
-                displayDiv.style.display = 'block';
-            });
-        })();
-    </script>
+        }
+    })();
+</script>
 @endpush

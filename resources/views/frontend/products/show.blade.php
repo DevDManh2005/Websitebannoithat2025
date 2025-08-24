@@ -73,8 +73,7 @@
                     </a>
                 </div>
 
-                {{-- Dùng card-glass và border-brand để đồng bộ --}}
-                <div class="product-price-box card-glass p-4 rounded-4 mb-4 border-brand">
+                <div class="product-price-box card-glass p-4 rounded-4 mb-4">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge badge-soft-brand text-uppercase fw-semibold">Giá</span>
                         <h3 class="text-brand fw-bolder mb-0" id="product-price-display">Vui lòng chọn thuộc tính</h3>
@@ -96,7 +95,6 @@
                                         @php $id = Str::slug($name . '-' . $value); @endphp
                                         <input type="radio" class="btn-check variant-option" name="{{ $name }}" value="{{ $value }}"
                                             id="{{ $id }}" autocomplete="off">
-                                        {{-- Dùng btn-outline-brand để đồng bộ màu sắc --}}
                                         <label class="btn btn-outline-brand btn-variant" for="{{ $id }}">{{ $value }}</label>
                                     @endforeach
                                 </div>
@@ -110,7 +108,7 @@
                         <div class="input-group quantity-group">
                             <button type="button" class="btn btn-outline-brand" id="quantity-minus"
                                 aria-label="Giảm số lượng">−</button>
-                            <input type="number" class="form-control text-center" name="quantity" id="quantity-selector"
+                            <input type="number" class="form-control text-center form-control-modern" name="quantity" id="quantity-selector"
                                 value="1" min="1" inputmode="numeric">
                             <button type="button" class="btn btn-outline-brand" id="quantity-plus"
                                 aria-label="Tăng số lượng">+</button>
@@ -154,9 +152,7 @@
                     </li>
                 </ul>
 
-                {{-- Sửa lỗi: Lớp nền bị trùng lặp --}}
                 <div class="tab-content p-4 rounded-4 mt-3 card-glass">
-                    {{-- Sửa lỗi: Đã đổi thứ tự tab content --}}
                     <div class="tab-pane fade show active" id="description-content">
                         {!! $product->description !!}
                     </div>
@@ -188,31 +184,105 @@
 
 @push('styles')
     <style>
-        /* CSS cục bộ để đồng bộ màu sắc và style */
+        /* =================== Breadcrumb =================== */
         .breadcrumb-item a {
             text-decoration: none;
-            color: var(--muted);
+            color: var(--sand);
+            transition: color 0.2s ease;
         }
-
         .breadcrumb-item a:hover {
             color: var(--brand);
         }
-
         .breadcrumb-item.active {
-            color: var(--brand);
+            color: var(--muted);
         }
 
+        /* =================== Gallery =================== */
+        .product-gallery .main-image-swiper {
+            height: 520px;
+            background: #fff;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .product-gallery .main-image-swiper:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+        .product-gallery .thumbnail-swiper {
+            height: 96px;
+            padding: 8px 0;
+        }
+        .product-gallery .thumbnail-swiper .swiper-slide {
+            width: 25%;
+            height: 100%;
+            opacity: 0.6;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            cursor: pointer;
+        }
+        .product-gallery .thumbnail-swiper .swiper-slide:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+        .product-gallery .thumbnail-swiper .swiper-slide-thumb-active {
+            opacity: 1;
+            transform: translateY(-2px);
+            outline: 2px solid var(--brand);
+            outline-offset: 2px;
+            border-radius: 0.5rem;
+        }
+        .product-gallery .thumbnail-swiper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--brand);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            transition: background 0.2s ease;
+        }
+        .swiper-button-next:hover, .swiper-button-prev:hover {
+            background: var(--brand);
+            color: #fff;
+        }
+
+        /* =================== Card and Price Box =================== */
+        .card-glass {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card-glass:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+        .product-price-box {
+            border: 2px solid var(--brand);
+            transition: border-color 0.2s ease;
+        }
+        .product-price-box:hover {
+            border-color: var(--brand-600);
+        }
+        .rounded-4 {
+            border-radius: 1rem !important;
+        }
+
+        /* =================== Tabs =================== */
         .nav-tabs-modern .nav-link {
             border: none;
             color: var(--muted);
             position: relative;
-            padding: .5rem 0;
+            padding: 0.5rem 0;
+            font-weight: 500;
+            transition: color 0.2s ease;
         }
-
         .nav-tabs-modern .nav-link.active {
             color: var(--brand);
         }
-
         .nav-tabs-modern .nav-link.active::after,
         .nav-tabs-modern .nav-link:hover::after {
             content: "";
@@ -224,71 +294,175 @@
             background: var(--brand);
         }
 
+        /* =================== Form and Button Styles =================== */
+        .btn-brand {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .btn-brand:hover {
+            background-color: var(--brand-600);
+            border-color: var(--brand-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .btn-outline-brand {
+            color: var(--brand);
+            border-color: var(--brand);
+            padding: 0.45rem 0.9rem;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .btn-outline-brand:hover {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+        }
         .btn-variant {
             border-radius: 999px;
-            padding: .35rem .85rem;
+            padding: 0.35rem 0.85rem;
+            font-size: 0.9rem;
+            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
         }
-
-        .btn-check:checked+.btn-variant {
+        .btn-check:checked + .btn-variant {
             background: var(--brand);
             border-color: var(--brand);
-            color: var(--card);
+            color: #fff;
             box-shadow: 0 6px 14px var(--ring);
         }
-
-        .product-price-box h3.text-danger {
-            color: var(--brand) !important;
-        }
-
-        /* Các style còn lại được giữ nguyên */
-        .product-gallery .main-image-swiper {
-            height: 520px;
+        .form-control-modern {
+            border-radius: 0.8rem;
+            border: 1px solid #e9ecef;
             background: #fff;
+            font-size: 1rem;
         }
-
-        .product-gallery .thumbnail-swiper {
-            height: 96px;
-            padding: 8px 0;
+        .form-control-modern:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 0.2rem var(--ring);
         }
-
-        .product-gallery .thumbnail-swiper .swiper-slide {
-            width: 25%;
-            height: 100%;
-            opacity: .6;
-            transition: opacity .25s ease, transform .25s ease;
-            cursor: pointer;
-        }
-
-        .product-gallery .thumbnail-swiper .swiper-slide-thumb-active {
-            opacity: 1;
-            transform: translateY(-2px);
-            outline: 2px solid var(--brand);
-            outline-offset: 2px;
-            border-radius: .5rem;
-        }
-
-        .product-gallery .thumbnail-swiper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: .5rem;
-        }
-
         .quantity-group {
             width: 160px;
         }
-
         .quantity-group .form-control {
             border-left: 0;
             border-right: 0;
+            border-radius: 0;
+        }
+        .text-brand {
+            color: var(--brand);
+        }
+        .text-muted {
+            color: var(--muted);
+        }
+        .badge-soft-brand {
+            background: rgba(var(--brand-rgb), 0.1);
+            color: var(--brand);
+            font-size: 0.85rem;
         }
 
-        .rounded-4 {
-            border-radius: 1rem !important;
+        /* =================== Links =================== */
+        a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--brand-600);
         }
 
-        .bg-light-subtle {
-            background: #f8f9fa;
+        /* =================== Responsive Design =================== */
+        @media (max-width: 991px) {
+            .col-lg-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .product-gallery .main-image-swiper {
+                height: 400px;
+            }
+            .product-gallery .thumbnail-swiper {
+                height: 80px;
+            }
+            .quantity-group {
+                width: 140px;
+            }
+            .btn-lg {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .card {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .product-gallery .main-image-swiper {
+                height: 320px;
+            }
+            .product-gallery .thumbnail-swiper {
+                height: 70px;
+            }
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            .card {
+                padding: 1rem;
+            }
+            .tab-content {
+                padding: 1rem;
+            }
+            .btn-lg {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .quantity-group {
+                width: 120px;
+            }
+            .btn-variant {
+                padding: 0.3rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .product-price-box h3 {
+                font-size: 1.5rem;
+            }
+            .bi-star-fill, .bi-star-half, .bi-star {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .product-gallery .main-image-swiper {
+                height: 280px;
+            }
+            .product-gallery .thumbnail-swiper {
+                height: 60px;
+            }
+            .card {
+                padding: 0.75rem;
+            }
+            .tab-content {
+                padding: 0.75rem;
+            }
+            .btn-lg {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .quantity-group {
+                width: 100px;
+            }
+            .btn-variant {
+                padding: 0.25rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .product-price-box h3 {
+                font-size: 1.25rem;
+            }
+            .breadcrumb {
+                font-size: 0.85rem;
+            }
+            .nav-tabs-modern .nav-link {
+                font-size: 0.9rem;
+            }
         }
     </style>
 @endpush
@@ -407,13 +581,26 @@
                 slidesPerView: 4,
                 freeMode: true,
                 watchSlidesProgress: true,
-                breakpoints: { 0: { slidesPerView: 4 }, 576: { slidesPerView: 5 }, 992: { slidesPerView: 6 } }
+                breakpoints: {
+                    0: { slidesPerView: 3 },
+                    576: { slidesPerView: 4 },
+                    992: { slidesPerView: 5 }
+                }
             }) : null;
 
             new Swiper('.main-image-swiper', {
                 spaceBetween: 10,
                 navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
                 thumbs: hasThumb ? { swiper: thumbSwiper } : undefined
+            });
+        }
+
+        // AOS init
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 600,
+                once: true,
+                offset: 80
             });
         }
     </script>

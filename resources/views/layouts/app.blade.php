@@ -22,7 +22,6 @@
 
   <style>
     :root {
-      /* (đảm bảo bạn đã có phần brand tokens) */
       --brand: #A20E38;
       --brand-600: #8E0D30;
       --brand-700: #6B0A24;
@@ -38,126 +37,103 @@
     }
 
     /* ===== Utilities (brand-aware) ===== */
-    .text-brand {
-      color: var(--brand) !important;
-    }
-
-    .text-brand-600 {
-      color: var(--brand-600) !important;
-    }
-
-    .bg-brand {
-      background: var(--brand) !important;
-      color: #fff !important;
-    }
-
-    .border-brand {
-      border-color: var(--brand) !important;
-    }
-
+    .text-brand { color: var(--brand) !important; }
+    .text-brand-600 { color: var(--brand-600) !important; }
+    .bg-brand { background: var(--brand) !important; color: #fff !important; }
+    .border-brand { border-color: var(--brand) !important; }
+    
     .btn-brand {
       background: var(--brand);
       color: #fff;
       border: 1px solid var(--brand);
       border-radius: 10px;
-      padding: .45rem .9rem;
-      transition: transform .06s ease, box-shadow .12s ease, background .12s;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+      padding: 0.5rem 1rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .06);
     }
-
     .btn-brand:hover {
       background: var(--brand-600);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
     }
-
+    
     .btn-outline-brand {
       background: transparent;
       color: var(--brand);
       border: 1px solid var(--brand);
       border-radius: 10px;
-      padding: .4rem .8rem;
-      transition: background .12s, color .12s;
+      padding: 0.45rem 0.9rem;
+      transition: background 0.15s ease, color 0.15s ease;
     }
-
+    .btn-outline-brand:hover {
+      background: var(--brand);
+      color: #fff;
+    }
+    
     .btn-ghost {
       background: transparent;
       border: 0;
       color: var(--brand);
     }
-
-    /* Soft badge */
+    
     .badge-soft-brand {
       background: rgba(162, 14, 56, .08);
       color: var(--brand);
       border-radius: 999px;
-      padding: .22rem .5rem;
-      font-size: .78rem;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.8rem;
     }
-
-    /* Card / Surface */
+    
     .card-glass {
-      background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
+      background: linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .98));
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       border: 1px solid rgba(15, 23, 42, .04);
     }
-
-    /* Elevated shadow variant */
+    
     .shadow-elevated {
-      box-shadow: 0 14px 40px rgba(11, 13, 15, .08);
+      box-shadow: 0 12px 36px rgba(11, 13, 15, .1);
     }
-
-    /* Table */
+    
     .table-custom th {
       background: transparent;
       color: var(--muted);
       font-weight: 600;
     }
-
     .table-custom tbody tr:hover {
       background: rgba(0, 0, 0, .02);
-      transform: translateY(0);
     }
-
-    /* Icon micro interaction */
+    
     .icon-hover {
-      transition: transform .14s cubic-bezier(.2, .9, .3, 1), color .12s;
+      transition: transform 0.15s cubic-bezier(.2, .9, .3, 1), color 0.15s ease;
     }
-
     .icon-hover:hover {
-      transform: translateY(-3px) scale(1.06);
+      transform: translateY(-2px) scale(1.05);
       color: var(--brand);
     }
-
-    /* Focus / ring */
+    
     .focus-ring:focus {
       outline: none;
-      box-shadow: 0 0 0 4px var(--ring);
+      box-shadow: 0 0 0 3px var(--ring);
       border-radius: 8px;
     }
-
-    /* Command palette / list highlight */
+    
     .cmd-item {
-      padding: .6rem .75rem;
+      padding: 0.5rem 0.75rem;
       border-radius: 8px;
-      transition: background .12s;
+      transition: background 0.15s ease;
     }
-
     .cmd-item.active,
     .cmd-item:hover {
       background: rgba(162, 14, 56, .06);
     }
-
-    /* Small helpers */
+    
     .kbd {
       background: #f3f4f6;
       border-radius: 4px;
-      padding: .12rem .4rem;
-      font-size: .8rem;
+      padding: 0.15rem 0.4rem;
+      font-size: 0.8rem;
     }
-
-
 
     /* ===== Header trong suốt ở trang chủ ===== */
     .is-home .header-home,
@@ -166,198 +142,91 @@
       box-shadow: none !important;
       border: 0 !important;
     }
-
     .is-home .header-home.is-scrolled {
       background: rgba(0, 0, 0, .45) !important;
       backdrop-filter: blur(6px) saturate(1.1);
     }
 
-    /* ===== Mega menu (catmega) – CSS cho danh mục dropdown ===== */
-    /* Đặt vị trí tương đối cho navbar để chứa menu */
-    .navbar {
-      position: relative;
-    }
-
-    /* Đảm bảo các phần tử con của navbar không bị cắt nội dung */
-    .navbar * {
-      overflow: visible !important;
-    }
-
-    /* Đặt nav-item dropdown mega ở vị trí tĩnh để menu có thể mở rộng */
-    .nav-item.dropdown.mega {
-      position: static !important;
-    }
-
-    /* Cấu hình dropdown menu danh mục (catmega) */
+    /* ===== Mega menu (catmega) ===== */
+    .navbar { position: relative; }
+    .navbar * { overflow: visible !important; }
+    .nav-item.dropdown.mega { position: static !important; }
+    
     .dropdown-menu.catmega {
       position: absolute;
-      /* Vị trí tuyệt đối so với navbar */
-      top: calc(100% + 10px);
-      /* Khoảng cách từ đỉnh navbar */
-      left: 0;
-      /* Mặc định căn trái */
-      transform: none;
-      /* Không sử dụng transform mặc định */
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
       display: block;
-      /* Hiển thị dạng block */
       margin: 0;
-      /* Không margin */
       opacity: 0;
-      /* Ẩn mặc định */
       visibility: hidden;
-      /* Không hiển thị */
       pointer-events: none;
-      /* Không cho phép tương tác */
       width: min(1200px, 96vw);
-      /* Chiều rộng tối đa 1200px hoặc 96% viewport */
       background: #fff;
-      /* Màu nền trắng */
-      border: 1px solid rgba(15, 23, 42, .10);
-      /* Viền nhẹ */
-      border-radius: 14px;
-      /* Bo góc */
-      box-shadow: 0 18px 48px rgba(2, 6, 23, .20);
-      /* Đổ bóng */
+      border: 1px solid rgba(15, 23, 42, .1);
+      border-radius: 12px;
+      box-shadow: 0 12px 36px rgba(2, 6, 23, .15);
       z-index: 1060;
-      /* Độ ưu tiên hiển thị */
       overflow: clip;
-      /* Cắt nội dung tràn */
+      transition: opacity 0.2s ease, transform 0.2s ease;
     }
-
-    /* Vô hiệu hóa Popper của Bootstrap để tùy chỉnh vị trí */
-    .dropdown-menu.catmega[data-bs-popper] {
-      left: 0 !important;
-      top: auto !important;
-      transform: none !important;
-      margin: 0 !important;
-    }
-
-    /* Hiển thị menu khi được kích hoạt */
     .dropdown-menu.catmega.show {
       opacity: 1;
-      /* Hiện hoàn toàn */
       visibility: visible;
-      /* Hiển thị */
       pointer-events: auto;
-      /* Cho phép tương tác */
-      transition: opacity .18s ease;
-      /* Hiệu ứng chuyển đổi độ mờ */
+      transform: translateX(-50%) translateY(0);
     }
-
-    /* Cấu hình lưới bên trong menu */
+    .dropdown-menu.catmega[data-bs-popper] {
+      left: 50% !important;
+      top: auto !important;
+      transform: translateX(-50%) !important;
+      margin: 0 !important;
+    }
+    
     .catmega-inner {
-      padding: 16px 18px;
-      /* Khoảng cách bên trong */
+      padding: 14px 16px;
     }
-
-    /* Thiết lập lưới 4 cột cho danh mục */
     .catmega-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      /* 4 cột đều nhau */
-      gap: 16px 24px;
-      /* Khoảng cách giữa các cột và hàng */
+      gap: 14px 20px;
     }
-
-    /* Cột danh mục */
     .catmega-col {
       min-width: 0;
-      /* Không giới hạn chiều rộng tối thiểu */
       border-right: 1px solid rgba(2, 6, 23, .06);
-      /* Viền phân cách giữa các cột */
     }
-
-    /* Loại bỏ viền ở cột cuối */
     .catmega-col:last-child {
       border-right: 0;
     }
-
-    /* Tiêu đề danh mục */
     .catmega-title {
       display: inline-block;
       margin: 0 0 6px;
-      /* Khoảng cách dưới */
       font-weight: 700;
-      /* Chữ đậm */
       color: #111827;
-      /* Màu chữ chính */
       text-decoration: none;
-      /* Không gạch chân */
     }
-
-    /* Hiệu ứng hover cho tiêu đề */
     .catmega-title:hover {
-      color: #c1126b;
-      /* Đổi màu khi hover */
+      color: var(--brand);
     }
-
-    /* Danh sách các mục trong danh mục */
     .catmega-list {
       list-style: none;
-      /* Bỏ dấu đầu dòng */
       margin: 0;
-      /* Không margin */
       padding: 0;
-      /* Không padding */
     }
-
-    /* Liên kết trong danh mục */
     .catmega-link {
       display: block;
-      /* Hiển thị dạng block */
-      padding: 6px 8px;
-      /* Khoảng cách bên trong */
-      border-radius: 8px;
-      /* Bo góc */
+      padding: 5px 8px;
+      border-radius: 6px;
       color: #374151;
-      /* Màu chữ */
       text-decoration: none;
-      /* Không gạch chân */
       white-space: nowrap;
-      /* Không xuống dòng */
       overflow: hidden;
-      /* Ẩn nội dung tràn */
       text-overflow: ellipsis;
-      /* Hiển thị dấu ba chấm khi tràn */
     }
-
-    /* Hiệu ứng hover cho liên kết */
     .catmega-link:hover {
-      background: rgba(193, 18, 107, .08);
-      /* Màu nền khi hover */
-      color: #c1126b;
-      /* Màu chữ khi hover */
-    }
-
-    /* Responsive cho màn hình nhỏ hơn 991.98px */
-    @media (max-width:991.98px) {
-      .dropdown-menu.catmega {
-        width: 100vw;
-        /* Chiều rộng full viewport */
-        left: 50% !important;
-        /* Căn giữa */
-        transform: translateX(-50%) !important;
-        /* Dịch chuyển để căn giữa */
-        border-radius: 0 0 14px 14px;
-        /* Bo góc chỉ ở dưới */
-      }
-
-      .catmega-inner {
-        padding: 12px 14px;
-        /* Giảm khoảng cách bên trong */
-      }
-
-      .catmega-grid {
-        grid-template-columns: repeat(2, 1fr);
-        /* Giảm xuống 2 cột */
-        gap: 12px 16px;
-        /* Giảm khoảng cách */
-      }
-
-      .catmega-col {
-        border-right: 0;
-        /* Loại bỏ viền phân cách */
-      }
+      background: rgba(162, 14, 56, .08);
+      color: var(--brand);
     }
 
     /* ===== Search overlay ===== */
@@ -371,92 +240,167 @@
       z-index: 1055;
       opacity: 0;
       visibility: hidden;
-      transition: opacity .28s ease;
+      transition: opacity 0.25s ease;
     }
-
     .search-overlay.active {
       opacity: 1;
       visibility: visible;
     }
-
     .search-overlay.search-overlay-dark {
       background: rgba(0, 0, 0, .85);
       backdrop-filter: blur(5px);
     }
-
     .btn-close-search {
       position: absolute;
-      top: 2rem;
-      right: 2rem;
-      font-size: 3rem;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 2.5rem;
       color: #333;
       background: none;
       border: 0;
       line-height: 1;
     }
-
     .search-overlay.search-overlay-dark .btn-close-search {
       color: #fff;
     }
-
     .form-control-overlay {
-      width: min(92vw, 600px);
+      width: min(90vw, 550px);
       background: transparent;
       border: 0;
       border-bottom: 2px solid #ccc;
-      font-size: 2.25rem;
+      font-size: 2rem;
       text-align: center;
-      padding: 1rem 0;
+      padding: 0.8rem 0;
       outline: none;
       box-shadow: none;
       color: #333;
     }
-
     .search-overlay.search-overlay-dark .form-control-overlay {
       color: #fff;
       border-bottom-color: rgba(255, 255, 255, .55);
     }
-
     .search-overlay.search-overlay-dark .form-control-overlay:focus {
       border-bottom-color: #ffc107;
     }
-
     .form-text-overlay {
       text-align: center;
       color: #6c757d;
+      font-size: 0.9rem;
     }
-
     .search-overlay.search-overlay-dark .form-text-overlay,
     .search-overlay.search-overlay-dark .form-text-overlay a {
       color: #fff;
     }
 
-    /* ===== Nhỏ gọn thêm ===== */
+    /* ===== Product Card ===== */
     .product-card {
-      transition: transform .2s ease, box-shadow .2s ease;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-
     .product-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .1) !important;
     }
 
     @keyframes pop {
-      0% {
-        transform: scale(1)
-      }
-
-      50% {
-        transform: scale(1.25)
-      }
-
-      100% {
-        transform: scale(1)
-      }
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
     }
 
     .no-scroll {
       overflow: hidden;
+    }
+
+    /* ===== Responsive Design ===== */
+    @media (max-width: 991px) {
+      .dropdown-menu.catmega {
+        width: 100vw;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 8px 24px rgba(2, 6, 23, .1);
+      }
+      .catmega-inner {
+        padding: 10px 12px;
+      }
+      .catmega-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px 16px;
+      }
+      .catmega-col {
+        border-right: 0;
+      }
+      .form-control-overlay {
+        width: min(90vw, 500px);
+        font-size: 1.8rem;
+        padding: 0.7rem 0;
+      }
+      .btn-close-search {
+        top: 1.2rem;
+        right: 1.2rem;
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .dropdown-menu.catmega {
+        top: calc(100% + 6px);
+      }
+      .catmega-inner {
+        padding: 8px 10px;
+      }
+      .catmega-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .form-control-overlay {
+        width: min(88vw, 450px);
+        font-size: 1.6rem;
+        padding: 0.6rem 0;
+      }
+      .form-text-overlay {
+        font-size: 0.85rem;
+      }
+      .btn-brand {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+      }
+      .btn-outline-brand {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 575px) {
+      .dropdown-menu.catmega {
+        top: calc(100% + 4px);
+        border-radius: 0 0 10px 10px;
+      }
+      .catmega-inner {
+        padding: 6px 8px;
+      }
+      .catmega-link {
+        padding: 4px 6px;
+        font-size: 0.9rem;
+      }
+      .form-control-overlay {
+        width: min(85vw, 400px);
+        font-size: 1.4rem;
+        padding: 0.5rem 0;
+      }
+      .btn-close-search {
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.8rem;
+      }
+      .btn-brand {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.85rem;
+      }
+      .btn-outline-brand {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+      }
     }
   </style>
 
@@ -496,7 +440,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // AOS
-      if (window.AOS) AOS.init({ duration: 800, once: true });
+      if (window.AOS) AOS.init({ duration: 600, once: true });
 
       // Search overlay
       (function () {
@@ -504,22 +448,31 @@
         if (!overlay) return;
         const input = overlay.querySelector('input[name="q"]');
         const btnClose = document.getElementById('search-close-btn');
-        const open = () => { overlay.classList.add('active'); document.body.classList.add('no-scroll'); setTimeout(() => input?.focus(), 120); overlay.setAttribute('aria-hidden', 'false'); };
-        const close = () => { overlay.classList.remove('active'); document.body.classList.remove('no-scroll'); overlay.setAttribute('aria-hidden', 'true'); };
+        const open = () => { 
+          overlay.classList.add('active'); 
+          document.body.classList.add('no-scroll'); 
+          setTimeout(() => input?.focus(), 100); 
+          overlay.setAttribute('aria-hidden', 'false'); 
+        };
+        const close = () => { 
+          overlay.classList.remove('active'); 
+          document.body.classList.remove('no-scroll'); 
+          overlay.setAttribute('aria-hidden', 'true'); 
+        };
         document.querySelectorAll('.search-toggle-btn').forEach(b => b.addEventListener('click', e => { e.preventDefault(); open(); }));
         btnClose?.addEventListener('click', close);
         overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('active')) close(); });
       })();
 
-      // Wishlist toggle (giữ API)
+      // Wishlist toggle
       document.body.addEventListener('click', async (e) => {
         const btn = e.target.closest('.toggle-wishlist-btn, .wishlist-icon-component');
         if (!btn) return;
         e.preventDefault();
         const productId = btn.dataset.productId;
         const icon = btn.querySelector('i');
-        if (icon) { icon.style.animation = 'pop .4s ease'; setTimeout(() => icon.style.animation = '', 400); }
+        if (icon) { icon.style.animation = 'pop 0.4s ease'; setTimeout(() => icon.style.animation = '', 400); }
 
         try {
           const res = await fetch('{{ route("wishlist.toggle") }}', {
@@ -548,10 +501,9 @@
               badge.style.display = next > 0 ? 'inline-block' : 'none';
             }
 
-            // Nếu ở trang danh sách yêu thích và vừa bỏ thích thì ẩn card
             if (window.location.pathname.includes('/danh-sach-yeu-thich') && !isAdded) {
               const card = btn.closest('.product-card-wrapper, .col');
-              if (card) { card.style.transition = 'opacity .3s ease'; card.style.opacity = 0; setTimeout(() => card.remove(), 300); }
+              if (card) { card.style.transition = 'opacity 0.3s ease'; card.style.opacity = 0; setTimeout(() => card.remove(), 300); }
             }
           } else if (data.redirect) {
             window.location.href = data.redirect;
@@ -559,7 +511,7 @@
         } catch (err) { if (err?.message !== 'Failed to fetch') console.error(err); }
       });
 
-      // GHN address selects (nếu tồn tại)
+      // GHN address selects
       (function () {
         const provinceSelect = document.getElementById('province_id');
         const districtSelect = document.getElementById('district_id');
@@ -626,8 +578,7 @@
 
         loadProvinces();
       })();
-
-    }); // DOMContentLoaded
+    });
   </script>
 
   @stack('scripts-page')

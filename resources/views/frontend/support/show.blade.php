@@ -42,10 +42,10 @@
                 'closed' => 'muted',
             ];
             $labelMap = [
-                'open' => 'đang mở',
-                'in_progress' => 'đang xử lý',
-                'resolved' => 'đã giải quyết',
-                'closed' => 'đã đóng'
+                'open' => 'Đang mở',
+                'in_progress' => 'Đang xử lý',
+                'resolved' => 'Đã giải quyết',
+                'closed' => 'Đã đóng'
             ];
             $locked = in_array($ticket->status, ['resolved','closed'], true);
         @endphp
@@ -59,7 +59,7 @@
                             <h5 class="mb-0 fw-bold text-brand">Vé #{{ $ticket->id }} — {{ $ticket->subject }}</h5>
                             <small class="text-muted">Tạo lúc {{ $ticket->created_at->format('d/m/Y H:i') }}</small>
                         </div>
-                        <span class="badge badge-soft-brand bg-{{ $map[$ticket->status] ?? 'secondary' }}">{{ $labelMap[$ticket->status] ?? $ticket->status }}</span>
+                        <span class="badge badge-soft-{{ $map[$ticket->status] ?? 'secondary' }}">{{ $labelMap[$ticket->status] ?? $ticket->status }}</span>
                     </div>
                     <div class="card-body">
                         <p class="mb-0" style="white-space:pre-wrap">{{ $ticket->message }}</p>
@@ -150,7 +150,7 @@
                     <div class="card card-glass">
                         <div class="card-body text-center">
                             <div class="mb-2">
-                                <span class="badge badge-soft-brand bg-{{ $map[$ticket->status] ?? 'secondary' }}">{{ $labelMap[$ticket->status] ?? $ticket->status }}</span>
+                                <span class="badge badge-soft-{{ $map[$ticket->status] ?? 'secondary' }}">{{ $labelMap[$ticket->status] ?? $ticket->status }}</span>
                             </div>
                             <p class="mb-3">Vé này đã {{ $labelMap[$ticket->status] ?? 'khoá' }} nên không thể gửi phản hồi.</p>
                             <a href="{{ route('support.create') }}" class="btn btn-brand">
@@ -187,106 +187,265 @@
 
 @push('styles')
     <style>
-        .support-banner{
-            height:260px;
-            background-image:linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
+        /* =================== Banner =================== */
+        .support-banner {
+            height: 260px;
+            background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
                 url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop');
-            background-size:cover;background-position:center;
+            background-size: cover;
+            background-position: center;
         }
-        .support-banner .breadcrumb-item a{color:#f8f9fa;}
-        .support-banner .breadcrumb-item.active{color:#adb5bd;}
-        .form-control-modern, .form-select.form-control-modern{
-            border-radius: .8rem;
+        .support-banner .breadcrumb-item a {
+            color: #f8f9fa;
+            text-decoration: none;
+        }
+        .support-banner .breadcrumb-item a:hover {
+            color: var(--brand);
+        }
+        .support-banner .breadcrumb-item.active {
+            color: #adb5bd;
+        }
+
+        /* =================== Form and Button Styles =================== */
+        .form-control-modern, .form-select.form-control-modern {
+            border-radius: 0.8rem;
             border: 1px solid #e9ecef;
             background: #fff;
         }
-        .form-control-modern:focus, .form-select.form-control-modern:focus{
-            border-color:var(--brand);
-            box-shadow: 0 0 0 .2rem rgba(var(--brand-rgb),.15);
+        .form-control-modern:focus, .form-select.form-control-modern:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 0.2rem var(--ring);
         }
+        .btn-brand {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .btn-brand:hover {
+            background-color: var(--brand-600);
+            border-color: var(--brand-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .btn-outline-brand {
+            color: var(--brand);
+            border-color: var(--brand);
+            padding: 0.45rem 0.9rem;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .btn-outline-brand:hover {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+        }
+        .text-brand {
+            color: var(--brand);
+        }
+
+        /* =================== Badges =================== */
+        .badge-soft-info {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+        .badge-soft-brand {
+            background: rgba(162, 14, 56, 0.1);
+            color: var(--brand);
+        }
+        .badge-soft-success {
+            background: rgba(25, 135, 84, 0.1);
+            color: #198754;
+        }
+        .badge-soft-muted {
+            background: rgba(125, 114, 108, 0.1);
+            color: var(--muted);
+        }
+        .badge-soft-secondary {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        /* =================== Card Styles =================== */
         .card-glass {
-            background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
-            border: 1px solid rgba(15, 23, 42, .04);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
-        .btn-brand{ background-color:var(--brand); border-color:var(--brand); color:#fff; }
-        .btn-brand:hover{ background-color:var(--brand-600); border-color:var(--brand-600); }
-        .btn-outline-brand{ color:var(--brand); border-color:var(--brand); }
-        .btn-outline-brand:hover{ background-color:var(--brand); border-color:var(--brand); color:#fff; }
-        .text-brand{ color:var(--brand); }
-        .badge-soft-brand.bg-info {
-            background-color: #0dcaf0 !important;
-            color: #000;
+        .card-glass:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
-        .badge-soft-brand.bg-brand {
-            background-color: var(--brand) !important;
-            color: #fff;
+
+        /* =================== Modal Preview =================== */
+        .preview-modal .modal-dialog {
+            max-width: 960px;
         }
-        .badge-soft-brand.bg-success {
-            background-color: #198754 !important;
-            color: #fff;
+        .preview-frame {
+            width: 100%;
+            height: 70vh;
+            border: 0;
         }
-        .badge-soft-brand.bg-muted {
-            background-color: #6c757d !important;
-            color: #fff;
+        .preview-image {
+            max-width: 100%;
+            max-height: 70vh;
+            display: block;
+            margin: 0 auto;
         }
-        
-        .preview-modal .modal-dialog{max-width:960px;}
-        .preview-frame{width:100%;height:70vh;border:0;}
-        .preview-image{max-width:100%;max-height:70vh;display:block;margin:0 auto;}
+
+        /* =================== Links =================== */
+        a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--brand-600);
+        }
+
+        /* =================== Responsive Design =================== */
+        @media (max-width: 991px) {
+            .support-banner {
+                height: 220px;
+            }
+            .support-banner .display-5 {
+                font-size: 2rem;
+            }
+            .row.g-4 {
+                gap: 1rem;
+            }
+            .col-lg-8, .col-lg-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .preview-modal .modal-dialog {
+                max-width: 90vw;
+            }
+            .preview-frame, .preview-image {
+                max-height: 60vh;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .support-banner {
+                height: 180px;
+            }
+            .support-banner .display-5 {
+                font-size: 1.8rem;
+            }
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+            .btn-brand {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .btn-outline-brand {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .form-control-modern, .form-select.form-control-modern {
+                font-size: 0.9rem;
+            }
+            .preview-frame, .preview-image {
+                max-height: 50vh;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .support-banner {
+                height: 160px;
+            }
+            .support-banner .display-5 {
+                font-size: 1.6rem;
+            }
+            .support-banner .breadcrumb {
+                font-size: 0.85rem;
+            }
+            .card-glass {
+                padding: 0.75rem;
+            }
+            .card-body {
+                padding: 0.75rem;
+            }
+            .btn-brand {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .btn-outline-brand {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .form-control-modern, .form-select.form-control-modern {
+                font-size: 0.85rem;
+            }
+            .preview-modal .modal-dialog {
+                max-width: 85vw;
+            }
+            .preview-frame, .preview-image {
+                max-height: 40vh;
+            }
+        }
     </style>
 @endpush
 
 @push('scripts-page')
 <script>
     (function(){
-    const modalEl=document.getElementById('previewModal');
-    const previewContainer=document.getElementById('previewContainer');
-    const previewDownload=document.getElementById('previewDownload');
+        const modalEl = document.getElementById('previewModal');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewDownload = document.getElementById('previewDownload');
 
-    const IMG_EXTS=['jpg','jpeg','png','webp','gif','bmp'];
-    const PDF_EXTS=['pdf'];
-    const MS_EXTS=['doc','docx','xls','xlsx','ppt','pptx'];
+        const IMG_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
+        const PDF_EXTS = ['pdf'];
+        const MS_EXTS = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
 
-    function guessExt(url){
-    if(!url) return '';
-    const clean=url.split('?')[0];
-    const m=clean.match(/\.([a-z0-9]+)$/i);
-    return m?m[1].toLowerCase():'';
-    }
-    function render(url,ext){
-    previewContainer.innerHTML='';
-    previewDownload.removeAttribute('href');
-    if(!url){
-    previewContainer.innerHTML='<div class="p-3 text-center text-muted">Không có tệp đính kèm.</div>';return;
-    }
-    ext=(ext||guessExt(url)).toLowerCase();
-    let html='';
-    if(IMG_EXTS.includes(ext)){
-    html=`<img class="preview-image" src="${url}" alt="preview"
-    onerror="this.parentNode.innerHTML='<div class=&quot;p-3 text-center text-muted&quot;>Không thể tải ảnh.</div>'">`;
-    }else if(PDF_EXTS.includes(ext)){
-    html=`<iframe class="preview-frame" src="${url}#toolbar=1"></iframe>`;
-    }else if(MS_EXTS.includes(ext)){
-    const viewer='https://view.officeapps.live.com/op/embed.aspx?src='+encodeURIComponent(url);
-    html=`<iframe class="preview-frame" src="${viewer}"></iframe>`;
-    }else{
-    html=`<div class="p-4 text-center">
-    <div class="display-6 mb-3"><i class="bi bi-file-earmark-text"></i></div>
-    <p class="mb-2">Định dạng này chưa hỗ trợ xem trước.</p>
-    <p class="text-muted small mb-0">Vui lòng bấm "Tải về" để mở bằng ứng dụng trên máy.</p>
-    </div>`;
-    }
-    previewContainer.innerHTML=html;
-    previewDownload.setAttribute('href',url);
-    }
-    modalEl.addEventListener('show.bs.modal',(e)=>{
-    const btn=e.relatedTarget;
-    const url=btn?.getAttribute('data-preview-url')||'';
-    const ext=btn?.getAttribute('data-preview-ext')||'';
-    render(url,ext);
-    });
+        function guessExt(url) {
+            if (!url) return '';
+            const clean = url.split('?')[0];
+            const m = clean.match(/\.([a-z0-9]+)$/i);
+            return m ? m[1].toLowerCase() : '';
+        }
+
+        function render(url, ext) {
+            previewContainer.innerHTML = '';
+            previewDownload.removeAttribute('href');
+            if (!url) {
+                previewContainer.innerHTML = '<div class="p-3 text-center text-muted">Không có tệp đính kèm.</div>';
+                return;
+            }
+            ext = (ext || guessExt(url)).toLowerCase();
+            let html = '';
+            if (IMG_EXTS.includes(ext)) {
+                html = `<img class="preview-image" src="${url}" alt="preview" 
+                        onerror="this.parentNode.innerHTML='<div class=&quot;p-3 text-center text-muted&quot;>Không thể tải ảnh.</div>'">`;
+            } else if (PDF_EXTS.includes(ext)) {
+                html = `<iframe class="preview-frame" src="${url}#toolbar=1"></iframe>`;
+            } else if (MS_EXTS.includes(ext)) {
+                const viewer = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url);
+                html = `<iframe class="preview-frame" src="${viewer}"></iframe>`;
+            } else {
+                html = `<div class="p-4 text-center">
+                        <div class="display-6 mb-3"><i class="bi bi-file-earmark-text"></i></div>
+                        <p class="mb-2">Định dạng này chưa hỗ trợ xem trước.</p>
+                        <p class="text-muted small mb-0">Vui lòng bấm "Tải về" để mở bằng ứng dụng trên máy.</p>
+                        </div>`;
+            }
+            previewContainer.innerHTML = html;
+            previewDownload.setAttribute('href', url);
+        }
+
+        modalEl.addEventListener('show.bs.modal', (e) => {
+            const btn = e.relatedTarget;
+            const url = btn?.getAttribute('data-preview-url') || '';
+            const ext = btn?.getAttribute('data-preview-ext') || '';
+            render(url, ext);
+        });
     })();
 </script>
 @endpush

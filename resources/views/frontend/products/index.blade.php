@@ -28,7 +28,7 @@
             {{-- ========= SIDEBAR LỌC ========= --}}
             <aside class="col-lg-3">
                 <div class="filter-sidebar-wrapper position-sticky top-sticky">
-                    <div class="card-glass" data-aos="fade-right">
+                    <div class="card card-glass rounded-4" data-aos="fade-right">
                         <div class="p-3 p-lg-4">
                             @include('frontend.components.filter-sidebar', [
                                 'categories' => $categories,
@@ -42,8 +42,8 @@
 
             {{-- ========= DANH SÁCH SẢN PHẨM ========= --}}
             <section class="col-lg-9">
-               {{-- Thanh công cụ --}}
-                <div class="card-glass mb-4" data-aos="fade-up">
+                {{-- Thanh công cụ --}}
+                <div class="card card-glass mb-4 rounded-4" data-aos="fade-up">
                     <div class="card-body d-flex flex-wrap gap-3 justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-2">
                             <button class="btn btn-outline-brand d-lg-none rounded-pill px-3"
@@ -53,12 +53,12 @@
                                     aria-controls="filterOffcanvas">
                                 <i class="bi bi-funnel-fill me-1"></i>Lọc
                             </button>
-                            <span class="text-secondary small">
+                            <span class="text-muted small">
                                 Hiển thị <strong>{{ $products->firstItem() }}</strong>–<strong>{{ $products->lastItem() }}</strong>
                                 trong <strong>{{ $products->total() }}</strong> sản phẩm
                             </span>
                             @if(request('on_sale'))
-                                <span class="badge badge-soft-brand ms-2">Đang khuyến mãi</span>
+                                <span class="badge badge-soft-brand">Đang khuyến mãi</span>
                             @endif
                         </div>
                         <form action="{{ url()->current() }}" method="GET" id="sort-form" class="d-flex align-items-center gap-2">
@@ -95,7 +95,9 @@
                     <div class="row g-3 g-md-4" data-aos="fade-up" data-aos-delay="75">
                         @foreach($products as $product)
                             <div class="col-6 col-md-6 col-lg-4">
-                                @include('frontend.components.product-card', ['product' => $product])
+                                <div class="product-hover-wrapper h-100">
+                                    @include('frontend.components.product-card', ['product' => $product])
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -103,11 +105,11 @@
                         {{ $products->withQueryString()->links() }}
                     </div>
                 @else
-                    <div class="card-glass text-center py-5 empty-product-list" data-aos="fade-up">
+                    <div class="card card-glass text-center py-5 rounded-4 empty-product-list" data-aos="fade-up">
                         <div class="card-body">
-                            <i class="bi bi-search-heart" style="font-size: 3.5rem; color: var(--muted);"></i>
+                            <i class="bi bi-search-heart" style="font-size: 3.5rem;"></i>
                             <h5 class="mt-3">Không tìm thấy sản phẩm nào</h5>
-                            <p class="text-secondary">Vui lòng thử lại với các tiêu chí lọc khác.</p>
+                            <p class="text-muted">Vui lòng thử lại với các tiêu chí lọc khác.</p>
                             <a href="{{ route('products.index') }}" class="btn btn-brand rounded-pill px-3">Xóa tất cả bộ lọc</a>
                         </div>
                     </div>
@@ -135,91 +137,95 @@
 
 @push('styles')
 <style>
-/* CSS cục bộ để ghi đè các style của Bootstrap và đồng bộ màu sắc */
-:root {
-  --brand-rgb: 162, 14, 56;
-}
-
-/* Đồng bộ màu cho các thành phần form */
-.form-check-input:checked {
-  background-color: var(--brand);
-  border-color: var(--brand);
-}
-.form-check-input:focus {
-  border-color: rgba(var(--brand-rgb), .5);
-  box-shadow: 0 0 0 0.25rem rgba(var(--brand-rgb), .25);
-}
-.form-range::-webkit-slider-thumb {
-  background: var(--brand);
-  border: 1px solid var(--brand-700);
-  box-shadow: 0 0 0 4px var(--ring);
-}
-.form-range::-moz-range-thumb {
-  background: var(--brand);
-  border: 1px solid var(--brand-700);
-  box-shadow: 0 0 0 4px var(--ring);
-}
-.form-range::-webkit-slider-runnable-track {
-  background: var(--sand);
-}
-.form-range::-moz-range-track {
-  background: var(--sand);
-}
-.form-range:focus::-webkit-slider-thumb {
-  box-shadow: 0 0 0 4px var(--ring);
-}
-.form-range:focus::-moz-range-thumb {
-  box-shadow: 0 0 0 4px var(--ring);
-}
-
-/* FIX: Màu gradient của banner và breadcrumb */
-.product-hero .hero-overlay{
-    position:absolute; inset:0;
-    background: radial-gradient(60% 60% at 50% 0%, rgba(var(--brand-rgb),.2) 0%, rgba(var(--brand-rgb),0) 60%);
-    pointer-events:none;
-}
-.product-breadcrumb .breadcrumb-item a:hover{
-  color: var(--sand);
-}
-
-/* Styling cũ */
-.product-hero{
+/* =================== Banner =================== */
+.product-hero {
     position: relative;
     min-height: 320px;
-    background-image:
-        linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.35)),
+    background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
         url('https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?q=80&w=1600&auto=format&fit=crop');
     background-size: cover;
     background-position: center;
     border-radius: 0 0 32px 32px;
     overflow: hidden;
 }
-.product-breadcrumb{
+.product-hero .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(60% 60% at 50% 0%, rgba(var(--brand-rgb), 0.2) 0%, rgba(var(--brand-rgb), 0) 60%);
+    pointer-events: none;
+}
+.product-breadcrumb {
     --bs-breadcrumb-divider: '›';
 }
-.product-breadcrumb .breadcrumb-item a{
-    color:#f8f9fa; text-decoration:none;
-    transition: color .2s ease;
+.product-breadcrumb .breadcrumb-item a {
+    color: var(--sand);
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
-.product-breadcrumb .breadcrumb-item.active{ color:#e9ecef; }
-.top-sticky{ top: 96px; }
-.filter-sidebar-wrapper{ display:block; }
-@media (max-width: 991.98px){
-    .filter-sidebar-wrapper{ display:none; }
+.product-breadcrumb .breadcrumb-item a:hover {
+    color: var(--brand);
 }
-.sort-select{
-    width: 190px;
-    padding-left: .9rem;
-    padding-right: 2rem;
-    background-color: var(--card);
-    border:1px solid rgba(10,37,64,.12);
+.product-breadcrumb .breadcrumb-item.active {
+    color: var(--muted);
 }
-.sort-select:focus{ box-shadow:none; border-color: var(--brand); }
-.empty-product-list{ background: transparent; }
-.card.rounded-4{ border-radius: 1rem; }
-.btn.rounded-pill{ border-radius: 999px; }
 
-/* FIX: Căn chỉnh checkbox và label */
+/* =================== Card and Product Wrapper =================== */
+.card-glass {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(15, 23, 42, 0.04);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-glass:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+.rounded-4 {
+    border-radius: 1rem !important;
+}
+.product-hover-wrapper {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.product-hover-wrapper:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+.empty-product-list {
+    background: transparent;
+}
+
+/* =================== Form and Button Styles =================== */
+.form-check-input:checked {
+    background-color: var(--brand);
+    border-color: var(--brand);
+}
+.form-check-input:focus {
+    border-color: rgba(var(--brand-rgb), 0.5);
+    box-shadow: 0 0 0 0.2rem var(--ring);
+}
+.form-range::-webkit-slider-thumb {
+    background: var(--brand);
+    border: 1px solid var(--brand-600);
+    box-shadow: 0 0 0 4px var(--ring);
+}
+.form-range::-moz-range-thumb {
+    background: var(--brand);
+    border: 1px solid var(--brand-600);
+    box-shadow: 0 0 0 4px var(--ring);
+}
+.form-range::-webkit-slider-runnable-track {
+    background: var(--sand);
+}
+.form-range::-moz-range-track {
+    background: var(--sand);
+}
+.form-range:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px var(--ring);
+}
+.form-range:focus::-moz-range-thumb {
+    box-shadow: 0 0 0 4px var(--ring);
+}
 .form-check {
     display: flex;
     align-items: center;
@@ -233,6 +239,179 @@
 }
 .form-check-label:hover {
     color: var(--brand);
+}
+.form-select.sort-select {
+    width: 190px;
+    padding-left: 0.9rem;
+    padding-right: 2rem;
+    background-color: var(--card);
+    border: 1px solid rgba(10, 37, 64, 0.12);
+}
+.form-select.sort-select:focus {
+    box-shadow: 0 0 0 0.2rem var(--ring);
+    border-color: var(--brand);
+}
+.btn-brand {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn-brand:hover {
+    background-color: var(--brand-600);
+    border-color: var(--brand-600);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.btn-outline-brand {
+    color: var(--brand);
+    border-color: var(--brand);
+    padding: 0.45rem 0.9rem;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.btn-outline-brand:hover {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+}
+.text-muted {
+    color: var(--muted);
+}
+.badge-soft-brand {
+    background: rgba(var(--brand-rgb), 0.1);
+    color: var(--brand);
+}
+
+/* =================== Links =================== */
+a {
+    color: var(--brand);
+    text-decoration: none;
+}
+a:hover {
+    color: var(--brand-600);
+}
+
+/* =================== Sidebar and Offcanvas =================== */
+.top-sticky {
+    top: 96px;
+}
+.filter-sidebar-wrapper {
+    display: block;
+}
+@media (max-width: 991.98px) {
+    .filter-sidebar-wrapper {
+        display: none;
+    }
+}
+.offcanvas-start {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+}
+
+/* =================== Responsive Design =================== */
+@media (max-width: 991px) {
+    .product-hero {
+        min-height: 280px;
+    }
+    .product-hero .display-5 {
+        font-size: 2rem;
+    }
+    .product-hero .lead {
+        font-size: 1rem;
+    }
+    .col-lg-3, .col-lg-9 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .form-select.sort-select {
+        width: 160px;
+    }
+    .card {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .product-hero {
+        min-height: 240px;
+        border-radius: 0 0 24px 24px;
+    }
+    .product-hero .display-5 {
+        font-size: 1.8rem;
+    }
+    .product-hero .lead {
+        font-size: 0.9rem;
+    }
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .card {
+        padding: 1rem;
+    }
+    .card-body {
+        padding: 1rem;
+    }
+    .btn-brand {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    .btn-outline-brand {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.85rem;
+    }
+    .form-select.sort-select {
+        width: 140px;
+        font-size: 0.9rem;
+    }
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    .bi-search-heart {
+        font-size: 3rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .product-hero {
+        min-height: 200px;
+        border-radius: 0 0 16px 16px;
+    }
+    .product-hero .display-5 {
+        font-size: 1.6rem;
+    }
+    .product-hero .lead {
+        font-size: 0.85rem;
+    }
+    .product-breadcrumb {
+        font-size: 0.85rem;
+    }
+    .card {
+        padding: 0.75rem;
+    }
+    .card-body {
+        padding: 0.75rem;
+    }
+    .btn-brand {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.85rem;
+    }
+    .btn-outline-brand {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    .form-select.sort-select {
+        width: 120px;
+        font-size: 0.85rem;
+    }
+    .col-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .bi-search-heart {
+        font-size: 2.5rem;
+    }
 }
 </style>
 @endpush

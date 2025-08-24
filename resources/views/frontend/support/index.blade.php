@@ -51,8 +51,7 @@
                     <div class="card card-glass h-100">
                         <div class="card-body d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                {{-- Sửa lỗi: Sử dụng màu tùy chỉnh --}}
-                                <span class="badge badge-soft-brand bg-{{ $map[$t->status] ?? 'secondary' }}">{{ $status_text[$t->status] ?? $t->status }}</span>
+                                <span class="badge badge-soft-{{ $map[$t->status] ?? 'secondary' }}">{{ $status_text[$t->status] ?? $t->status }}</span>
                                 <small class="text-muted">{{ $t->updated_at->diffForHumans() }}</small>
                             </div>
                             <h6 class="fw-semibold mb-2 text-truncate text-brand" title="{{ $t->subject }}">
@@ -73,7 +72,7 @@
                 <div class="col-12" data-aos="fade-up">
                     <div class="card card-glass text-center text-muted py-5 rounded-4">
                         <div class="card-body">
-                            <i class="bi bi-chat-dots" style="font-size: 3rem; color: #ccc;"></i>
+                            <i class="bi bi-chat-dots" style="font-size: 3rem;"></i>
                             <p class="mt-3">Chưa có yêu cầu hỗ trợ nào.</p>
                             <a href="{{ route('support.create') }}" class="btn btn-brand rounded-pill mt-3">Tạo yêu cầu đầu tiên</a>
                         </div>
@@ -90,44 +89,188 @@
 
 @push('styles')
     <style>
-        .support-banner{
+        /* =================== Banner =================== */
+        .support-banner {
             height: 260px;
-            background-image: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
+            background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
                 url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop');
-            background-size: cover; background-position: center;
+            background-size: cover;
+            background-position: center;
         }
-        .support-banner .breadcrumb-item a{ color:#f8f9fa; }
-        .support-banner .breadcrumb-item.active{ color:#adb5bd; }
+        .support-banner .breadcrumb-item a {
+            color: #f8f9fa;
+            text-decoration: none;
+        }
+        .support-banner .breadcrumb-item a:hover {
+            color: var(--brand);
+        }
+        .support-banner .breadcrumb-item.active {
+            color: #adb5bd;
+        }
 
+        /* =================== Form and Button Styles =================== */
         .form-control:focus, .form-select:focus {
             border-color: var(--brand);
-            box-shadow: 0 0 0 0.25rem rgba(var(--brand-rgb, 162,14,56),.25);
+            box-shadow: 0 0 0 0.2rem var(--ring);
         }
-        .btn-brand{ background-color:var(--brand); border-color:var(--brand); }
-        .btn-brand:hover{ background-color:var(--brand-600); border-color:var(--brand-600); }
-        .btn-outline-brand{ color:var(--brand); border-color:var(--brand); }
-        .btn-outline-brand:hover{ background-color:var(--brand); border-color:var(--brand); color:#fff; }
-        .text-brand{ color:var(--brand); }
-        .badge.bg-primary{ background-color:#0d6efd !important; }
-        .badge.bg-warning{ background-color:#ffc107 !important; }
-        .badge.bg-success{ background-color:#198754 !important; }
+        .btn-brand {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .btn-brand:hover {
+            background-color: var(--brand-600);
+            border-color: var(--brand-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .btn-outline-brand {
+            color: var(--brand);
+            border-color: var(--brand);
+            padding: 0.45rem 0.9rem;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .btn-outline-brand:hover {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+        }
+        .text-brand {
+            color: var(--brand);
+        }
 
-        .card-glass {
-            background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
-            border: 1px solid rgba(15, 23, 42, .04);
+        /* =================== Badges =================== */
+        .badge-soft-info {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
         }
-        .rounded-4{ border-radius:1rem !important; }
-        a { color:var(--brand); }
-        a:hover { color:var(--brand-600); }
+        .badge-soft-brand {
+            background: rgba(162, 14, 56, 0.1);
+            color: var(--brand);
+        }
+        .badge-soft-success {
+            background: rgba(25, 135, 84, 0.1);
+            color: #198754;
+        }
+        .badge-soft-muted {
+            background: rgba(125, 114, 108, 0.1);
+            color: var(--muted);
+        }
+        .badge-soft-secondary {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        /* =================== Card Styles =================== */
+        .card-glass {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card-glass:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+        .rounded-4 {
+            border-radius: 1rem !important;
+        }
+
+        /* =================== Links =================== */
+        a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--brand-600);
+        }
+
+        /* =================== Responsive Design =================== */
+        @media (max-width: 991px) {
+            .support-banner {
+                height: 220px;
+            }
+            .support-banner .display-5 {
+                font-size: 2rem;
+            }
+            .row.g-4 {
+                gap: 1rem;
+            }
+            .col-md-6 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .support-banner {
+                height: 180px;
+            }
+            .support-banner .display-5 {
+                font-size: 1.8rem;
+            }
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            .btn-brand {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .btn-outline-brand {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+            .card-glass i {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .support-banner {
+                height: 160px;
+            }
+            .support-banner .display-5 {
+                font-size: 1.6rem;
+            }
+            .support-banner .breadcrumb {
+                font-size: 0.85rem;
+            }
+            .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .btn-brand {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .btn-outline-brand {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .card-glass {
+                padding: 0.75rem;
+            }
+            .card-glass i {
+                font-size: 2rem;
+            }
+            .card-body {
+                padding: 0.75rem;
+            }
+        }
     </style>
 @endpush
 
 @push('scripts-page')
     <script>
         if (typeof AOS !== 'undefined') {
-            AOS.init({ once:true, duration:600, offset:80 });
+            AOS.init({ once: true, duration: 600, offset: 80 });
         }
     </script>
 @endpush

@@ -4,7 +4,7 @@
 
 @section('content')
     {{-- Banner --}}
-    <div class="profile-banner d-flex align-items-center justify-content-center text-white mb-5">
+    <div class="support-banner d-flex align-items-center justify-content-center text-white mb-5">
         <div class="container text-center" data-aos="fade-in">
             <h1 class="display-4">Tài Khoản Của Tôi</h1>
             <nav aria-label="breadcrumb">
@@ -66,7 +66,7 @@
                     <div class="tab-pane fade show active" id="profile-info">
                         <div class="card card-glass rounded-4">
                             <div class="card-header bg-white py-3">
-                                <h5 class="mb-0">Chỉnh sửa thông tin</h5>
+                                <h5 class="mb-0 text-brand">Chỉnh sửa thông tin</h5>
                             </div>
                             <div class="card-body p-4">
                                 <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
@@ -74,7 +74,7 @@
                                     <div class="row">
                                         <div class="col-md-4 text-center mb-4 mb-md-0">
                                             <img src="{{ $avatar_url }}" alt="Avatar" id="avatar-preview" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-                                            <input type="file" class="form-control" name="avatar" id="avatar" onchange="document.getElementById('avatar-preview').src = window.URL.createObjectURL(this.files[0])">
+                                            <input type="file" class="form-control form-control-modern" name="avatar" id="avatar" onchange="document.getElementById('avatar-preview').src = window.URL.createObjectURL(this.files[0])">
                                         </div>
                                         <div class="col-md-8">
                                             <div class="mb-3">
@@ -100,7 +100,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <h6 class="mt-3">Địa chỉ mặc định</h6>
+                                            <h6 class="mt-3 text-brand">Địa chỉ mặc định</h6>
                                             <hr class="mt-1">
                                             <div class="row">
                                                 <div class="col-md-4 mb-3">
@@ -123,39 +123,41 @@
                                                 <label for="address" class="form-label">Địa chỉ cụ thể</label>
                                                 <input type="text" class="form-control form-control-modern" id="address" name="address" value="{{ old('address', optional($user->profile)->address) }}" placeholder="Ví dụ: 123 Nguyễn Văn Linh">
                                             </div>
-                                            <button type="submit" class="btn btn-brand"><i class="bi bi-save me-2"></i>Lưu thay đổi</button>
+                                            <button type="submit" class="btn btn-brand"><i class="bi bi-save me-2"></i>Lưu thay đổi</button喧
+
+System: đổi</button>
                                         </div>
                                     </div>
                                 </form>
                             </div>
                         </div>
-                    </div>
 
-                    {{-- Tab Đổi Mật Khẩu --}}
-                    <div class="tab-pane fade" id="change-password">
-                        <div class="card card-glass rounded-4">
-                            <div class="card-header bg-white py-3">
-                                <h5 class="mb-0">Đổi mật khẩu</h5>
-                            </div>
-                            <div class="card-body p-4">
-                                <form action="{{ route('profile.change-password') }}" method="POST">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label for="current_password" class="form-label">Mật khẩu hiện tại</label>
-                                        <input type="password" class="form-control form-control-modern @error('current_password') is-invalid @enderror" name="current_password" required>
-                                        @error('current_password') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="new_password" class="form-label">Mật khẩu mới</label>
-                                        <input type="password" class="form-control form-control-modern @error('new_password') is-invalid @enderror" name="new_password" required>
-                                        @error('new_password') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="new_password_confirmation" class="form-label">Xác nhận mật khẩu mới</label>
-                                        <input type="password" class="form-control form-control-modern" name="new_password_confirmation" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-brand"><i class="bi bi-shield-lock me-2"></i>Đổi mật khẩu</button>
-                                </form>
+                        {{-- Tab Đổi Mật Khẩu --}}
+                        <div class="tab-pane fade" id="change-password">
+                            <div class="card card-glass rounded-4">
+                                <div class="card-header bg-white py-3">
+                                    <h5 class="mb-0 text-brand">Đổi mật khẩu</h5>
+                                </div>
+                                <div class="card-body p-4">
+                                    <form action="{{ route('profile.change-password') }}" method="POST">
+                                        @csrf
+                                        <div class="mb-3">
+                                            <label for="current_password" class="form-label">Mật khẩu hiện tại</label>
+                                            <input type="password" class="form-control form-control-modern @error('current_password') is-invalid @enderror" name="current_password" required>
+                                            @error('current_password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="new_password" class="form-label">Mật khẩu mới</label>
+                                            <input type="password" class="form-control form-control-modern @error('new_password') is-invalid @enderror" name="new_password" required>
+                                            @error('new_password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="new_password_confirmation" class="form-label">Xác nhận mật khẩu mới</label>
+                                            <input type="password" class="form-control form-control-modern" name="new_password_confirmation" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-brand"><i class="bi bi-shield-lock me-2"></i>Đổi mật khẩu</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -167,53 +169,201 @@
 
 @push('styles')
     <style>
-        .profile-banner {
+        /* =================== Banner =================== */
+        .support-banner {
             height: 250px;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+                url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
         }
-        .profile-banner .breadcrumb-item a { color: var(--sand); }
-        .profile-banner .breadcrumb-item.active { color: var(--muted); }
-        
+        .support-banner .breadcrumb-item a {
+            color: var(--sand);
+            text-decoration: none;
+        }
+        .support-banner .breadcrumb-item a:hover {
+            color: var(--brand);
+        }
+        .support-banner .breadcrumb-item.active {
+            color: var(--muted);
+        }
+
+        /* =================== Profile Menu =================== */
         .profile-avatar {
             width: 100px;
             height: 100px;
             object-fit: cover;
             border: 4px solid var(--card);
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
         .profile-menu .list-group-item {
             border: none;
             padding: 0.9rem 1.25rem;
             font-weight: 500;
             color: var(--text);
+            transition: background 0.2s ease;
         }
         .profile-menu .list-group-item.active {
             background-color: var(--brand);
-            color: var(--card);
+            color: #fff;
             border-radius: 8px;
         }
         .profile-menu .list-group-item:not(.active):hover {
             background-color: var(--sand);
+            color: var(--brand);
         }
-        .form-control:focus, .form-select:focus {
+
+        /* =================== Form and Button Styles =================== */
+        .form-control-modern, .form-select.form-control-modern {
+            border-radius: 0.8rem;
+            border: 1px solid #e9ecef;
+            background: #fff;
+            font-size: 1rem;
+        }
+        .form-control-modern:focus, .form-select.form-control-modern:focus {
             border-color: var(--brand);
-            box-shadow: 0 0 0 0.25rem rgba(var(--brand-rgb), 0.25);
+            box-shadow: 0 0 0 0.2rem var(--ring);
         }
         .btn-brand {
             background-color: var(--brand);
             border-color: var(--brand);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
         }
         .btn-brand:hover {
             background-color: var(--brand-600);
             border-color: var(--brand-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .text-brand {
+            color: var(--brand);
+        }
+        .text-muted {
+            color: var(--muted);
         }
         .card-header.bg-white {
             background: transparent !important;
         }
+
+        /* =================== Card Styles =================== */
+        .card-glass {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card-glass:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+        .rounded-4 {
+            border-radius: 1rem !important;
+        }
+
+        /* =================== Links =================== */
+        a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--brand-600);
+        }
+
+        /* =================== Responsive Design =================== */
+        @media (max-width: 991px) {
+            .support-banner {
+                height: 220px;
+            }
+            .support-banner .display-4 {
+                font-size: 2rem;
+            }
+            .col-lg-3, .col-lg-9 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .profile-avatar {
+                width: 80px;
+                height: 80px;
+            }
+            .card-body {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .support-banner {
+                height: 180px;
+            }
+            .support-banner .display-4 {
+                font-size: 1.8rem;
+            }
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+            .btn-brand {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .form-control-modern, .form-select.form-control-modern {
+                font-size: 0.9rem;
+            }
+            .profile-avatar {
+                width: 70px;
+                height: 70px;
+            }
+            .col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            .col-md-8 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .support-banner {
+                height: 160px;
+            }
+            .support-banner .display-4 {
+                font-size: 1.6rem;
+            }
+            .support-banner .breadcrumb {
+                font-size: 0.85rem;
+            }
+            .card-glass {
+                padding: 0.75rem;
+            }
+            .card-body {
+                padding: 0.75rem;
+            }
+            .btn-brand {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .form-control-modern, .form-select.form-control-modern {
+                font-size: 0.85rem;
+            }
+            .profile-avatar {
+                width: 60px;
+                height: 60px;
+            }
+            .list-group-item {
+                padding: 0.7rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 @endpush
+
 @push('scripts-page')
 <script>
     // ===== GHN address selects =====
@@ -237,8 +387,7 @@
             try { 
                 const r = await fetch(url, { headers: { 'Accept': 'application/json' } }); 
                 return r.ok ? r.json() : []; 
-            }
-            catch { return []; }
+            } catch { return []; }
         };
         const renderOptions = (select, list, placeholder, valKey, textKey, pickedText = '') => {
             select.innerHTML = `<option value="">${placeholder}</option>`;

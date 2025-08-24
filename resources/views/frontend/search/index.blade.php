@@ -3,7 +3,7 @@
 @section('content')
 
 {{-- Banner đầu trang --}}
-<div class="profile-banner d-flex align-items-center justify-content-center text-white mb-5">
+<div class="support-banner d-flex align-items-center justify-content-center text-white mb-5">
     <div class="container text-center" data-aos="fade-in">
         <h1 class="display-4">Kết Quả Tìm Kiếm</h1>
         <p class="lead text-white-50 mb-4">Hiển thị kết quả cho: <em>{{ $query }}</em></p>
@@ -15,7 +15,6 @@
         </nav>
     </div>
 </div>
-
 
 {{-- Nội dung kết quả tìm kiếm --}}
 <div class="container py-4">
@@ -34,60 +33,191 @@
             @endforeach
         </div>
 
-        <div class="mt-4">
+        <div class="mt-4" data-aos="fade-up">
             {{ $products->withQueryString()->links() }}
         </div>
     @else
-        <div class="card-glass text-center p-5 rounded-4" data-aos="fade-up">
+        <div class="card card-glass text-center p-5 rounded-4" data-aos="fade-up">
             <div class="card-body">
-                <i class="bi bi-search-heart" style="font-size: 3.5rem; color: var(--muted);"></i>
+                <i class="bi bi-search-heart" style="font-size: 3.5rem;"></i>
                 <h5 class="mt-3">Không tìm thấy sản phẩm nào phù hợp</h5>
-                <p class="text-secondary">Vui lòng thử lại với từ khóa khác.</p>
+                <p class="text-muted">Vui lòng thử lại với từ khóa khác.</p>
                 <a href="{{ route('home') }}" class="btn btn-brand rounded-pill mt-3">Quay lại trang chủ</a>
             </div>
         </div>
     @endif
 </div>
 
-{{-- CSS và AOS --}}
 @push('styles')
     <style>
-        .profile-banner {
+        /* =================== Banner =================== */
+        .support-banner {
             height: 250px;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+                url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
         }
-        .profile-banner .breadcrumb-item a { color: var(--sand); }
-        .profile-banner .breadcrumb-item.active { color: var(--muted); }
-        
-        .product-hover-wrapper {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .support-banner .breadcrumb-item a {
+            color: var(--sand);
+            text-decoration: none;
+        }
+        .support-banner .breadcrumb-item a:hover {
+            color: var(--brand);
+        }
+        .support-banner .breadcrumb-item.active {
+            color: var(--muted);
         }
 
+        /* =================== Card Styles =================== */
+        .card-glass {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card-glass:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+        .rounded-4 {
+            border-radius: 1rem !important;
+        }
+
+        /* =================== Product Hover Wrapper =================== */
+        .product-hover-wrapper {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
         .product-hover-wrapper:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        /* =================== Button and Text Styles =================== */
+        .btn-brand {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .btn-brand:hover {
+            background-color: var(--brand-600);
+            border-color: var(--brand-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         }
         .text-brand {
             color: var(--brand);
         }
-        .card-glass {
-            background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
-            border: 1px solid rgba(15, 23, 42, .04);
+        .text-muted {
+            color: var(--muted);
+        }
+
+        /* =================== Links =================== */
+        a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--brand-600);
+        }
+
+        /* =================== Responsive Design =================== */
+        @media (max-width: 991px) {
+            .support-banner {
+                height: 220px;
+            }
+            .support-banner .display-4 {
+                font-size: 2rem;
+            }
+            .support-banner .lead {
+                font-size: 1rem;
+            }
+            .col-lg-3 {
+                flex: 0 0 33.333%;
+                max-width: 33.333%;
+            }
+            .card-glass {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .support-banner {
+                height: 180px;
+            }
+            .support-banner .display-4 {
+                font-size: 1.8rem;
+            }
+            .support-banner .lead {
+                font-size: 0.9rem;
+            }
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            .card-glass {
+                padding: 1rem;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+            .btn-brand {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .col-md-4 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+            .bi-search-heart {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .support-banner {
+                height: 160px;
+            }
+            .support-banner .display-4 {
+                font-size: 1.6rem;
+            }
+            .support-banner .lead {
+                font-size: 0.85rem;
+            }
+            .support-banner .breadcrumb {
+                font-size: 0.85rem;
+            }
+            .card-glass {
+                padding: 0.75rem;
+            }
+            .card-body {
+                padding: 0.75rem;
+            }
+            .btn-brand {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .col-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .bi-search-heart {
+                font-size: 2.5rem;
+            }
         }
     </style>
 @endpush
 
 @push('scripts-page')
-    {{-- Thêm AOS nếu chưa có --}}
     <script>
         if (typeof AOS !== 'undefined') {
             AOS.init({
-                duration: 800,
-                once: true
+                duration: 600,
+                once: true,
+                offset: 80
             });
         }
     </script>

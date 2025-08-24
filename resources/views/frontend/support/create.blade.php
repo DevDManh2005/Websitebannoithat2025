@@ -4,7 +4,7 @@
 
 @section('content')
     {{-- Banner --}}
-    <div class="profile-banner d-flex align-items-center justify-content-center text-white mb-5">
+    <div class="support-banner d-flex align-items-center justify-content-center text-white mb-5">
         <div class="container text-center" data-aos="fade-in">
             <h1 class="display-4">Tạo Yêu Cầu Hỗ Trợ</h1>
             <nav aria-label="breadcrumb">
@@ -79,49 +79,161 @@
 
 @push('styles')
     <style>
-        .profile-banner {
+        /* =================== Banner =================== */
+        .support-banner {
             height: 250px;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://anphonghouse.com/wp-content/uploads/2018/06/hinh-nen-noi-that-dep-full-hd-so-43-0.jpg');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+                url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
         }
-        .profile-banner .breadcrumb-item a { color: var(--sand); }
-        .profile-banner .breadcrumb-item.active { color: var(--muted); }
-
-        .support-banner{
-            height: 260px;
-            background-image: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
-                url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop');
-            background-size: cover; background-position: center;
+        .support-banner .breadcrumb-item a {
+            color: var(--sand);
+            text-decoration: none;
         }
-        .support-banner .breadcrumb-item a{ color:#f8f9fa; }
-        .support-banner .breadcrumb-item.active{ color:#adb5bd; }
+        .support-banner .breadcrumb-item a:hover {
+            color: var(--brand);
+        }
+        .support-banner .breadcrumb-item.active {
+            color: var(--muted);
+        }
 
-        .form-control-modern, .form-select.form-control-modern{
-            border-radius: .8rem;
+        /* =================== Form and Button Styles =================== */
+        .form-control-modern, .form-select.form-control-modern {
+            border-radius: 0.8rem;
             border: 1px solid #e9ecef;
             background: #fff;
+            font-size: 1rem;
         }
-        .form-control-modern:focus, .form-select.form-control-modern:focus{
-            border-color:var(--brand);
-            box-shadow: 0 0 0 .2rem rgba(var(--brand-rgb),.15);
+        .form-control-modern:focus, .form-select.form-control-modern:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 0.2rem var(--ring);
         }
+        .btn-brand {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .btn-brand:hover {
+            background-color: var(--brand-600);
+            border-color: var(--brand-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .btn-outline-secondary {
+            color: #6c757d;
+            border-color: #6c757d;
+            padding: 0.45rem 0.9rem;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: #fff;
+        }
+        .text-brand {
+            color: var(--brand);
+        }
+
+        /* =================== Card Styles =================== */
         .card-glass {
-            background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .95));
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(32, 25, 21, .08);
-            border: 1px solid rgba(15, 23, 42, .04);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
-        .btn-brand{
-            background-color:var(--brand);
-            border-color:var(--brand);
-            color:var(--card);
+        .card-glass:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
-        .btn-brand:hover{
-            background-color:var(--brand-600);
-            border-color:var(--brand-600);
+        .rounded-4 {
+            border-radius: 1rem !important;
         }
-        .text-brand{ color: var(--brand); }
+
+        /* =================== Links =================== */
+        a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--brand-600);
+        }
+
+        /* =================== Responsive Design =================== */
+        @media (max-width: 991px) {
+            .support-banner {
+                height: 220px;
+            }
+            .support-banner .display-4 {
+                font-size: 2rem;
+            }
+            .col-lg-10 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .card-body {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .support-banner {
+                height: 180px;
+            }
+            .support-banner .display-4 {
+                font-size: 1.8rem;
+            }
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+            .btn-brand {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            .btn-outline-secondary {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .form-control-modern, .form-select.form-control-modern {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .support-banner {
+                height: 160px;
+            }
+            .support-banner .display-4 {
+                font-size: 1.6rem;
+            }
+            .support-banner .breadcrumb {
+                font-size: 0.85rem;
+            }
+            .card-glass {
+                padding: 0.75rem;
+            }
+            .card-body {
+                padding: 0.75rem;
+            }
+            .btn-brand {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.85rem;
+            }
+            .btn-outline-secondary {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .form-control-modern, .form-select.form-control-modern {
+                font-size: 0.85rem;
+            }
+        }
     </style>
 @endpush
 
@@ -129,9 +241,9 @@
     <script>
         if (typeof AOS !== 'undefined') {
             AOS.init({
-                once:true,
-                duration:600,
-                offset:80
+                once: true,
+                duration: 600,
+                offset: 80
             });
         }
     </script>
