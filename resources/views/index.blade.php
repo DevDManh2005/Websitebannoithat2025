@@ -874,4 +874,3 @@ if (document.querySelector('.blog-swiper')) {
 }
 </script>
 @endpush
-@endsection
