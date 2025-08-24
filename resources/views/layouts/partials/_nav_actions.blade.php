@@ -89,7 +89,10 @@
 @once
     @push('styles')
         <style>
-            /* --- CSS CHO NAV ACTIONS COMPONENT --- */
+            :root {
+                --brand: #A20E38;
+                --text: #333333;
+            }
 
             /* Desktop Styles */
             .nav-actions .nav-link {
@@ -104,84 +107,65 @@
                 color: var(--text);
             }
 
-            .nav-actions .nav-link:hover {
+            .nav-actions .nav-link:hover,
+            .nav-actions .nav-link.position-relative:hover,
+            .nav-actions .nav-link.position-relative:hover i {
                 color: var(--brand);
             }
 
-            .header-home .nav-actions .nav-link:hover {
-                color: #fff;
-                /* Giữ màu trắng khi hover trên header home chưa cuộn */
-            }
-
-            .header-home.is-scrolled .nav-actions .nav-link:hover {
-                color: var(--brand);
-                /* Đổi màu brand khi hover trên header đã cuộn */
-            }
-
-            /* Nút trên desktop */
+            /* Desktop buttons */
             .btn-outline-primary:hover {
-                background-color: #A20E38;
-                /* Màu xanh đậm khi hover */
+                background-color: var(--brand);
                 color: #fff;
-                /* Chữ trắng khi hover */
-                border-color: #8E0D30;
-                /* Viền khớp với nền */
+                border-color: var(--brand);
                 transition: all 0.3s ease;
-                /* Hiệu ứng mượt mà */
             }
 
             .btn-primary:hover {
-                background-color: #A20E38;
-                /* Màu xanh đậm hơn cho nút chính */
+                background-color: #8E0D30;
                 border-color: #8E0D30;
-                /* Viền khớp với nền */
                 color: #fff;
-                /* Chữ trắng */
                 transition: all 0.3s ease;
-                /* Hiệu ứng mượt mà */
             }
 
-            /* Liên kết trên mobile */
-            .nav-actions-mobile-auth .nav-link:hover {
-                background-color: #A20E38;
-                /* Nền xám nhạt khi hover */
-                color: #8E0D30;
-                /* Chữ xanh đậm khi hover */
-                transition: all 0.3s ease;
-                /* Hiệu ứng mượt mà */
-            }
-
-            .nav-actions-mobile-auth .nav-link:hover .action-label {
-                color: #A20E38;
-                /* Đảm bảo chữ nhãn khớp màu khi hover */
-            }
-
+            /* Mobile links */
+            .nav-actions-mobile-auth .nav-link:hover,
+            .nav-actions-mobile-auth .nav-link:hover .action-label,
             .nav-actions-mobile-auth .nav-link:hover i {
-                color: #A20E38;
-                /* Màu biểu tượng khi hover */
+                background-color: #f8f9fa;
+                color: var(--brand);
+                transition: all 0.3s ease;
             }
 
-            /* Responsive Styles for Mobile Dropdown */
-            @media (max-width: 991.98px) {
+            .nav-actions-mobile-auth .nav-link:active,
+            .nav-actions-mobile-auth .nav-link:active .action-label,
+            .nav-actions-mobile-auth .nav-link:active i {
+                background-color: #e9ecef;
+                color: var(--brand);
+                transition: all 0.2s ease;
+            }
 
-                /* Biến khu vực actions thành danh sách dọc */
+            /* Dropdown items */
+            .dropdown-item:hover,
+            .dropdown-item:active {
+                background-color: #f8f9fa;
+                color: var(--brand);
+                transition: all 0.3s ease;
+            }
+
+            /* Responsive Styles */
+            @media (max-width: 991.98px) {
                 .navbar-collapse .nav-actions {
                     flex-direction: column;
                     align-items: flex-start !important;
                     width: 100%;
-                    margin-left: 0 !important;
-                    margin-top: 1rem;
+                    margin: 1rem 0 0;
                     padding-top: 1rem;
                     border-top: 1px solid rgba(0, 0, 0, 0.1);
                 }
 
                 .navbar-collapse .nav-actions .nav-link {
-                    display: flex;
-                    /* Căn chỉnh icon và chữ */
-                    align-items: center;
-                    width: 100%;
                     padding: 0.8rem 0;
-                    margin-left: 0 !important;
                     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
                 }
 
@@ -189,8 +173,8 @@
                     border-bottom: none;
                 }
 
-                /* Tùy chỉnh cho dropdown tài khoản trên mobile */
-                .navbar-collapse .nav-actions .dropdown {
+                .navbar-collapse .nav-actions .dropdown,
+                .navbar-collapse .nav-actions-mobile-auth {
                     width: 100%;
                 }
 
@@ -200,18 +184,6 @@
 
                 .navbar-collapse .nav-actions .dropdown-toggle::after {
                     margin-left: auto;
-                    /* Đẩy mũi tên dropdown ra cuối */
-                }
-
-                /* Định dạng các nút Đăng nhập/Ký trên mobile */
-                .navbar-collapse .nav-actions-mobile-auth {
-                    width: 100%;
-                }
-
-                .navbar-collapse .nav-actions-mobile-auth .nav-link {
-                    display: flex;
-                    align-items: center;
-                    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
                 }
             }
         </style>
