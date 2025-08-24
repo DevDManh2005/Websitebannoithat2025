@@ -12,9 +12,8 @@
       : null;
 @endphp
 
-{{-- ROW: NODE --}}
 <tr class="level-{{ $level }}">
-  <td class="text-muted">#{{ $node->id }}</td>
+  <td class="text-muted sticky-col-left">#{{ $node->id }}</td>
 
   <td>
     <img src="{{ $imgUrl ?: 'https://via.placeholder.com/56x56?text=DM' }}"
@@ -63,7 +62,7 @@
 
   <td>{{ $node->position }}</td>
 
-  <td class="text-end">
+  <td class="text-end sticky-col-right">
     <div class="d-none d-md-inline-flex gap-1">
       <a href="{{ route('admin.categories.show', $node) }}" class="btn btn-sm btn-outline-secondary ripple" data-bs-toggle="tooltip" title="Xem"><i class="bi bi-eye"></i></a>
       <a href="{{ route('admin.categories.edit', $node) }}" class="btn btn-sm btn-outline-primary ripple" data-bs-toggle="tooltip" title="Sửa"><i class="bi bi-pencil-square"></i></a>
@@ -92,7 +91,6 @@
   <td></td>
 </tr>
 
-{{-- CHILDREN (đệ quy không giới hạn cấp) --}}
 @if($hasChildren)
   <tr>
     <td colspan="8" class="p-0">
