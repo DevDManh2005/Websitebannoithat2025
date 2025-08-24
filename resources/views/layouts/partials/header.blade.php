@@ -73,8 +73,7 @@
 
 {{-- Gộp CSS của cả 2 header vào đây --}}
 <style>
-    /* === CSS CHUNG CHO CẢ HAI HEADER === */
-    :root { 
+    :root {
         --brand: #A20E38;
         --text: #2B2623;
         --card: #FFFFFF;
@@ -82,63 +81,33 @@
         --radius: 12px;
     }
 
-    /* === CSS RIÊNG CHO HEADER-INTERNAL === */
-    .header-internal .top-bar a:hover { color: var(--brand) !important; }
-    .header-internal .navbar .nav-link.active { color: var(--brand) !important; }
-
-    /* === CSS RIÊNG CHO HEADER-HOME (TRONG SUỐT) === */
-    .header-home { transition: background-color 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
-    .header-home .logo-dark { display: none; }
-    .header-home .logo-light { display: block; }
-    .header-home .nav-link, .header-home .logo-text { color: rgba(255, 255, 255, 0.96) !important; }
-    .header-home .nav-link .bi, .header-home .nav-link i { color: rgba(255, 255, 255, 0.95); }
-    .header-home .navbar-toggler { border-color: rgba(255, 255, 255, 0.2); }
-    .header-home .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e"); }
-    .header-home .nav-link:hover, .header-home .nav-link:hover .bi, .header-home .nav-link:hover i { color: var(--brand) !important; }
-
-    /* === CSS CHO HEADER-HOME KHI CUỘN (TRẠNG THÁI STICKY) === */
-    .header-home.is-scrolled {
-        position: fixed;
-        background-color: var(--card, #fff);
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        animation: slideDown 0.5s ease-out;
+    /* === CSS CHUNG === */
+    /* Nav links mặc định */
+    .nav-actions .nav-link {
+        color: var(--text);
     }
-    @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-    .header-home.is-scrolled .logo-light { display: none; }
-    .header-home.is-scrolled .logo-dark { display: block; }
-    .header-home.is-scrolled .nav-link, .header-home.is-scrolled .logo-text,
-    .header-home.is-scrolled .nav-link .bi, .header-home.is-scrolled .nav-link i {
-        color: var(--text, #2B2623) !important;
-    }
-    .header-home.is-scrolled .nav-link:hover, .header-home.is-scrolled .nav-link:hover .bi, .header-home.is-scrolled .nav-link:hover i { color: var(--brand) !important; }
-    .header-home.is-scrolled .navbar-toggler { border-color: rgba(0, 0, 0, 0.1); }
-    .header-home.is-scrolled .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2843, 38, 35, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e"); }
 
-    /* === CSS RESPONSIVE CHUNG === */
-    @media (max-width: 991.98px) {
-        .header-home .navbar-brand img, .header-home.is-scrolled .navbar-brand img { height: 70px !important; max-height: 70px !important; }
-        .header-internal .navbar-brand img { height: 45px !important; max-height: 45px !important; }
+    /* Nav links hover */
+    .nav-actions .nav-link:hover,
+    .nav-actions .nav-link.position-relative:hover,
+    .nav-actions .nav-link.position-relative:hover i {
+        color: var(--brand) !important;
+    }
 
-        /* Nền trắng cho menu xổ xuống trên trang chủ */
-        .header-home .navbar-collapse {
-            background-color: var(--card, #fff);
-            padding: 1rem 1.5rem;
-            margin-top: 0.5rem;
-            border-radius: var(--radius, 12px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        /* Link và icon trong menu xổ xuống của trang chủ */
-        .header-home .navbar-collapse .nav-link, 
-        .header-home .navbar-collapse .nav-link .bi, 
-        .header-home .navbar-collapse .nav-link i {
-            color: var(--text, #2B2623) !important;
-        }
+    /* Desktop buttons mặc định */
+    .btn-outline-primary {
+        background-color: transparent;
+        border-color: var(--brand);
+        color: var(--brand);
     }
-    @media (max-width: 576px) {
-        .header-home .navbar-brand img, .header-home.is-scrolled .navbar-brand img { height: 60px !important; max-height: 60px !important; }
-        .header-internal .navbar-brand img { height: 40px !important; max-height: 40px !important; }
+
+    .btn-primary {
+        background-color: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
     }
-    /* CSS từ _nav_actions.blade.php */
+
+    /* Desktop buttons hover */
     .btn-outline-primary:hover {
         background-color: var(--brand) !important;
         color: #fff !important;
@@ -153,6 +122,17 @@
         transition: all 0.3s ease;
     }
 
+    /* Mobile links mặc định */
+    .nav-actions-mobile-auth .nav-link {
+        color: var(--text);
+    }
+
+    .nav-actions-mobile-auth .nav-link i,
+    .nav-actions-mobile-auth .nav-link .action-label {
+        color: var(--text);
+    }
+
+    /* Mobile links hover */
     .nav-actions-mobile-auth .nav-link:hover,
     .nav-actions-mobile-auth .nav-link:hover .action-label,
     .nav-actions-mobile-auth .nav-link:hover i {
@@ -161,6 +141,7 @@
         transition: all 0.3s ease;
     }
 
+    /* Mobile links active (cho tương tác chạm) */
     .nav-actions-mobile-auth .nav-link:active,
     .nav-actions-mobile-auth .nav-link:active .action-label,
     .nav-actions-mobile-auth .nav-link:active i {
@@ -169,6 +150,12 @@
         transition: all 0.2s ease;
     }
 
+    /* Dropdown items mặc định */
+    .dropdown-item {
+        color: var(--text);
+    }
+
+    /* Dropdown items hover và active */
     .dropdown-item:hover,
     .dropdown-item:active {
         background-color: #f8f9fa;
@@ -176,14 +163,122 @@
         transition: all 0.3s ease;
     }
 
-    .nav-actions .nav-link:hover,
-    .nav-actions .nav-link.position-relative:hover,
-    .nav-actions .nav-link.position-relative:hover i {
+    /* === CSS CHO HEADER-INTERNAL === */
+    .header-internal .top-bar a {
+        color: var(--muted);
+    }
+
+    .header-internal .top-bar a:hover {
         color: var(--brand) !important;
     }
 
-    /* Responsive Styles từ _nav_actions.blade.php */
+    .header-internal .navbar .nav-link.active {
+        color: var(--brand) !important;
+    }
+
+    /* === CSS CHO HEADER-HOME === */
+    .header-home {
+        transition: background-color 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+    }
+
+    .header-home .logo-dark {
+        display: none;
+    }
+
+    .header-home .logo-light {
+        display: block;
+    }
+
+    .header-home .nav-link,
+    .header-home .logo-text,
+    .header-home .nav-link .bi,
+    .header-home .nav-link i {
+        color: rgba(255, 255, 255, 0.96) !important;
+    }
+
+    .header-home .nav-link:hover,
+    .header-home .nav-link:hover .bi,
+    .header-home .nav-link:hover i {
+        color: var(--brand) !important;
+    }
+
+    .header-home .navbar-toggler {
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .header-home .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+
+    /* Header-home khi cuộn */
+    .header-home.is-scrolled {
+        position: fixed;
+        background-color: var(--card);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        animation: slideDown 0.5s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-100%); }
+        to { transform: translateY(0); }
+    }
+
+    .header-home.is-scrolled .logo-light {
+        display: none;
+    }
+
+    .header-home.is-scrolled .logo-dark {
+        display: block;
+    }
+
+    .header-home.is-scrolled .nav-link,
+    .header-home.is-scrolled .logo-text,
+    .header-home.is-scrolled .nav-link .bi,
+    .header-home.is-scrolled .nav-link i {
+        color: var(--text) !important;
+    }
+
+    .header-home.is-scrolled .nav-link:hover,
+    .header-home.is-scrolled .nav-link:hover .bi,
+    .header-home.is-scrolled .nav-link:hover i {
+        color: var(--brand) !important;
+    }
+
+    .header-home.is-scrolled .navbar-toggler {
+        border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .header-home.is-scrolled .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2843, 38, 35, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+
+    /* === CSS RESPONSIVE === */
     @media (max-width: 991.98px) {
+        .header-home .navbar-brand img,
+        .header-home.is-scrolled .navbar-brand img {
+            height: 70px !important;
+            max-height: 70px !important;
+        }
+
+        .header-internal .navbar-brand img {
+            height: 45px !important;
+            max-height: 45px !important;
+        }
+
+        .header-home .navbar-collapse {
+            background-color: var(--card);
+            padding: 1rem 1.5rem;
+            margin-top: 0.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-home .navbar-collapse .nav-link,
+        .header-home .navbar-collapse .nav-link .bi,
+        .header-home .navbar-collapse .nav-link i {
+            color: var(--text) !important;
+        }
+
         .navbar-collapse .nav-actions {
             flex-direction: column;
             align-items: flex-start !important;
@@ -192,4 +287,40 @@
             padding-top: 1rem;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
+
+        .navbar-collapse .nav-actions .nav-link {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-collapse .nav-actions .nav-link:last-child {
+            border-bottom: none;
+        }
+
+        .navbar-collapse .nav-actions .dropdown,
+        .navbar-collapse .nav-actions-mobile-auth {
+            width: 100%;
+        }
+
+        .navbar-collapse .nav-actions .dropdown .nav-link {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-collapse .nav-actions .dropdown-toggle::after {
+            margin-left: auto;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .header-home .navbar-brand img,
+        .header-home.is-scrolled .navbar-brand img {
+            height: 60px !important;
+            max-height: 60px !important;
+        }
+
+        .header-internal .navbar-brand img {
+            height: 40px !important;
+            max-height: 40px !important;
+        }
+    }
 </style>

@@ -77,7 +77,7 @@
 {{-- Directive @once đảm bảo CSS và JS chỉ được thêm vào trang một lần duy nhất --}}
 @once
     @push('styles')
-    <style>
+    {{-- <style>
         /* --- CSS CHO NAV ACTIONS COMPONENT --- */
 
         /* Desktop Styles */
@@ -145,6 +145,6 @@
                 border-bottom: 1px solid rgba(0,0,0,0.05);
             }
         }
-    </style>
+    </style> --}}
     @endpush
 @endonce
