@@ -241,10 +241,18 @@
                                             required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="phone" class="form-label">Số điện thoại</label>
-                                        <input type="text" class="form-control form-control-modern" name="phone"
-                                            value="{{ old('phone', optional($order->shipment)->phone) }}" required>
-                                    </div>
+    <label for="phone" class="form-label">Số điện thoại</label>
+    <input type="text" 
+           class="form-control form-control-modern @error('phone') is-invalid @enderror" 
+           name="phone" 
+           value="{{ old('phone', optional($order->shipment)->phone ?? optional($user->profile)->phone) }}" 
+           required>
+
+    @error('phone')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
                                     <div class="col-md-4">
                                         <label for="province_id" class="form-label">Tỉnh/Thành <span
                                                 class="text-danger">*</span></label>
