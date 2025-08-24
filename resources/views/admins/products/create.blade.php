@@ -1,3 +1,4 @@
+
 @extends('admins.layouts.app')
 
 @section('title', 'Tạo sản phẩm')
@@ -15,29 +16,31 @@
 
 <style>
     /* Khối card mềm + viền */
-    .card-soft{ border-radius:16px; border:1px solid rgba(32,25,21,.08) }
-    .card-soft .card-header{ background:transparent; border-bottom:1px dashed rgba(32,25,21,.12) }
-
+    .card-soft { border-radius: 16px; border: 1px solid rgba(32,25,21,.08); }
+    .card-soft .card-header { background: transparent; border-bottom: 1px dashed rgba(32,25,21,.12); }
     /* Dropdown danh mục dạng cây */
-    .cat-dropdown .dropdown-menu{
+    .cat-dropdown .dropdown-menu {
         width: 100%;
         max-height: 420px;
         overflow: auto;
         border-radius: 12px;
     }
-    .cat-node .toggle{
-        width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
-        border:1px solid rgba(32,25,21,.12); border-radius:6px; background:#fff;
+    .cat-node .toggle {
+        width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+        border: 1px solid rgba(32,25,21,.12); border-radius: 6px; background: #fff;
     }
-    .cat-node .children{ border-left:1px dashed rgba(32,25,21,.15); margin-left: 22px; padding-left: 12px; }
-    .cat-node .form-check-input{ margin-top: 0 }
-    .cat-summary{
-        display:flex; align-items:center; gap:6px; min-height: 38px;
-        padding: 6px 10px; border:1px solid var(--bs-border-color); border-radius: .375rem; background: #fff;
-        cursor: pointer; width:100%;
+    .cat-node .children { border-left: 1px dashed rgba(32,25,21,.15); margin-left: 22px; padding-left: 12px; }
+    .cat-node .form-check-input { margin-top: 0; }
+    .cat-summary {
+        display: flex; align-items: center; gap: 6px; min-height: 38px;
+        padding: 6px 10px; border: 1px solid var(--bs-border-color); border-radius: .375rem; background: #fff;
+        cursor: pointer; width: 100%;
     }
-    .cat-summary span{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .badge.bg-secondary-soft{ background:#f0f0f0; color:#555 }
+    .cat-summary span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge.bg-secondary-soft { background: #f0f0f0; color: #555; }
+    .variant-item .row { margin-bottom: 0.5rem; }
+    .variant-item .form-label { font-size: 0.9rem; font-weight: 500; }
+    .variant-item .form-control { font-size: 0.95rem; }
 </style>
 
 <div class="container-fluid">
@@ -90,15 +93,12 @@
                         {{-- Danh mục: Dropdown Cây + giữ select hidden để submit --}}
                         <div class="mb-3">
                             <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-
-                            {{-- Nút mở dropdown + tóm tắt --}}
                             <div class="dropdown cat-dropdown">
                                 <button class="cat-summary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-folder2-open"></i>
                                     <span id="cat-summary-text">Chọn danh mục…</span>
                                     <i class="ms-auto bi bi-caret-down-fill"></i>
                                 </button>
-
                                 <div class="dropdown-menu p-3">
                                     <div class="input-group input-group-sm mb-2">
                                         <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
@@ -107,8 +107,6 @@
                                     <div id="cat-tree"></div>
                                 </div>
                             </div>
-
-                            {{-- Select cũ giữ submit/validate (ẩn) --}}
                             <select class="form-select d-none @error('categories') is-invalid @enderror" id="categories" name="categories[]" multiple required>
                                 @foreach ($categories as $category)
                                     <option value="{{ $category->id }}" {{ in_array($category->id, $oldCats) ? 'selected' : '' }}>
@@ -192,7 +190,6 @@
                                 <input type="file" class="form-control @error('images_files.*') is-invalid @enderror" id="images_files" name="images_files[]" accept="image/*" multiple>
                             </div>
                             @error('images_files.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-
                             <div class="form-text">Hoặc nhập các URL</div>
                             <div id="images-urls-container">
                                 <div class="input-group mb-2">
@@ -221,13 +218,17 @@
                                         <button type="button" class="btn btn-danger btn-sm remove-variant-btn">Xóa biến thể</button>
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-4 mb-3">
                                             <label class="form-label">Mã biến thể (SKU) <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" name="variants[INDEX][sku]" required>
+                                            <input type="text" class="form-control" name="variants[INDEX][sku]" value="{{ old('variants.INDEX.sku') }}" required>
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-4 mb-3">
                                             <label class="form-label">Cân nặng (gram) <span class="text-danger">*</span></label>
-                                            <input type="number" class="form-control" name="variants[INDEX][weight]" min="0" value="200" required placeholder="ví dụ: 200">
+                                            <input type="number" class="form-control" name="variants[INDEX][weight]" min="0" value="{{ old('variants.INDEX.weight', 200) }}" required placeholder="ví dụ: 200">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Số lượng tồn kho <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" name="variants[INDEX][stock]" min="0" value="{{ old('variants.INDEX.stock', 0) }}" required placeholder="ví dụ: 100">
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -238,16 +239,16 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Giá <span class="text-danger">*</span></label>
-                                            <input type="number" class="form-control" name="variants[INDEX][price]" min="0" required>
+                                            <input type="number" class="form-control" name="variants[INDEX][price]" min="0" value="{{ old('variants.INDEX.price') }}" required>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Giá khuyến mãi</label>
-                                            <input type="number" class="form-control" name="variants[INDEX][sale_price]" min="0">
+                                            <input type="number" class="form-control" name="variants[INDEX][sale_price]" min="0" value="{{ old('variants.INDEX.sale_price') }}">
                                         </div>
                                     </div>
                                     <div class="form-check">
                                         <input type="hidden" name="variants[INDEX][is_main_variant]" value="0">
-                                        <input class="form-check-input is-main-variant-checkbox" type="checkbox" name="variants[INDEX][is_main_variant]" value="1" id="is_main_variant_INDEX">
+                                        <input class="form-check-input is-main-variant-checkbox" type="checkbox" name="variants[INDEX][is_main_variant]" value="1" id="is_main_variant_INDEX" {{ old('variants.INDEX.is_main_variant') ? 'checked' : '' }}>
                                         <label class="form-check-label" for="is_main_variant_INDEX">Là biến thể chính</label>
                                     </div>
                                 </div>
@@ -256,8 +257,8 @@
 
                         <template id="attribute-template">
                             <div class="input-group mb-2 attribute-row">
-                                <input type="text" class="form-control" name="variants[VARIANT_INDEX][attributes][ATTR_INDEX][name]" placeholder="Tên thuộc tính (ví dụ: Màu sắc)" required>
-                                <input type="text" class="form-control" name="variants[VARIANT_INDEX][attributes][ATTR_INDEX][value]" placeholder="Giá trị (ví dụ: Đỏ)" required>
+                                <input type="text" class="form-control" name="variants[VARIANT_INDEX][attributes][ATTR_INDEX][name]" placeholder="Tên thuộc tính (ví dụ: Màu sắc)" value="{{ old('variants.VARIANT_INDEX.attributes.ATTR_INDEX.name') }}" required>
+                                <input type="text" class="form-control" name="variants[VARIANT_INDEX][attributes][ATTR_INDEX][value]" placeholder="Giá trị (ví dụ: Đỏ)" value="{{ old('variants.VARIANT_INDEX.attributes.ATTR_INDEX.value') }}" required>
                                 <button type="button" class="btn btn-outline-danger btn-sm remove-attribute-btn">Xóa</button>
                             </div>
                         </template>
@@ -275,17 +276,16 @@
 @endsection
 
 @push('scripts')
-{{-- CKEditor 5 --}}
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
-<style>.ck-editor__editable{min-height:260px}</style>
+<style>.ck-editor__editable { min-height: 260px; }</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     ClassicEditor.create(document.querySelector('#description'), {
         toolbar: [
-            'heading','|','bold','italic','underline','link',
-            '|','bulletedList','numberedList','blockQuote',
-            '|','insertTable','imageUpload','mediaEmbed',
-            '|','undo','redo'
+            'heading', '|', 'bold', 'italic', 'underline', 'link',
+            '|', 'bulletedList', 'numberedList', 'blockQuote',
+            '|', 'insertTable', 'imageUpload', 'mediaEmbed',
+            '|', 'undo', 'redo'
         ],
         simpleUpload: { uploadUrl: '{{ route('uploads.ckeditor') }}', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }
     }).catch(console.error);
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    /* ========== ẢNH PHỤ: thêm/xóa URL ========== */
+    /* ẢNH PHỤ: thêm/xóa URL */
     const urlContainer = document.getElementById('images-urls-container');
     document.getElementById('add-image-url-btn').addEventListener('click', function() {
         urlContainer.insertAdjacentHTML('beforeend',
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    /* ========== BIẾN THỂ ========== */
+    /* BIẾN THỂ */
     const variantsContainer = document.getElementById('variants-container');
     const addVariantBtn = document.getElementById('add-variant-btn');
     const variantTemplate = document.getElementById('variant-template');
@@ -326,9 +326,9 @@ document.addEventListener('DOMContentLoaded', function() {
         newVariantNode.innerHTML = newVariantNode.innerHTML.replace(/INDEX/g, variantIndex);
         if(data.sku) newVariantNode.querySelector('[name$="[sku]"]').value = data.sku;
         if(data.weight) newVariantNode.querySelector('[name$="[weight]"]').value = data.weight;
+        if(data.stock) newVariantNode.querySelector('[name$="[stock]"]').value = data.stock;
         if(data.price) newVariantNode.querySelector('[name$="[price]"]').value = data.price;
         if(data.sale_price) newVariantNode.querySelector('[name$="[sale_price]"]').value = data.sale_price;
-
         const isMainCheckbox = newVariantNode.querySelector('.is-main-variant-checkbox');
         if(data.is_main_variant) isMainCheckbox.checked = (data.is_main_variant == 1);
 
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     renderInitialVariants();
 
-    /* ========== DANH MỤC DẠNG CÂY ========== */
+    /* DANH MỤC DẠNG CÂY */
     const allCats = @json($categories->map(fn($c)=>[
         'id'=>$c->id,'name'=>$c->name,'parent_id'=>$c->parent_id ?? 0
     ]));
@@ -421,13 +421,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchBox = document.getElementById('cat-search');
     const summaryEl = document.getElementById('cat-summary-text');
 
-    // Lập map con theo parent
     const byParent = {};
     allCats.forEach(c => {
         const p = c.parent_id || 0;
         (byParent[p] ??= []).push(c);
     });
-    // Sắp xếp tên
     Object.values(byParent).forEach(list => list.sort((a,b)=>a.name.localeCompare(b.name,'vi')));
 
     function makeNode(cat){
@@ -459,7 +457,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const roots = byParent[0] || byParent[null] || [];
         roots.forEach(r => treeWrap.appendChild(makeNode(r)));
 
-        // Gán checked theo preselected
         preselected.forEach(id => {
             const cb = treeWrap.querySelector(`#cat_${id}`);
             if(cb){ cb.checked = true; }
@@ -468,7 +465,6 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshSummary();
         syncHiddenSelect();
 
-        // Toggle expand/collapse
         treeWrap.addEventListener('click', function(e){
             if(e.target.closest('.toggle')){
                 const node = e.target.closest('.cat-node');
@@ -482,7 +478,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Chọn/deselect
         treeWrap.addEventListener('change', function(e){
             if(e.target.classList.contains('cat-check')){
                 const id = e.target.value;
@@ -495,14 +490,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function syncHiddenSelect(){
-        // Clear selected state trong select ẩn
         [...hiddenSelect.options].forEach(opt => { opt.selected = false; });
-        // Tick lại theo set
         preselected.forEach(id => {
             const opt = [...hiddenSelect.options].find(o => String(o.value) === String(id));
             if(opt){ opt.selected = true; }
             else{
-                // Phòng khi thiếu option (hầu như không xảy ra)
                 const cat = allCats.find(c => String(c.id) === String(id));
                 if(cat){
                     const o = new Option(cat.name, cat.id, true, true);
@@ -525,26 +517,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Tìm kiếm
     searchBox.addEventListener('input', function(){
         const kw = this.value.trim().toLowerCase();
         if(!kw){
-            // Hiện tất cả
             treeWrap.querySelectorAll('.cat-node').forEach(n => n.classList.remove('d-none'));
             return;
         }
-        // Ẩn/hiện theo tên + tổ tiên
         const idMatch = new Set();
         allCats.forEach(c => {
             if((c.name||'').toLowerCase().includes(kw)) idMatch.add(String(c.id));
         });
-        // Hiện node khớp + tổ tiên
         treeWrap.querySelectorAll('.cat-node').forEach(n => n.classList.add('d-none'));
         function showChain(id){
             const node = treeWrap.querySelector(`.cat-node[data-id="${id}"]`);
             if(!node) return;
             node.classList.remove('d-none');
-            // mở ancestor
             const parentNode = node.parentElement?.closest('.cat-node');
             if(parentNode){
                 const children = parentNode.querySelector(':scope > .children');

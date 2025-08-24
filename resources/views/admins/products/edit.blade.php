@@ -1,3 +1,4 @@
+
 @extends('admins.layouts.app')
 
 @section('title', 'Sửa sản phẩm: ' . $product->name)
@@ -13,28 +14,30 @@
 @endphp
 
 <style>
-    .card-soft{ border-radius:16px; border:1px solid rgba(32,25,21,.08) }
-    .card-soft .card-header{ background:transparent; border-bottom:1px dashed rgba(32,25,21,.12) }
-
-    .cat-dropdown .dropdown-menu{
+    .card-soft { border-radius: 16px; border: 1px solid rgba(32,25,21,.08); }
+    .card-soft .card-header { background: transparent; border-bottom: 1px dashed rgba(32,25,21,.12); }
+    .cat-dropdown .dropdown-menu {
         width: 100%;
         max-height: 420px;
         overflow: auto;
         border-radius: 12px;
     }
-    .cat-node .toggle{
-        width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
-        border:1px solid rgba(32,25,21,.12); border-radius:6px; background:#fff;
+    .cat-node .toggle {
+        width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+        border: 1px solid rgba(32,25,21,.12); border-radius: 6px; background: #fff;
     }
-    .cat-node .children{ border-left:1px dashed rgba(32,25,21,.15); margin-left: 22px; padding-left: 12px; }
-    .cat-node .form-check-input{ margin-top: 0 }
-    .cat-summary{
-        display:flex; align-items:center; gap:6px; min-height: 38px;
-        padding: 6px 10px; border:1px solid var(--bs-border-color); border-radius: .375rem; background: #fff;
-        cursor: pointer; width:100%;
+    .cat-node .children { border-left: 1px dashed rgba(32,25,21,.15); margin-left: 22px; padding-left: 12px; }
+    .cat-node .form-check-input { margin-top: 0; }
+    .cat-summary {
+        display: flex; align-items: center; gap: 6px; min-height: 38px;
+        padding: 6px 10px; border: 1px solid var(--bs-border-color); border-radius: .375rem; background: #fff;
+        cursor: pointer; width: 100%;
     }
-    .cat-summary span{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .badge.bg-secondary-soft{ background:#f0f0f0; color:#555 }
+    .cat-summary span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge.bg-secondary-soft { background: #f0f0f0; color: #555; }
+    .variant-item .row { margin-bottom: 0.5rem; }
+    .variant-item .form-label { font-size: 0.9rem; font-weight: 500; }
+    .variant-item .form-control { font-size: 0.95rem; }
 </style>
 
 <div class="container-fluid">
@@ -75,14 +78,12 @@
                 {{-- Danh mục: Dropdown Cây + giữ select hidden --}}
                 <div class="mb-3">
                     <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-
                     <div class="dropdown cat-dropdown">
                         <button class="cat-summary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-folder2-open"></i>
                             <span id="cat-summary-text">Chọn danh mục…</span>
                             <i class="ms-auto bi bi-caret-down-fill"></i>
                         </button>
-
                         <div class="dropdown-menu p-3">
                             <div class="input-group input-group-sm mb-2">
                                 <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
@@ -91,7 +92,6 @@
                             <div id="cat-tree"></div>
                         </div>
                     </div>
-
                     <select class="form-select d-none @error('categories') is-invalid @enderror" id="categories" name="categories[]" multiple required>
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}" {{ in_array($category->id, $selectedCats) ? 'selected' : '' }}>
@@ -176,11 +176,7 @@
                     <label for="main_image_url" class="form-label">Hoặc URL ảnh chính</label>
                     <input type="url" class="form-control @error('main_image_url') is-invalid @enderror"
                            id="main_image_url" name="main_image_url"
-                           value="{{ old('main_image_url',
-                                (str_starts_with(optional(($product->images->firstWhere('is_primary', true) ?? $product->images->first()))->image_url ?? '', 'http')
-                                    ? (optional(($product->images->firstWhere('is_primary', true) ?? $product->images->first()))->image_url ?? '')
-                                    : '')
-                           ) }}"
+                           value="{{ old('main_image_url', (str_starts_with(optional(($product->images->firstWhere('is_primary', true) ?? $product->images->first()))->image_url ?? '', 'http') ? (optional(($product->images->firstWhere('is_primary', true) ?? $product->images->first()))->image_url ?? '') : '')) }}"
                            placeholder="https://...">
                     @error('main_image_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -222,13 +218,17 @@
                                 <button type="button" class="btn btn-danger btn-sm remove-variant-btn">Xóa biến thể</button>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">Mã biến thể (SKU) <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" name="variants[INDEX][sku]" required>
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">Cân nặng (gram) <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" name="variants[INDEX][weight]" min="0" value="200" required placeholder="ví dụ: 200">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Số lượng tồn kho <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" name="variants[INDEX][stock]" min="0" required placeholder="ví dụ: 100">
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -275,15 +275,15 @@
 
 @push('scripts')
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
-<style>.ck-editor__editable{min-height:260px}</style>
+<style>.ck-editor__editable { min-height: 260px; }</style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     ClassicEditor.create(document.querySelector('#description'), {
         toolbar: [
-            'heading','|','bold','italic','underline','link',
-            '|','bulletedList','numberedList','blockQuote',
-            '|','insertTable','imageUpload','mediaEmbed',
-            '|','undo','redo'
+            'heading', '|', 'bold', 'italic', 'underline', 'link',
+            '|', 'bulletedList', 'numberedList', 'blockQuote',
+            '|', 'insertTable', 'imageUpload', 'mediaEmbed',
+            '|', 'undo', 'redo'
         ],
         simpleUpload: { uploadUrl: '{{ route('uploads.ckeditor') }}', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }
     }).catch(console.error);
@@ -324,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
         newVariantNode.innerHTML = newVariantNode.innerHTML.replace(/INDEX/g, variantIndex);
         newVariantNode.querySelector('[name$="[sku]"]').value = data.sku || '';
         newVariantNode.querySelector('[name$="[weight]"]').value = data.weight || 200;
+        newVariantNode.querySelector('[name$="[stock]"]').value = data.stock || 0;
         newVariantNode.querySelector('[name$="[price]"]').value = data.price || '';
         newVariantNode.querySelector('[name$="[sale_price]"]').value = data.sale_price || '';
         const isMainCheckbox = newVariantNode.querySelector('.is-main-variant-checkbox');
