@@ -62,21 +62,8 @@ class CheckoutController extends Controller
      */
     public function placeOrder(AddressRequest $request)
     {
-        $validated = $request->validated([
-            'receiver_name' => 'required|string|max:255',
-            'phone'         => 'required|string|max:20',
-            'city'          => 'required|string',
-            'district'      => 'required|string',
-            'ward'          => 'required|string',
-            'address'       => 'required|string|max:255',
-            'note'          => 'nullable|string',
-            'shipping_fee'  => 'required|numeric|min:0',
-            'payment_method'=> 'required|in:cod,vnpay',
-            'province_id'   => 'required|integer',
-            'district_id'   => 'required|integer',
-            'ward_code'     => 'required|string',
-        ]);
-        
+        $validated = $request->validated();
+
         $user = Auth::user();
         // Chỉ xử lý các sản phẩm đã được chọn
         $cartItems = Cart::where('user_id', $user->id)
