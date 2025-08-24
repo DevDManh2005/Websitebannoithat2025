@@ -61,19 +61,16 @@
                                     <input type="text" class="form-control form-control-modern" name="receiver_name"
                                         value="{{ old('receiver_name', $user->name) }}" required>
                                 </div>
-                                {{-- Checkout form --}}
-                               <div class="col-md-6">
-    <label for="phone" class="form-label">Số điện thoại</label>
-    <input type="text" 
-           class="form-control form-control-modern @error('phone') is-invalid @enderror" 
-           name="phone" 
-           value="{{ old('phone', optional($order->shipment)->phone ?? optional($user->profile)->phone) }}" 
-           required>
+                               <input type="text"
+       class="form-control form-control-modern @error('phone') is-invalid @enderror"
+       name="phone"
+       value="{{ old('phone', optional($user->profile)->phone) }}"
+       required>
 
-    @error('phone')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
+@error('phone')
+    <div class="invalid-feedback">{{ $message }}</div>
+@enderror
+
 
 
                                 <div class="col-md-4">
