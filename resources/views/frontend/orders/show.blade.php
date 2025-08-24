@@ -251,14 +251,7 @@
     @error('phone')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
-
-    @if ($errors->any())
-        <script>
-            localStorage.setItem("isEditingAddress", "true");
-        </script>
-    @endif
 </div>
-
 
                                     <div class="col-md-4">
                                         <label for="province_id" class="form-label">Tỉnh/Thành <span
@@ -749,42 +742,6 @@
             editFormDiv.style.display = 'none';
             displayDiv.style.display = 'block';
         });
-document.addEventListener("DOMContentLoaded", function () {
-    const editBtn = document.getElementById("edit-address-btn");
-    const cancelBtn = document.getElementById("cancel-edit-btn");
-    const addressDisplay = document.getElementById("address-display");
-    const addressForm = document.getElementById("address-edit-form");
-
-    function showForm() {
-        addressDisplay.style.display = "none";
-        addressForm.style.display = "block";
-        localStorage.setItem("isEditingAddress", "true");
-    }
-
-    function hideForm() {
-        addressDisplay.style.display = "block";
-        addressForm.style.display = "none";
-        localStorage.removeItem("isEditingAddress");
-    }
-
-    if (editBtn) {
-        editBtn.addEventListener("click", function () {
-            showForm();
-        });
-    }
-
-    if (cancelBtn) {
-        cancelBtn.addEventListener("click", function () {
-            hideForm();
-        });
-    }
-
-    // Khi load lại trang → nếu đang edit hoặc có lỗi thì mở lại
-    if (localStorage.getItem("isEditingAddress") === "true") {
-        showForm();
-    }
-});
-
         // AOS init
         if (typeof AOS !== 'undefined') {
             AOS.init({
@@ -793,6 +750,41 @@ document.addEventListener("DOMContentLoaded", function () {
                 offset: 80
             });
         }
-    })();
+
+     const orderStatus = "{{ $order->status }}";
+    if (!['pending', 'processing'].includes(orderStatus)) return;
+
+    const editBtn = document.getElementById('edit-address-btn');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+    const displayDiv = document.getElementById('address-display');
+    const editFormDiv = document.getElementById('address-edit-form');
+
+    if (!editBtn || !cancelBtn || !displayDiv || !editFormDiv) return;
+
+    function showForm() {
+        displayDiv.style.display = "none";
+        editFormDiv.style.display = "block";
+        localStorage.setItem("isEditingAddress", "true");
+    }
+
+    function hideForm() {
+        displayDiv.style.display = "block";
+        editFormDiv.style.display = "none";
+        localStorage.removeItem("isEditingAddress");
+    }
+
+    editBtn.addEventListener('click', () => showForm());
+    cancelBtn.addEventListener('click', () => hideForm());
+
+    // Nếu có lỗi validate hoặc đang edit dở thì mở lại form
+    @if($errors->any())
+        showForm();
+    @elseif (session('open_edit_address'))
+        showForm();
+    @elseif (localStorage.getItem("isEditingAddress") === "true")
+        showForm();
+    @endif
+})();
 </script>
+
 @endpush
