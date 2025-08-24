@@ -138,4 +138,58 @@
         .header-home .navbar-brand img, .header-home.is-scrolled .navbar-brand img { height: 60px !important; max-height: 60px !important; }
         .header-internal .navbar-brand img { height: 40px !important; max-height: 40px !important; }
     }
+    /* CSS từ _nav_actions.blade.php */
+    .btn-outline-primary:hover {
+        background-color: var(--brand) !important;
+        color: #fff !important;
+        border-color: var(--brand) !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #8E0D30 !important;
+        border-color: #8E0D30 !important;
+        color: #fff !important;
+        transition: all 0.3s ease;
+    }
+
+    .nav-actions-mobile-auth .nav-link:hover,
+    .nav-actions-mobile-auth .nav-link:hover .action-label,
+    .nav-actions-mobile-auth .nav-link:hover i {
+        background-color: #f8f9fa;
+        color: var(--brand) !important;
+        transition: all 0.3s ease;
+    }
+
+    .nav-actions-mobile-auth .nav-link:active,
+    .nav-actions-mobile-auth .nav-link:active .action-label,
+    .nav-actions-mobile-auth .nav-link:active i {
+        background-color: #e9ecef;
+        color: var(--brand) !important;
+        transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item:active {
+        background-color: #f8f9fa;
+        color: var(--brand) !important;
+        transition: all 0.3s ease;
+    }
+
+    .nav-actions .nav-link:hover,
+    .nav-actions .nav-link.position-relative:hover,
+    .nav-actions .nav-link.position-relative:hover i {
+        color: var(--brand) !important;
+    }
+
+    /* Responsive Styles từ _nav_actions.blade.php */
+    @media (max-width: 991.98px) {
+        .navbar-collapse .nav-actions {
+            flex-direction: column;
+            align-items: flex-start !important;
+            width: 100%;
+            margin: 1rem 0 0;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
 </style>
