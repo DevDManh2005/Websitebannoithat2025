@@ -61,16 +61,17 @@
                                     <input type="text" class="form-control form-control-modern" name="receiver_name"
                                         value="{{ old('receiver_name', $user->name) }}" required>
                                 </div>
-                               <input type="text"
-       class="form-control form-control-modern @error('phone') is-invalid @enderror"
-       name="phone"
-       value="{{ old('phone', optional($user->profile)->phone) }}"
-       required>
+                                {{-- Checkout form --}}
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label">Số điện thoại</label>
+                                    <input type="text"
+                                        class="form-control form-control-modern @error('phone') is-invalid @enderror"
+                                        name="phone" value="{{ old('phone', optional($user->profile)->phone) }}" required>
+                                    @error('phone')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
 
-@error('phone')
-    <div class="invalid-feedback">{{ $message }}</div>
-@enderror
-
+                                </div>
 
 
                                 <div class="col-md-4">
@@ -167,7 +168,8 @@
                                         </div>
                                         <div class="flex-grow-1">
                                             <p class="mb-0 small fw-semibold text-truncate-2">
-                                                {{ $item->variant->product->name }}</p>
+                                                {{ $item->variant->product->name }}
+                                            </p>
                                             @if($item->variant?->attributes)
                                                 <div class="text-muted xsmall mt-1">
                                                     @foreach($item->variant->attributes as $k => $v)
@@ -668,13 +670,13 @@
 
                 if (result?.success && result.data) {
                     box.innerHTML = `
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="fw-semibold">${result.data.name || 'Giao hàng'}</div>
-                            <div class="text-muted xsmall">Dự kiến: ${result.data.leadtime_text || '—'}</div>
-                        </div>
-                        <div class="fw-bold">${formatCurrency(result.data.total)}</div>
-                    </div>`;
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="fw-semibold">${result.data.name || 'Giao hàng'}</div>
+                                <div class="text-muted xsmall">Dự kiến: ${result.data.leadtime_text || '—'}</div>
+                            </div>
+                            <div class="fw-bold">${formatCurrency(result.data.total)}</div>
+                        </div>`;
                     feeInput.value = result.data.total;
                 } else {
                     box.innerHTML = `<div class="text-danger">${result.message || 'Lỗi tính phí.'}</div>`;
