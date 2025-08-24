@@ -6,7 +6,7 @@
     {{-- =================== HERO / BREADCRUMB =================== --}}
     <section class="checkout-hero position-relative overflow-hidden mb-5">
         <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1600&auto=format&fit=crop"
-             alt="Checkout Banner" class="hero-bg">
+            alt="Checkout Banner" class="hero-bg">
         <div class="hero-overlay"></div>
         <div class="container position-relative" data-aos="fade-down">
             <div class="row align-items-center" style="min-height: 220px;">
@@ -14,8 +14,10 @@
                     <h1 class="fw-bold text-white mb-2">Thanh Toán Đơn Hàng</h1>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb justify-content-center mb-0">
-                            <li class="breadcrumb-item"><a class="hero-bc-link" href="{{ route('home') }}">Trang chủ</a></li>
-                            <li class="breadcrumb-item"><a class="hero-bc-link" href="{{ route('cart.index') }}">Giỏ hàng</a></li>
+                            <li class="breadcrumb-item"><a class="hero-bc-link" href="{{ route('home') }}">Trang chủ</a>
+                            </li>
+                            <li class="breadcrumb-item"><a class="hero-bc-link" href="{{ route('cart.index') }}">Giỏ
+                                    hàng</a></li>
                             <li class="breadcrumb-item active text-white-50" aria-current="page">Thanh toán</li>
                         </ol>
                     </nav>
@@ -56,32 +58,48 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="receiver_name" class="form-label">Họ và tên người nhận</label>
-                                    <input type="text" class="form-control form-control-modern" name="receiver_name" value="{{ old('receiver_name', $user->name) }}" required>
+                                    <input type="text" class="form-control form-control-modern" name="receiver_name"
+                                        value="{{ old('receiver_name', $user->name) }}" required>
                                 </div>
+                                {{-- Checkout form --}}
                                 <div class="col-md-6">
                                     <label for="phone" class="form-label">Số điện thoại</label>
-                                    <input type="text" class="form-control form-control-modern" name="phone" value="{{ old('phone', optional($user->profile)->phone) }}" required>
+                                    <input type="text" class="form-control form-control-modern" name="phone"
+                                        value="{{ old('phone', optional($order->shipment)->phone ?? optional($user->profile)->phone) }}"
+                                        required>
                                 </div>
 
+
                                 <div class="col-md-4">
-                                    <label for="province_id" class="form-label">Tỉnh/Thành <span class="text-danger">*</span></label>
-                                    <input type="hidden" name="city" id="province_name_input" value="{{ old('city', optional($user->profile)->province_name) }}">
-                                    <select class="form-select form-control-modern" id="province_id" name="province_id" required></select>
+                                    <label for="province_id" class="form-label">Tỉnh/Thành <span
+                                            class="text-danger">*</span></label>
+                                    <input type="hidden" name="city" id="province_name_input"
+                                        value="{{ old('city', optional($user->profile)->province_name) }}">
+                                    <select class="form-select form-control-modern" id="province_id" name="province_id"
+                                        required></select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="district_id" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
-                                    <input type="hidden" name="district" id="district_name_input" value="{{ old('district', optional($user->profile)->district_name) }}">
-                                    <select class="form-select form-control-modern" id="district_id" name="district_id" required></select>
+                                    <label for="district_id" class="form-label">Quận/Huyện <span
+                                            class="text-danger">*</span></label>
+                                    <input type="hidden" name="district" id="district_name_input"
+                                        value="{{ old('district', optional($user->profile)->district_name) }}">
+                                    <select class="form-select form-control-modern" id="district_id" name="district_id"
+                                        required></select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="ward_code" class="form-label">Phường/Xã <span class="text-danger">*</span></label>
-                                    <input type="hidden" name="ward" id="ward_name_input" value="{{ old('ward', optional($user->profile)->ward_name) }}">
-                                    <select class="form-select form-control-modern" id="ward_code" name="ward_code" required></select>
+                                    <label for="ward_code" class="form-label">Phường/Xã <span
+                                            class="text-danger">*</span></label>
+                                    <input type="hidden" name="ward" id="ward_name_input"
+                                        value="{{ old('ward', optional($user->profile)->ward_name) }}">
+                                    <select class="form-select form-control-modern" id="ward_code" name="ward_code"
+                                        required></select>
                                 </div>
 
                                 <div class="col-12">
                                     <label for="address" class="form-label">Địa chỉ cụ thể (số nhà, tên đường...)</label>
-                                    <input type="text" class="form-control form-control-modern" id="address" name="address" value="{{ old('address', optional($user->profile)->address) }}" required placeholder="Ví dụ: 123 Nguyễn Văn Linh">
+                                    <input type="text" class="form-control form-control-modern" id="address" name="address"
+                                        value="{{ old('address', optional($user->profile)->address) }}" required
+                                        placeholder="Ví dụ: 123 Nguyễn Văn Linh">
                                 </div>
                             </div>
                         </div>
@@ -104,19 +122,22 @@
 
                             <div class="mb-4">
                                 <label for="note" class="form-label">Ghi chú đơn hàng (tuỳ chọn)</label>
-                                <textarea class="form-control form-control-modern" id="note" name="note" rows="3">{{ old('note') }}</textarea>
+                                <textarea class="form-control form-control-modern" id="note" name="note"
+                                    rows="3">{{ old('note') }}</textarea>
                             </div>
 
                             <div>
                                 <h6 class="mb-2 fw-semibold">Phương thức thanh toán</h6>
                                 <div class="border rounded-3 p-3">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" checked>
+                                        <input class="form-check-input" type="radio" name="payment_method" id="cod"
+                                            value="cod" checked>
                                         <label class="form-check-label" for="cod">Thanh toán khi nhận hàng (COD)</label>
                                     </div>
                                     <hr class="my-2">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="payment_method" id="vnpay" value="vnpay">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="vnpay"
+                                            value="vnpay">
                                         <label class="form-check-label" for="vnpay">Thanh toán qua VNPAY</label>
                                     </div>
                                 </div>
@@ -136,12 +157,14 @@
                                     <div class="d-flex align-items-center mb-3 summary-item">
                                         <div class="position-relative me-3">
                                             <img src="{{ optional($item->variant->product->primaryImage)->image_url_path ?? 'https://placehold.co/100x100' }}"
-                                                 alt="{{ $item->variant->product->name }}" class="rounded-3"
-                                                 style="width: 64px; height: 64px; object-fit: cover;">
-                                            <span class="badge badge-soft-brand rounded-pill position-absolute top-0 start-100 translate-middle">{{ $item->quantity }}</span>
+                                                alt="{{ $item->variant->product->name }}" class="rounded-3"
+                                                style="width: 64px; height: 64px; object-fit: cover;">
+                                            <span
+                                                class="badge badge-soft-brand rounded-pill position-absolute top-0 start-100 translate-middle">{{ $item->quantity }}</span>
                                         </div>
                                         <div class="flex-grow-1">
-                                            <p class="mb-0 small fw-semibold text-truncate-2">{{ $item->variant->product->name }}</p>
+                                            <p class="mb-0 small fw-semibold text-truncate-2">
+                                                {{ $item->variant->product->name }}</p>
                                             @if($item->variant?->attributes)
                                                 <div class="text-muted xsmall mt-1">
                                                     @foreach($item->variant->attributes as $k => $v)
@@ -152,7 +175,8 @@
                                         </div>
                                         <div class="text-end ms-2">
                                             <span class="text-muted small">
-                                                {{ number_format(($item->variant->sale_price ?: $item->variant->price) * $item->quantity) }} ₫
+                                                {{ number_format(($item->variant->sale_price ?: $item->variant->price) * $item->quantity) }}
+                                                ₫
                                             </span>
                                         </div>
                                     </div>
@@ -165,20 +189,25 @@
                             <div id="voucher-section" class="mb-3">
                                 @if(session('voucher'))
                                     @php $voucher = session('voucher'); @endphp
-                                    <div id="applied-voucher-info" class="d-flex justify-content-between align-items-center text-success">
+                                    <div id="applied-voucher-info"
+                                        class="d-flex justify-content-between align-items-center text-success">
                                         <span>Mã đã áp dụng: <strong>{{ $voucher['code'] }}</strong></span>
-                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" id="remove-voucher-btn">Gỡ</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill"
+                                            id="remove-voucher-btn">Gỡ</button>
                                     </div>
                                 @else
                                     <div id="voucher-form">
                                         <div class="input-group">
-                                            <input type="text" class="form-control form-control-modern" placeholder="Nhập mã giảm giá" id="voucher-code-input">
+                                            <input type="text" class="form-control form-control-modern"
+                                                placeholder="Nhập mã giảm giá" id="voucher-code-input">
                                             <button class="btn btn-brand" type="button" id="apply-voucher-btn">Áp dụng</button>
                                         </div>
                                     </div>
-                                    <div id="applied-voucher-info" class="d-none justify-content-between align-items-center text-success small mt-2">
+                                    <div id="applied-voucher-info"
+                                        class="d-none justify-content-between align-items-center text-success small mt-2">
                                         <span>Mã đã áp dụng: <strong id="applied-voucher-code"></strong></span>
-                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" id="remove-voucher-btn-js">Gỡ</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill"
+                                            id="remove-voucher-btn-js">Gỡ</button>
                                     </div>
                                 @endif
                             </div>
@@ -189,9 +218,11 @@
                             {{-- Totals --}}
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Tạm tính</span>
-                                <span id="subtotal-display" data-value="{{ $subtotal }}">{{ number_format($subtotal) }} ₫</span>
+                                <span id="subtotal-display" data-value="{{ $subtotal }}">{{ number_format($subtotal) }}
+                                    ₫</span>
                             </div>
-                            <div id="discount-row" class="d-flex justify-content-between text-success mb-2 {{ $discount > 0 ? '' : 'd-none' }}">
+                            <div id="discount-row"
+                                class="d-flex justify-content-between text-success mb-2 {{ $discount > 0 ? '' : 'd-none' }}">
                                 <span>Giảm giá</span>
                                 <span id="discount-display">-{{ number_format($discount) }} ₫</span>
                             </div>
@@ -222,452 +253,510 @@
 @endsection
 
 @push('styles')
-<style>
-/* =================== Hero Section =================== */
-.checkout-hero {
-    background: var(--bg);
-}
-.checkout-hero .hero-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scale(1.03);
-    filter: brightness(0.7);
-}
-.checkout-hero .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35));
-}
-.wave-sep {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 28px;
-    background: radial-gradient(36px 11px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
-    background-size: 36px 18px;
-}
-.hero-bc-link {
-    color: var(--sand);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-.hero-bc-link:hover {
-    color: var(--brand);
-}
-.breadcrumb-item.active {
-    color: var(--muted);
-}
+    <style>
+        /* =================== Hero Section =================== */
+        .checkout-hero {
+            background: var(--bg);
+        }
 
-/* =================== Card and Elements =================== */
-.card-glass {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    border: 1px solid rgba(15, 23, 42, 0.04);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.card-glass:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-.rounded-4 {
-    border-radius: 1rem !important;
-}
-.text-brand {
-    color: var(--brand) !important;
-}
-.text-dark {
-    color: var(--text) !important;
-}
-.text-muted {
-    color: var(--muted) !important;
-}
-.fw-bold {
-    font-weight: 700 !important;
-}
-.xsmall {
-    font-size: 0.825rem;
-}
-.step-badge {
-    display: inline-flex;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    background: var(--brand);
-    color: var(--card);
-    font-weight: 700;
-    font-size: 0.9rem;
-}
+        .checkout-hero .hero-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.03);
+            filter: brightness(0.7);
+        }
 
-/* =================== Form Controls =================== */
-.form-control-modern, .form-select.form-control-modern {
-    border-radius: 0.8rem;
-    border: 1px solid #e9ecef;
-    background: var(--card);
-    font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.form-control-modern:focus, .form-select.form-control-modern:focus {
-    border-color: var(--brand);
-    box-shadow: 0 0 0 0.2rem var(--ring);
-}
-.form-check-input {
-    border-color: var(--muted);
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-.form-check-input:checked {
-    background-color: var(--brand);
-    border-color: var(--brand);
-}
-.form-check-input:focus {
-    border-color: var(--brand);
-    box-shadow: 0 0 0 0.2rem var(--ring);
-}
+        .checkout-hero .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35));
+        }
 
-/* =================== Order Summary =================== */
-.order-summary-items {
-    max-height: 230px;
-    overflow-y: auto;
-}
-.summary-item {
-    transition: background 0.2s ease;
-    border-radius: 0.8rem;
-    padding: 0.25rem;
-}
-.summary-item:hover {
-    background: rgba(var(--brand-rgb), 0.05);
-}
-.text-truncate-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-.badge-soft-brand {
-    background: rgba(var(--brand-rgb), 0.1);
-    color: var(--brand);
-}
-.border-dashed {
-    border-top: 1px dashed #dee2e6;
-}
+        .wave-sep {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 28px;
+            background: radial-gradient(36px 11px at 50% 0, var(--bg) 98%, transparent 100%) repeat-x;
+            background-size: 36px 18px;
+        }
 
-/* =================== Buttons =================== */
-.btn-brand {
-    background-color: var(--brand);
-    border-color: var(--brand);
-    color: #fff;
-    padding: 0.5rem 1rem;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-.btn-brand:hover {
-    background-color: var(--brand-600);
-    border-color: var(--brand-600);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-.btn-outline-danger {
-    color: #dc3545;
-    border-color: #dc3545;
-    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
-}
-.btn-outline-danger:hover {
-    background-color: #dc3545;
-    color: #fff;
-    transform: translateY(-2px);
-}
-.btn-lg {
-    padding: 0.75rem 1.5rem;
-    font-size: 1.1rem;
-}
+        .hero-bc-link {
+            color: var(--sand);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
 
-/* =================== Sticky Summary =================== */
-.sticky-order {
-    position: sticky;
-    top: var(--sticky-offset, 88px);
-    z-index: 1;
-}
-.container, .row {
-    overflow: visible;
-}
+        .hero-bc-link:hover {
+            color: var(--brand);
+        }
 
-/* =================== Responsive Design =================== */
-@media (max-width: 991px) {
-    .checkout-hero {
-        min-height: 180px;
-    }
-    .checkout-hero h1 {
-        font-size: 2rem;
-    }
-    .col-lg-7, .col-lg-5 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-    .sticky-order {
-        position: static !important;
-    }
-    .card-body {
-        padding: 1.5rem;
-    }
-    .order-summary-items img {
-        width: 56px !important;
-        height: 56px !important;
-    }
-}
+        .breadcrumb-item.active {
+            color: var(--muted);
+        }
 
-@media (max-width: 767px) {
-    .checkout-hero {
-        min-height: 160px;
-    }
-    .checkout-hero h1 {
-        font-size: 1.8rem;
-    }
-    .container {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-    .card-body {
-        padding: 1rem;
-    }
-    .form-control-modern, .form-select.form-control-modern {
-        font-size: 0.9rem;
-    }
-    .step-badge {
-        width: 24px;
-        height: 24px;
-        font-size: 0.85rem;
-    }
-    .order-summary-items img {
-        width: 48px !important;
-        height: 48px !important;
-    }
-    .btn-lg {
-        padding: 0.6rem 1.2rem;
-        font-size: 1rem;
-    }
-    .xsmall {
-        font-size: 0.75rem;
-    }
-}
+        /* =================== Card and Elements =================== */
+        .card-glass {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
 
-@media (max-width: 575px) {
-    .checkout-hero {
-        min-height: 140px;
-    }
-    .checkout-hero h1 {
-        font-size: 1.6rem;
-    }
-    .breadcrumb {
-        font-size: 0.85rem;
-    }
-    .card-body {
-        padding: 0.75rem;
-    }
-    .form-control-modern, .form-select.form-control-modern {
-        font-size: 0.85rem;
-    }
-    .step-badge {
-        width: 22px;
-        height: 22px;
-        font-size: 0.8rem;
-    }
-    .order-summary-items img {
-        width: 40px !important;
-        height: 40px !important;
-    }
-    .btn-lg {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-    }
-    .btn-sm {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.8rem;
-    }
-    .xsmall {
-        font-size: 0.7rem;
-    }
-    .alert {
-        font-size: 0.85rem;
-        padding: 0.5rem;
-    }
-    .order-summary-items {
-        max-height: 200px;
-    }
-}
-</style>
+        .card-glass:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .rounded-4 {
+            border-radius: 1rem !important;
+        }
+
+        .text-brand {
+            color: var(--brand) !important;
+        }
+
+        .text-dark {
+            color: var(--text) !important;
+        }
+
+        .text-muted {
+            color: var(--muted) !important;
+        }
+
+        .fw-bold {
+            font-weight: 700 !important;
+        }
+
+        .xsmall {
+            font-size: 0.825rem;
+        }
+
+        .step-badge {
+            display: inline-flex;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            background: var(--brand);
+            color: var(--card);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* =================== Form Controls =================== */
+        .form-control-modern,
+        .form-select.form-control-modern {
+            border-radius: 0.8rem;
+            border: 1px solid #e9ecef;
+            background: var(--card);
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control-modern:focus,
+        .form-select.form-control-modern:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 0.2rem var(--ring);
+        }
+
+        .form-check-input {
+            border-color: var(--muted);
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--brand);
+            border-color: var(--brand);
+        }
+
+        .form-check-input:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 0.2rem var(--ring);
+        }
+
+        /* =================== Order Summary =================== */
+        .order-summary-items {
+            max-height: 230px;
+            overflow-y: auto;
+        }
+
+        .summary-item {
+            transition: background 0.2s ease;
+            border-radius: 0.8rem;
+            padding: 0.25rem;
+        }
+
+        .summary-item:hover {
+            background: rgba(var(--brand-rgb), 0.05);
+        }
+
+        .text-truncate-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .badge-soft-brand {
+            background: rgba(var(--brand-rgb), 0.1);
+            color: var(--brand);
+        }
+
+        .border-dashed {
+            border-top: 1px dashed #dee2e6;
+        }
+
+        /* =================== Buttons =================== */
+        .btn-brand {
+            background-color: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .btn-brand:hover {
+            background-color: var(--brand-600);
+            border-color: var(--brand-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-outline-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+            transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* =================== Sticky Summary =================== */
+        .sticky-order {
+            position: sticky;
+            top: var(--sticky-offset, 88px);
+            z-index: 1;
+        }
+
+        .container,
+        .row {
+            overflow: visible;
+        }
+
+        /* =================== Responsive Design =================== */
+        @media (max-width: 991px) {
+            .checkout-hero {
+                min-height: 180px;
+            }
+
+            .checkout-hero h1 {
+                font-size: 2rem;
+            }
+
+            .col-lg-7,
+            .col-lg-5 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .sticky-order {
+                position: static !important;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .order-summary-items img {
+                width: 56px !important;
+                height: 56px !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .checkout-hero {
+                min-height: 160px;
+            }
+
+            .checkout-hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+
+            .form-control-modern,
+            .form-select.form-control-modern {
+                font-size: 0.9rem;
+            }
+
+            .step-badge {
+                width: 24px;
+                height: 24px;
+                font-size: 0.85rem;
+            }
+
+            .order-summary-items img {
+                width: 48px !important;
+                height: 48px !important;
+            }
+
+            .btn-lg {
+                padding: 0.6rem 1.2rem;
+                font-size: 1rem;
+            }
+
+            .xsmall {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .checkout-hero {
+                min-height: 140px;
+            }
+
+            .checkout-hero h1 {
+                font-size: 1.6rem;
+            }
+
+            .breadcrumb {
+                font-size: 0.85rem;
+            }
+
+            .card-body {
+                padding: 0.75rem;
+            }
+
+            .form-control-modern,
+            .form-select.form-control-modern {
+                font-size: 0.85rem;
+            }
+
+            .step-badge {
+                width: 22px;
+                height: 22px;
+                font-size: 0.8rem;
+            }
+
+            .order-summary-items img {
+                width: 40px !important;
+                height: 40px !important;
+            }
+
+            .btn-lg {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .btn-sm {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            .xsmall {
+                font-size: 0.7rem;
+            }
+
+            .alert {
+                font-size: 0.85rem;
+                padding: 0.5rem;
+            }
+
+            .order-summary-items {
+                max-height: 200px;
+            }
+        }
+    </style>
 @endpush
 
 @push('scripts-page')
-<script>
-// ===== Tính khoảng cách sticky theo chiều cao header =====
-(function(){
-    function updateStickyOffset(){
-        const header = document.querySelector('header.sticky-top, header.navbar-transparent, header'); 
-        const headerHeight = header ? header.offsetHeight : 72;
-        const gap = 16;
-        document.documentElement.style.setProperty('--sticky-offset', (headerHeight + gap) + 'px');
-    }
-    window.addEventListener('load', updateStickyOffset);
-    window.addEventListener('resize', updateStickyOffset);
-    setTimeout(updateStickyOffset, 300);
-
-    // AOS init
-    if (typeof AOS !== 'undefined') {
-        AOS.init({
-            duration: 600,
-            once: true,
-            offset: 80
-        });
-    }
-})();
-
-// ===== Currency helper =====
-const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style:'currency', currency:'VND' }).format(amount);
-let currentDiscount = {{ $discount }};
-
-function updateFinalTotals(){
-    const shippingFee = parseFloat(document.getElementById('shipping_fee_input').value) || 0;
-    const subtotal = parseFloat(document.getElementById('subtotal-display').dataset.value) || 0;
-    const discountRow = document.getElementById('discount-row');
-    const discountDisplay = document.getElementById('discount-display');
-    const total = (subtotal - currentDiscount) + shippingFee;
-
-    document.getElementById('shipping-fee-display').textContent = isNaN(shippingFee) ? 'Chọn địa chỉ' : formatCurrency(shippingFee);
-    document.getElementById('total-price-display').textContent = formatCurrency(Math.max(total, 0));
-
-    if (currentDiscount > 0) {
-        discountDisplay.textContent = `-${formatCurrency(currentDiscount)}`;
-        discountRow.classList.remove('d-none');
-    } else {
-        discountRow.classList.add('d-none');
-    }
-}
-
-// ===== GHN fee via backend route =====
-async function calculateShippingFee(){
-    const districtId = document.getElementById('district_id').value;
-    const wardCode   = document.getElementById('ward_code').value;
-    const box        = document.getElementById('shipping-options-container');
-    const feeInput   = document.getElementById('shipping_fee_input');
-
-    if (!districtId || !wardCode) {
-        box.innerHTML = '<div class="text-muted">Vui lòng điền đủ địa chỉ.</div>';
-        feeInput.value = 0; updateFinalTotals(); return;
-    }
-
-    box.innerHTML = '<div class="d-inline-flex align-items-center gap-2"><span class="spinner-border spinner-border-sm"></span> Đang tính…</div>';
-
-    try{
-        const res = await fetch('{{ route("shipping.getFee") }}', {
-            method:'POST',
-            headers:{
-                'Content-Type':'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept':'application/json'
-            },
-            body: JSON.stringify({ to_district_id: districtId, to_ward_code: wardCode })
-        });
-        const result = await res.json();
-
-        if (result?.success && result.data) {
-            box.innerHTML = `
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="fw-semibold">${result.data.name || 'Giao hàng'}</div>
-                        <div class="text-muted xsmall">Dự kiến: ${result.data.leadtime_text || '—'}</div>
-                    </div>
-                    <div class="fw-bold">${formatCurrency(result.data.total)}</div>
-                </div>`;
-            feeInput.value = result.data.total;
-        } else {
-            box.innerHTML = `<div class="text-danger">${result.message || 'Lỗi tính phí.'}</div>`;
-            feeInput.value = 0;
-        }
-    }catch(e){
-        console.error(e);
-        box.innerHTML = '<div class="text-danger">Lỗi kết nối.</div>';
-        feeInput.value = 0;
-    }
-    updateFinalTotals();
-}
-
-// ===== Voucher apply/remove =====
-const applyBtn      = document.getElementById('apply-voucher-btn');
-const removeBtn   = document.getElementById('remove-voucher-btn') || document.getElementById('remove-voucher-btn-js');
-const voucherInput = document.getElementById('voucher-code-input');
-const voucherMsg  = document.getElementById('voucher-message');
-
-if (applyBtn) {
-    applyBtn.addEventListener('click', async function(){
-        const code = (voucherInput?.value || '').trim();
-        if (!code) return;
-        this.disabled = true; this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-        try{
-            const res = await fetch('{{ route("voucher.apply") }}', {
-                method:'POST',
-                headers:{
-                    'Content-Type':'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept':'application/json'
-                },
-                body: JSON.stringify({ code })
-            });
-            const result = await res.json();
-
-            voucherMsg.className = result.success ? 'text-success small' : 'text-danger small';
-            voucherMsg.textContent = result.message || '';
-
-            if (result.success){
-                currentDiscount = result.discount || 0;
-                document.getElementById('voucher-form').classList.add('d-none');
-                document.getElementById('applied-voucher-code').textContent = code;
-                document.getElementById('applied-voucher-info').classList.remove('d-none');
-                updateFinalTotals();
+    <script>
+        // ===== Tính khoảng cách sticky theo chiều cao header =====
+        (function () {
+            function updateStickyOffset() {
+                const header = document.querySelector('header.sticky-top, header.navbar-transparent, header');
+                const headerHeight = header ? header.offsetHeight : 72;
+                const gap = 16;
+                document.documentElement.style.setProperty('--sticky-offset', (headerHeight + gap) + 'px');
             }
-        }catch(e){
-            voucherMsg.className = 'text-danger small';
-            voucherMsg.textContent = 'Có lỗi xảy ra, vui lòng thử lại.';
-        }finally{
-            this.disabled = false; this.innerHTML = 'Áp dụng';
-        }
-    });
-}
+            window.addEventListener('load', updateStickyOffset);
+            window.addEventListener('resize', updateStickyOffset);
+            setTimeout(updateStickyOffset, 300);
 
-if (removeBtn) {
-    removeBtn.addEventListener('click', async function(){
-        try{
-            const res = await fetch('{{ route("voucher.remove") }}', {
-                method:'POST',
-                headers:{
-                    'Content-Type':'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept':'application/json'
+            // AOS init
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 600,
+                    once: true,
+                    offset: 80
+                });
+            }
+        })();
+
+        // ===== Currency helper =====
+        const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        let currentDiscount = {{ $discount }};
+
+        function updateFinalTotals() {
+            const shippingFee = parseFloat(document.getElementById('shipping_fee_input').value) || 0;
+            const subtotal = parseFloat(document.getElementById('subtotal-display').dataset.value) || 0;
+            const discountRow = document.getElementById('discount-row');
+            const discountDisplay = document.getElementById('discount-display');
+            const total = (subtotal - currentDiscount) + shippingFee;
+
+            document.getElementById('shipping-fee-display').textContent = isNaN(shippingFee) ? 'Chọn địa chỉ' : formatCurrency(shippingFee);
+            document.getElementById('total-price-display').textContent = formatCurrency(Math.max(total, 0));
+
+            if (currentDiscount > 0) {
+                discountDisplay.textContent = `-${formatCurrency(currentDiscount)}`;
+                discountRow.classList.remove('d-none');
+            } else {
+                discountRow.classList.add('d-none');
+            }
+        }
+
+        // ===== GHN fee via backend route =====
+        async function calculateShippingFee() {
+            const districtId = document.getElementById('district_id').value;
+            const wardCode = document.getElementById('ward_code').value;
+            const box = document.getElementById('shipping-options-container');
+            const feeInput = document.getElementById('shipping_fee_input');
+
+            if (!districtId || !wardCode) {
+                box.innerHTML = '<div class="text-muted">Vui lòng điền đủ địa chỉ.</div>';
+                feeInput.value = 0; updateFinalTotals(); return;
+            }
+
+            box.innerHTML = '<div class="d-inline-flex align-items-center gap-2"><span class="spinner-border spinner-border-sm"></span> Đang tính…</div>';
+
+            try {
+                const res = await fetch('{{ route("shipping.getFee") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ to_district_id: districtId, to_ward_code: wardCode })
+                });
+                const result = await res.json();
+
+                if (result?.success && result.data) {
+                    box.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-semibold">${result.data.name || 'Giao hàng'}</div>
+                            <div class="text-muted xsmall">Dự kiến: ${result.data.leadtime_text || '—'}</div>
+                        </div>
+                        <div class="fw-bold">${formatCurrency(result.data.total)}</div>
+                    </div>`;
+                    feeInput.value = result.data.total;
+                } else {
+                    box.innerHTML = `<div class="text-danger">${result.message || 'Lỗi tính phí.'}</div>`;
+                    feeInput.value = 0;
+                }
+            } catch (e) {
+                console.error(e);
+                box.innerHTML = '<div class="text-danger">Lỗi kết nối.</div>';
+                feeInput.value = 0;
+            }
+            updateFinalTotals();
+        }
+
+        // ===== Voucher apply/remove =====
+        const applyBtn = document.getElementById('apply-voucher-btn');
+        const removeBtn = document.getElementById('remove-voucher-btn') || document.getElementById('remove-voucher-btn-js');
+        const voucherInput = document.getElementById('voucher-code-input');
+        const voucherMsg = document.getElementById('voucher-message');
+
+        if (applyBtn) {
+            applyBtn.addEventListener('click', async function () {
+                const code = (voucherInput?.value || '').trim();
+                if (!code) return;
+                this.disabled = true; this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                try {
+                    const res = await fetch('{{ route("voucher.apply") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ code })
+                    });
+                    const result = await res.json();
+
+                    voucherMsg.className = result.success ? 'text-success small' : 'text-danger small';
+                    voucherMsg.textContent = result.message || '';
+
+                    if (result.success) {
+                        currentDiscount = result.discount || 0;
+                        document.getElementById('voucher-form').classList.add('d-none');
+                        document.getElementById('applied-voucher-code').textContent = code;
+                        document.getElementById('applied-voucher-info').classList.remove('d-none');
+                        updateFinalTotals();
+                    }
+                } catch (e) {
+                    voucherMsg.className = 'text-danger small';
+                    voucherMsg.textContent = 'Có lỗi xảy ra, vui lòng thử lại.';
+                } finally {
+                    this.disabled = false; this.innerHTML = 'Áp dụng';
                 }
             });
-            const result = await res.json();
-            if (result.success){
-                currentDiscount = 0;
-                voucherInput && (voucherInput.value = '');
-                voucherMsg.textContent = '';
-                document.querySelectorAll('#applied-voucher-info').forEach(el => el.classList.add('d-none'));
-                const voucherForm = document.getElementById('voucher-form');
-                if (voucherForm) voucherForm.classList.remove('d-none');
-                updateFinalTotals();
-            }
-        }catch(e){
-            alert('Có lỗi xảy ra, vui lòng thử lại.');
         }
-    });
-}
 
-document.getElementById('district_id')?.addEventListener('change', calculateShippingFee);
-document.getElementById('ward_code')?.addEventListener('change', calculateShippingFee);
-updateFinalTotals();
-</script>
+        if (removeBtn) {
+            removeBtn.addEventListener('click', async function () {
+                try {
+                    const res = await fetch('{{ route("voucher.remove") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        currentDiscount = 0;
+                        voucherInput && (voucherInput.value = '');
+                        voucherMsg.textContent = '';
+                        document.querySelectorAll('#applied-voucher-info').forEach(el => el.classList.add('d-none'));
+                        const voucherForm = document.getElementById('voucher-form');
+                        if (voucherForm) voucherForm.classList.remove('d-none');
+                        updateFinalTotals();
+                    }
+                } catch (e) {
+                    alert('Có lỗi xảy ra, vui lòng thử lại.');
+                }
+            });
+        }
+
+        document.getElementById('district_id')?.addEventListener('change', calculateShippingFee);
+        document.getElementById('ward_code')?.addEventListener('change', calculateShippingFee);
+        updateFinalTotals();
+    </script>
 @endpush

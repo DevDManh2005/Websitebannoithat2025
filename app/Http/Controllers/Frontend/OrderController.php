@@ -7,6 +7,7 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\AddressRequest;
 
 class OrderController extends Controller
 {
@@ -104,7 +105,7 @@ class OrderController extends Controller
     /**
      * Cập nhật thông tin địa chỉ giao hàng (chỉ khi pending | processing).
      */
-    public function updateAddress(Request $request, Order $order)
+    public function updateAddress(AddressRequest $request, Order $order)
     {
         $u = auth()->user();
         $isOwner = $u && ((int)$u->id === (int)$order->user_id);
@@ -118,7 +119,7 @@ class OrderController extends Controller
             return back()->with('error', 'Đơn hàng không thể chỉnh sửa ở trạng thái hiện tại.');
         }
 
-        $validated = $request->validate([
+        $validated = $request->validated([
             'receiver_name' => ['required', 'string', 'max:255'],
             'phone'         => ['required', 'string', 'max:20'],
             'city'          => ['required', 'string', 'max:255'],

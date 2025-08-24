@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Http\Requests\AddressRequest;
 
 class CheckoutController extends Controller
 {
@@ -59,9 +60,9 @@ class CheckoutController extends Controller
     /**
      * Xử lý đặt hàng.
      */
-    public function placeOrder(Request $request)
+    public function placeOrder(AddressRequest $request)
     {
-        $validated = $request->validate([
+        $validated = $request->validated([
             'receiver_name' => 'required|string|max:255',
             'phone'         => 'required|string|max:20',
             'city'          => 'required|string',
