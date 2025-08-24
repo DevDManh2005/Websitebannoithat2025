@@ -106,9 +106,13 @@ class OrderController extends Controller
      */
     public function updateAddress(Request $request, Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
-            abort(403, 'Bạn không có quyền chỉnh sửa đơn hàng này.');
-        }
+        $u = auth()->user();
+        $isOwner = $u && ((int)$u->id === (int)$order->user_id);
+        $role    = optional($u->role)->name;
+        $isStaff = in_array($role, ['admin', 'staff'], true);
+
+        // Cho phép nếu là chủ đơn hàng HOẶC là nhân viên
+        abort_unless($isOwner || $isStaff, 403, 'Bạn không có quyền xác nhận đơn hàng này.');
 
         if (!in_array($order->status, ['pending', 'processing'], true)) {
             return back()->with('error', 'Đơn hàng không thể chỉnh sửa ở trạng thái hiện tại.');
