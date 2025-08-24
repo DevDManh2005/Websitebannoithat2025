@@ -3,8 +3,24 @@
 @section('title','Bảng điều khiển')
 
 @section('content')
+@php
+    $user = \Illuminate\Support\Facades\Auth::user();
+
+    // Lấy danh sách quyền hiện có (gộp quyền từ role + gán trực tiếp)
+    $rolePerms   = optional($user->role)->permissions ?? collect();
+    $directPerms = method_exists($user, 'permissions') ? $user->permissions : collect();
+    $allPerms    = $rolePerms->concat($directPerms)->unique('id');
+
+    // Gợi ý các lối tắt hay dùng (chỉ hiển thị nếu có quyền view module tương ứng)
+    $shortcuts = [
+        ['name'=>'Đơn hàng',  'route'=>'staff.orders.index',   'module'=>'orders'],
+        ['name'=>'Sản phẩm',  'route'=>'staff.products.index', 'module'=>'products'],
+        ['name'=>'Đánh giá',  'route'=>'staff.reviews.index',  'module'=>'reviews'],
+        ['name'=>'Voucher',   'route'=>'staff.vouchers.index', 'module'=>'vouchers'],
+    ];
+@endphp
+
 <div class="row g-3">
-    {{-- Header + shortcuts --}}
     <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between">
@@ -16,7 +32,7 @@
                     @foreach($shortcuts as $sc)
                         @perm($sc['module'],'view')
                             @php
-                                $href = \Illuminate\Support\Facades\Route::has($sc['route'] ?? '')
+                                $href = \Illuminate\Support\Facades\Route::has($sc['route'])
                                     ? route($sc['route'])
                                     : '#';
                             @endphp
@@ -32,75 +48,24 @@
         </div>
     </div>
 
-    {{-- Widgets (mỗi module 1 card) --}}
-    @forelse($widgets as $key => $w)
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div class="card-title mb-0">
-                        <i class="{{ $w['icon'] }}"></i>
-                        {{ $w['title'] }}
-                    </div>
-                    @if(!empty($w['route']) && \Illuminate\Support\Facades\Route::has($w['route']))
-                        <a href="{{ route($w['route']) }}" class="btn btn-sm btn-light">Xem tất cả</a>
-                    @endif
-                </div>
-                <div class="card-body">
-                    {{-- Stats --}}
-                    @if(!empty($w['stats']))
-                        <div class="row g-2 mb-3">
-                            @foreach($w['stats'] as $label => $value)
-                                <div class="col-6 col-md-6">
-                                    <div class="p-2 bg-light rounded border">
-                                        <div class="text-muted small">{{ $label }}</div>
-                                        <div class="fw-semibold fs-5">{{ is_numeric($value) ? number_format($value,0,',','.') : $value }}</div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    {{-- Recent table --}}
-                    @php $items = collect($w['recent'] ?? []); @endphp
-                    @if($items->isEmpty())
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                            Chưa có dữ liệu.
-                        </div>
-                    @else
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle">
-                                <thead>
-                                <tr>
-                                    @foreach(array_keys($items->first()) as $col)
-                                        <th>{{ $col }}</th>
-                                    @endforeach
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($items as $row)
-                                    <tr>
-                                        @foreach($row as $val)
-                                            <td>{{ $val }}</td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
+    {{-- Widget: đơn hàng mới nhất (placeholder – tuỳ bạn đổ dữ liệu sau) --}}
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white">
+                <div class="card-title mb-0">Đơn hàng mới nhất</div>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center text-muted py-5">
+                <div class="text-center">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    Chưa có đơn hàng nào.
                 </div>
             </div>
         </div>
-    @empty
-        <div class="col-12">
-            <div class="alert alert-info">Bạn chưa được cấp quyền xem bất kỳ module nào.</div>
-        </div>
-    @endforelse
+    </div>
 
-    {{-- Quyền hiện có --}}
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
+    {{-- Widget: quyền hiện có --}}
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white">
                 <div class="card-title mb-0">Quyền hiện có</div>
             </div>
@@ -108,8 +73,8 @@
                 @if($allPerms->isEmpty())
                     <div class="text-muted">Chưa được cấp quyền nào.</div>
                 @else
-                    @foreach($allPerms as $p)
-                        <span class="badge bg-primary-soft me-1 mb-1">{{ $p->module_name.'.'.$p->action }}</span>
+                    @foreach($allPerms->sortBy(['module_name','action']) as $p)
+                        <span class="chip">{{ $p->module_name.'.'.$p->action }}</span>
                     @endforeach
                 @endif
             </div>
