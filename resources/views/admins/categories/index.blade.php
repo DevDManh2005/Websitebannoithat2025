@@ -330,7 +330,8 @@
           @endforelse
 
           {{-- Orphan: con nhưng cha không nằm ở trang hiện tại --}}
-          @php
+          
+          {{-- @php
             $parentsIds = $parents->pluck('id')->all();
             $orphans = $items->filter(fn($c)=> !is_null($c->parent_id) && !in_array($c->parent_id,$parentsIds,true));
           @endphp
@@ -390,7 +391,7 @@
               </td>
               <td></td>
             </tr>
-          @endforeach
+          @endforeach --}}
 
           </tbody>
         </table>
