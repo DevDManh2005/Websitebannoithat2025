@@ -5,19 +5,167 @@
 
 @section('content')
 <style>
-  .card-soft{ border-radius:16px; border:1px solid rgba(32,25,21,.08) }
-  .card-soft .card-header{ background:transparent; border-bottom:1px dashed rgba(32,25,21,.12) }
-  .badge.bg-success-soft{ background:#e5f7ed; color:#1e6b3a }
-  .badge.bg-danger-soft{ background:#fde7e7; color:#992f2f }
-  .badge.bg-info-soft{ background:#e6f1ff; color:#0b4a8b }
-  .badge.bg-primary-soft{ background:#e8ebff; color:#2a3cff }
-  .badge.bg-warning-soft{ background:#fff4d6; color:#8b6b00 }
+  /* General card styles */
+  .card-soft {
+    border-radius: 16px;
+    border: 1px solid rgba(32, 25, 21, 0.08);
+    margin-bottom: 1.5rem;
+  }
+  .card-soft .card-header {
+    background: transparent;
+    border-bottom: 1px dashed rgba(32, 25, 21, 0.12);
+    padding: 1rem 1.5rem;
+  }
+  .card-soft .card-body {
+    padding: 1rem 1.5rem;
+  }
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  /* Badge styles */
+  .badge.bg-success-soft { background: #e5f7ed; color: #1e6b3a; }
+  .badge.bg-danger-soft { background: #fde7e7; color: #992f2f; }
+  .badge.bg-info-soft { background: #e6f1ff; color: #0b4a8b; }
+  .badge.bg-primary-soft { background: #e8ebff; color: #2a3cff; }
+  .badge.bg-warning-soft { background: #fff4d6; color: #8b6b00; }
+
+  /* Responsive container */
+  .container-fluid {
+    padding: 1rem;
+  }
+
+  /* Thông tin giao hàng styles */
+  .shipping-info .card-body {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem 1.5rem;
+  }
+  .shipping-info .mb-3 {
+    margin-bottom: 0 !important;
+  }
+  .shipping-info .form-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #333;
+  }
+  .shipping-info .form-control-static {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.4;
+  }
+
+  /* Responsive layout */
+  @media (max-width: 992px) {
+    .col-lg-8, .col-lg-4 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+    .d-flex.justify-content-between.align-items-center.mb-3 {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .btn-outline-secondary {
+      width: 100%;
+      text-align: center;
+    }
+    .shipping-info .card-body {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .card-title {
+      font-size: 1.1rem;
+    }
+    .card-body {
+      padding: 1rem;
+    }
+    .fs-5 {
+      font-size: 1.1rem !important;
+    }
+    .shipping-info .form-label {
+      font-size: 0.85rem;
+    }
+    .shipping-info .form-control-static {
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Print styles */
   @media print {
     .no-print { display: none; }
-    .invoice { width: 100%; margin: 0; padding: 20px; }
-    .invoice-header { text-align: center; }
-    .invoice-table { width: 100%; border-collapse: collapse; }
-    .invoice-table th, .invoice-table td { border: 1px solid #000; padding: 8px; }
+    .invoice {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #000;
+    }
+    .invoice-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .invoice-header h2 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    .invoice-header p {
+      font-size: 14px;
+      color: #555;
+    }
+    .invoice h4 {
+      font-size: 18px;
+      margin: 20px 0 10px;
+      color: #333;
+    }
+    .invoice p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    .invoice-table th, .invoice-table td {
+      border: 1px solid #000;
+      padding: 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+    .invoice-table th {
+      background: #f2f2f2;
+      font-weight: bold;
+    }
+    .invoice-table td small {
+      font-size: 12px;
+      color: #555;
+    }
+    /* Adjust table for smaller print sizes */
+    @media print and (max-width: 600px) {
+      .invoice-table th, .invoice-table td {
+        font-size: 12px;
+        padding: 8px;
+      }
+      .invoice-header h2 {
+        font-size: 20px;
+      }
+      .invoice h4 {
+        font-size: 16px;
+      }
+      .invoice p {
+        font-size: 12px;
+      }
+      .shipping-info .card-body {
+        grid-template-columns: 1fr;
+      }
+    }
   }
 </style>
 
@@ -89,7 +237,7 @@
       </div>
 
       {{-- THÔNG TIN GIAO HÀNG --}}
-      <div class="card card-soft mt-3">
+      <div class="card card-soft mt-3 shipping-info">
         <div class="card-header"><h5 class="card-title mb-0">Thông tin giao hàng</h5></div>
         <div class="card-body">
           <div class="mb-3">
@@ -256,12 +404,72 @@ function printInvoice() {
       <head>
         <title>Hóa đơn #{{ $order->order_code }}</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          .invoice { width: 100%; max-width: 800px; margin: auto; }
-          .invoice-header { text-align: center; }
-          .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          .invoice-table th, .invoice-table td { border: 1px solid #000; padding: 8px; text-align: left; }
-          .invoice-table th { background: #f2f2f2; }
+          body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            color: #000;
+          }
+          .invoice { 
+            width: 100%; 
+            max-width: 800px; 
+            margin: auto; 
+            padding: 20px; 
+          }
+          .invoice-header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+          }
+          .invoice-header h2 { 
+            font-size: 24px; 
+            margin-bottom: 5px; 
+          }
+          .invoice-header p { 
+            font-size: 14px; 
+            color: #555; 
+          }
+          .invoice h4 { 
+            font-size: 18px; 
+            margin: 20px 0 10px; 
+            color: #333; 
+          }
+          .invoice p { 
+            margin: 5px 0; 
+            font-size: 14px; 
+          }
+          .invoice-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+          }
+          .invoice-table th, .invoice-table td { 
+            border: 1px solid #000; 
+            padding: 10px; 
+            text-align: left; 
+            font-size: 14px; 
+          }
+          .invoice-table th { 
+            background: #f2f2f2; 
+            font-weight: bold; 
+          }
+          .invoice-table td small { 
+            font-size: 12px; 
+            color: #555; 
+          }
+          @media print and (max-width: 600px) {
+            .invoice-table th, .invoice-table td {
+              font-size: 12px;
+              padding: 8px;
+            }
+            .invoice-header h2 {
+              font-size: 20px;
+            }
+            .invoice h4 {
+              font-size: 16px;
+            }
+            .invoice p {
+              font-size: 12px;
+            }
+          }
         </style>
       </head>
       <body>
@@ -272,79 +480,5 @@ function printInvoice() {
   printWindow.document.close();
   printWindow.print();
 }
-
-document.addEventListener('DOMContentLoaded', function () {
-  const provinceSelect = document.getElementById('province');
-  const districtSelect = document.getElementById('district');
-  const wardSelect     = document.getElementById('ward');
-
-  const provinceNameInput = document.getElementById('province_name_input');
-  const districtNameInput = document.getElementById('district_name_input');
-  const wardNameInput     = document.getElementById('ward_name_input');
-
-  const savedAddress = {
-    province: "{{ optional($order->shipment)->city }}",
-    district: "{{ optional($order->shipment)->district }}",
-    ward:     "{{ optional($order->shipment)->ward }}"
-  };
-
-  async function fetchApi(url) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) return [];
-      return await res.json();
-    } catch { return []; }
-  }
-
-  function renderOptions(selectEl, data, placeholder, valueKey, textKey, selectedText = "") {
-    selectEl.innerHTML = `<option value="">${placeholder}</option>`;
-    if (!Array.isArray(data)) return;
-
-    let selectedValue = null;
-    data.forEach(item => {
-      const opt = new Option(item[textKey], item[valueKey]);
-      if (item[textKey] === selectedText) {
-        opt.selected = true;
-        selectedValue = item[valueKey];
-      }
-      selectEl.add(opt);
-    });
-
-    if (selectedValue) {
-      selectEl.value = selectedValue;
-      selectEl.dispatchEvent(new Event('change'));
-    }
-  }
-
-  async function loadProvinces() {
-    const provinces = await fetchApi('{{ route("address.provinces") }}');
-    renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành phố', 'ProvinceID', 'ProvinceName', savedAddress.province);
-  }
-
-  provinceSelect.addEventListener('change', async function() {
-    provinceNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
-    renderOptions(districtSelect, [], 'Vui lòng chờ...', 'DistrictID', 'DistrictName');
-    renderOptions(wardSelect, [], 'Chọn Phường/Xã', 'WardCode', 'WardName');
-    if (this.value) {
-      const districts = await fetchApi(`{{ route("address.districts") }}?province_id=${this.value}`);
-      renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', savedAddress.district);
-    }
-  });
-
-  districtSelect.addEventListener('change', async function() {
-    districtNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
-    renderOptions(wardSelect, [], 'Vui lòng chờ...', 'WardCode', 'WardName');
-    if (this.value) {
-      const wards = await fetchApi(`{{ route("address.wards") }}?district_id=${this.value}`);
-      renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', savedAddress.ward);
-    }
-  });
-
-  wardSelect.addEventListener('change', function() {
-    wardNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
-  });
-
-  loadProvinces();
-});
 </script>
 @endpush
