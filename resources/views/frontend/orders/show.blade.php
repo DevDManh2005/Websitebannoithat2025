@@ -251,7 +251,14 @@
     @error('phone')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
+
+    @if ($errors->any())
+        <script>
+            localStorage.setItem("isEditingAddress", "true");
+        </script>
+    @endif
 </div>
+
 
                                     <div class="col-md-4">
                                         <label for="province_id" class="form-label">Tỉnh/Thành <span
@@ -742,53 +749,42 @@
             editFormDiv.style.display = 'none';
             displayDiv.style.display = 'block';
         });
-        document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     const editBtn = document.getElementById("edit-address-btn");
     const cancelBtn = document.getElementById("cancel-edit-btn");
     const addressDisplay = document.getElementById("address-display");
     const addressForm = document.getElementById("address-edit-form");
-    const updateForm = document.getElementById("update-address-form");
 
-    // Hàm hiển thị form
     function showForm() {
         addressDisplay.style.display = "none";
         addressForm.style.display = "block";
         localStorage.setItem("isEditingAddress", "true");
     }
 
-    // Hàm ẩn form
     function hideForm() {
         addressDisplay.style.display = "block";
         addressForm.style.display = "none";
         localStorage.removeItem("isEditingAddress");
     }
 
-    // Khi nhấn nút chỉnh sửa
     if (editBtn) {
         editBtn.addEventListener("click", function () {
             showForm();
         });
     }
 
-    // Khi nhấn nút hủy
     if (cancelBtn) {
         cancelBtn.addEventListener("click", function () {
             hideForm();
         });
     }
 
-    // Khi submit form (lưu thay đổi)
-    if (updateForm) {
-        updateForm.addEventListener("submit", function () {
-            hideForm(); // ẩn đi sau khi lưu
-        });
-    }
-
-    // Khi load lại trang → nếu đang edit thì mở lại
+    // Khi load lại trang → nếu đang edit hoặc có lỗi thì mở lại
     if (localStorage.getItem("isEditingAddress") === "true") {
         showForm();
     }
 });
+
         // AOS init
         if (typeof AOS !== 'undefined') {
             AOS.init({
