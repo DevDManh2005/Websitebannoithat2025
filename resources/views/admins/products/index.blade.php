@@ -18,44 +18,76 @@
 
 <style>
     /* Khung lọc mềm */
-    .filter-bar{
-        border-radius:16px; padding:12px;
+    .filter-bar {
+        border-radius: 16px; padding: 12px;
         background: linear-gradient(140deg, rgba(196,111,59,.08), rgba(78,107,82,.06) 70%), var(--card);
-        border:1px solid rgba(32,25,21,.08);
+        border: 1px solid rgba(32,25,21,.08);
         box-shadow: var(--shadow);
     }
     /* Card mềm */
-    .card-soft{ border-radius:16px; border:1px solid rgba(32,25,21,.08) }
-    .card-soft .card-header{ background:transparent; border-bottom:1px dashed rgba(32,25,21,.12) }
+    .card-soft { border-radius: 16px; border: 1px solid rgba(32,25,21,.08); }
+    .card-soft .card-header { background: transparent; border-bottom: 1px dashed rgba(32,25,21,.12); }
 
-    /* Ảnh sp */
-    .prod-thumb{
-        width:56px;height:56px;flex:0 0 56px;border-radius:12px;object-fit:cover;
-        background:#f7f2eb;border:1px solid rgba(32,25,21,.06);
+    /* Ảnh sản phẩm */
+    .prod-thumb {
+        width: 56px; height: 56px; flex: 0 0 56px; border-radius: 12px; object-fit: cover;
+        background: #f7f2eb; border: 1px solid rgba(32,25,21,.06);
     }
 
     /* Bảng + sticky head */
-    .table td,.table th{ vertical-align: middle; }
-    .table .text-truncate{ max-width: 260px; }
-    thead.table-light th{ position: sticky; top: 0; z-index: 1; }
-    @media (max-width: 575.98px){
-        .table .text-truncate{ max-width: 160px; }
-    }
+    .table td, .table th { vertical-align: middle; }
+    .table .text-truncate { max-width: 260px; }
+    thead.table-light th { position: sticky; top: 0; z-index: 1; }
+    .table th { font-size: 0.9rem; }
+    .table td { font-size: 0.85rem; }
+    .badge { font-size: 0.8rem; padding: 0.4em 0.6em; }
 
     /* Soft badges */
-    .badge.bg-primary-soft{ background:#e8f0ff; color:#0b4a8b }
-    .badge.bg-success-soft{ background:#e5f7ed; color:#1e6b3a }
-    .badge.bg-danger-soft{  background:#fde7e7; color:#992f2f }
-    .badge.bg-info-soft{    background:#e6f7ff; color:#0b5b6d }
-    .badge.bg-secondary-soft{ background:#f0f0f0; color:#555 }
+    .badge.bg-primary-soft { background: #e8f0ff; color: #0b4a8b; }
+    .badge.bg-success-soft { background: #e5f7ed; color: #1e6b3a; }
+    .badge.bg-danger-soft { background: #fde7e7; color: #992f2f; }
+    .badge.bg-info-soft { background: #e6f7ff; color: #0b5b6d; }
+    .badge.bg-secondary-soft { background: #f0f0f0; color: #555; }
 
     /* Chấm trạng thái nhỏ */
-    .status-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
-    .dot-green{ background:#28a745 }
-    .dot-gray{ background:#6c757d }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .dot-green { background: #28a745; }
+    .dot-gray { background: #6c757d; }
 
     /* Hành động gọn trên di động */
-    .actions .btn{ min-width:34px }
+    .actions .btn { min-width: 34px; }
+    .actions .btn-sm { padding: 0.3rem 0.5rem; }
+
+    /* Responsive styles */
+    @media (max-width: 991px) {
+        .filter-bar { padding: 10px; }
+        .prod-thumb { width: 48px; height: 48px; flex: 0 0 48px; }
+        .table .text-truncate { max-width: 200px; }
+        .table th, .table td { font-size: 0.8rem; }
+        .badge { font-size: 0.75rem; }
+        .h1, .h5 { font-size: 1.25rem; }
+        .input-group, .form-select { font-size: 0.9rem; }
+        .btn { font-size: 0.9rem; }
+    }
+    @media (max-width: 767px) {
+        .filter-bar .d-flex.align-items-center { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        .filter-bar form .col-12 { margin-bottom: 0.5rem; }
+        .prod-thumb { width: 40px; height: 40px; flex: 0 0 40px; }
+        .table .text-truncate { max-width: 150px; }
+        .table th, .table td { font-size: 0.75rem; padding: 0.5rem; }
+        .badge { font-size: 0.7rem; }
+        .actions .btn { padding: 0.25rem 0.4rem; }
+    }
+    @media (max-width: 575px) {
+        .filter-bar { padding: 8px; }
+        .prod-thumb { width: 36px; height: 36px; flex: 0 0 36px; }
+        .table .text-truncate { max-width: 120px; }
+        .table th, .table td { font-size: 0.7rem; padding: 0.4rem; }
+        .badge { font-size: 0.65rem; }
+        .h1, .h5 { font-size: 1.1rem; }
+        .btn { font-size: 0.8rem; padding: 0.3rem 0.6rem; }
+        .input-group, .form-select { font-size: 0.85rem; }
+    }
 </style>
 
 <div class="container-fluid">
@@ -77,7 +109,7 @@
 
         {{-- Bộ lọc --}}
         <form class="row g-2 mt-2" method="get" action="{{ route('admin.products.index') }}">
-            <div class="col-12 col-lg-5">
+            <div class="col-12 col-md-6 col-lg-5">
                 <div class="input-group">
                     <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="Tìm theo tên / mã…">
@@ -88,7 +120,7 @@
                     @endif
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
+            <div class="col-12 col-md-6 col-lg-3">
                 <select name="status" class="form-select">
                     <option value="">-- Trạng thái --</option>
                     <option value="1" {{ request('status')==='1' ? 'selected' : '' }}>Hiển thị</option>
@@ -96,7 +128,7 @@
                 </select>
             </div>
             @if($catList && count($catList))
-            <div class="col-6 col-lg-3">
+            <div class="col-12 col-md-6 col-lg-3">
                 <select name="category_id" class="form-select">
                     <option value="">-- Danh mục --</option>
                     @foreach($catList as $c)
@@ -105,7 +137,7 @@
                 </select>
             </div>
             @endif
-            <div class="col-12 col-lg-1 d-grid">
+            <div class="col-12 col-md-6 col-lg-1 d-grid">
                 <button class="btn btn-outline-secondary"><i class="bi bi-funnel me-1"></i>Lọc</button>
             </div>
         </form>
@@ -128,14 +160,14 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th style="width:72px">#</th>
-                            <th style="min-width:280px">Sản phẩm</th>
-                            <th>Danh mục</th>
-                            <th>Giá (chính)</th>
-                            <th class="text-center">Biến thể</th>
-                            <th class="text-end">Tồn</th>
-                            <th>Trạng thái</th>
-                            <th class="text-end" style="width:170px">Hành động</th>
+                            <th style="width: 10%; min-width: 60px;">#</th>
+                            <th style="width: 30%; min-width: 220px;">Sản phẩm</th>
+                            <th style="width: 20%; min-width: 150px;">Danh mục</th>
+                            <th style="width: 15%; min-width: 120px;">Giá (chính)</th>
+                            <th class="text-center" style="width: 10%; min-width: 80px;">Biến thể</th>
+                            <th class="text-end" style="width: 10%; min-width: 80px;">Tồn kho</th>
+                            <th style="width: 10%; min-width: 80px;">Trạng thái</th>
+                            <th class="text-end" style="width: 15%; min-width: 120px;">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -233,7 +265,7 @@
 
                                 {{-- Tồn kho tổng --}}
                                 <td class="text-end">
-                                    <span class="badge {{ $stockTotal>0 ? 'bg-success-soft' : 'bg-danger-soft' }}">
+                                    <span class="badge {{ $stockTotal > 0 ? 'bg-success-soft' : 'bg-danger-soft' }}">
                                         {{ number_format($stockTotal) }}
                                     </span>
                                 </td>

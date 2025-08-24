@@ -48,7 +48,6 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate(15);
-        // giữ query string trên phân trang (hết cảnh báo IDE)
         $products->appends($request->query());
 
         $allCategories = Category::query()
@@ -91,10 +90,11 @@ class ProductController extends Controller
             'images_files' => 'nullable|array',
             'images_files.*' => 'nullable|image|max:4096',
             'images_urls' => 'nullable|array',
-            'images_urls.*' => 'nullable|string|max:255',
+            'images_urls.*' => 'nullable|url|max:255',
             'variants' => 'required|array|min:1',
             'variants.*.sku' => 'required|string|max:255|unique:product_variants,sku',
             'variants.*.weight' => 'required|integer|min:0',
+            'variants.*.stock' => 'required|integer|min:0',
             'variants.*.price' => 'required|numeric|min:0',
             'variants.*.sale_price' => 'nullable|numeric|min:0',
             'variants.*.is_main_variant' => 'nullable|boolean',
@@ -134,21 +134,14 @@ class ProductController extends Controller
                 }
             }
             if (!empty($data['images_urls'])) {
-                // Gộp tất cả các link (dù là mảng hay chuỗi) thành một chuỗi duy nhất
-                $urlString = is_array($data['images_urls']) ? implode(',', $data['images_urls']) : $data['images_urls'];
-
-                // Tách chuỗi đó ra thành một mảng các URL, loại bỏ các giá trị rỗng
-                $urls = array_filter(array_map('trim', explode(',', $urlString)));
-
-                // Lặp qua mảng URL đã được xử lý đúng
-                if (!empty($urls)) {
-                    foreach ($urls as $url) {
-                        $product->images()->create(['image_url' => $url, 'is_primary' => false]);
+                foreach ($data['images_urls'] as $url) {
+                    if (trim($url)) {
+                        $product->images()->create(['image_url' => trim($url), 'is_primary' => false]);
                     }
                 }
             }
 
-            // 5. Tạo biến thể
+            // 5. Tạo biến thể và kho hàng
             foreach ($data['variants'] as $variantData) {
                 $attributes = [];
                 foreach ($variantData['attributes'] as $attr) {
@@ -165,11 +158,11 @@ class ProductController extends Controller
                     'is_main_variant' => $variantData['is_main_variant'] ?? 0,
                 ]);
 
-                // 6. Tạo bản ghi kho hàng cho mỗi biến thể
+                // 6. Tạo bản ghi kho hàng
                 Inventory::create([
                     'product_id' => $product->id,
                     'product_variant_id' => $variant->id,
-                    'quantity' => 0, // Mặc định số lượng là 0
+                    'quantity' => $variantData['stock'],
                 ]);
             }
         });
@@ -177,12 +170,18 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Tạo sản phẩm thành công');
     }
 
+    /**
+     * Hiển thị chi tiết sản phẩm.
+     */
     public function show(Product $product)
     {
         $product->load(['categories', 'brand', 'supplier', 'images', 'variants']);
         return view('admins.products.show', compact('product'));
     }
 
+    /**
+     * Hiển thị form chỉnh sửa sản phẩm.
+     */
     public function edit(Product $product)
     {
         $product->load('categories');
@@ -192,6 +191,9 @@ class ProductController extends Controller
         return view('admins.products.edit', compact('product', 'categories', 'brands', 'suppliers'));
     }
 
+    /**
+     * Cập nhật sản phẩm trong database.
+     */
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
@@ -201,43 +203,42 @@ class ProductController extends Controller
             'categories.*' => 'exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
+            'description' => 'nullable|string',
+            'label' => 'nullable|string|max:100',
+            'is_active' => 'boolean',
+            'is_featured' => 'boolean',
+            'main_image_file' => 'nullable|image|max:4096',
+            'main_image_url' => 'nullable|url|max:255',
+            'images_files' => 'nullable|array',
+            'images_files.*' => 'nullable|image|max:4096',
+            'images_urls' => 'nullable|array',
+            'images_urls.*' => 'nullable|url|max:255',
             'variants' => 'required|array|min:1',
+            'variants.*.id' => 'nullable|exists:product_variants,id',
             'variants.*.sku' => 'required|string|max:255',
             'variants.*.weight' => 'required|integer|min:0',
+            'variants.*.stock' => 'required|integer|min:0',
             'variants.*.price' => 'required|numeric|min:0',
+            'variants.*.sale_price' => 'nullable|numeric|min:0',
+            'variants.*.is_main_variant' => 'nullable|boolean',
+            'variants.*.attributes' => 'required|array',
+            'variants.*.attributes.*.name' => 'required|string|max:255',
+            'variants.*.attributes.*.value' => 'required|string|max:255',
         ]);
 
         DB::transaction(function () use ($request, $product, $data) {
-            $productData = $request->except(['_token', '_method', 'categories', 'variants', 'main_image_file', 'main_image_url', 'images_files', 'images_urls', 'existing_images']);
+            $productData = $request->except(['_token', '_method', 'categories', 'variants', 'main_image_file', 'main_image_url', 'images_files', 'images_urls']);
             $productData['slug'] = $request->slug ? Str::slug($request->slug) : Str::slug($request->name);
             $productData['is_active'] = $request->has('is_active');
             $productData['is_featured'] = $request->has('is_featured');
 
+            // 1. Cập nhật thông tin sản phẩm
             $product->update($productData);
+
+            // 2. Gán lại danh mục
             $product->categories()->sync($data['categories']);
 
-            // Cập nhật biến thể (Xóa cũ tạo mới)
-            $product->variants()->delete();
-            if ($request->has('variants')) {
-                foreach ($request->variants as $variantData) {
-                    $attributes = [];
-                    foreach ($variantData['attributes'] as $attr) {
-                        if (!empty($attr['name']) && !empty($attr['value'])) {
-                            $attributes[$attr['name']] = $attr['value'];
-                        }
-                    }
-                    $product->variants()->create([
-                        'sku' => $variantData['sku'],
-                        'attributes' => $attributes,
-                        'price' => $variantData['price'],
-                        'sale_price' => $variantData['sale_price'],
-                        'weight' => $variantData['weight'],
-                        'is_main_variant' => $variantData['is_main_variant'] ?? 0,
-                    ]);
-                }
-            }
-
-            // Cập nhật ảnh chính
+            // 3. Cập nhật ảnh chính
             $mainImageUrl = null;
             if ($request->hasFile('main_image_file')) {
                 $mainImageUrl = $request->file('main_image_file')->store('products', 'public');
@@ -247,15 +248,19 @@ class ProductController extends Controller
             if ($mainImageUrl) {
                 $oldMain = $product->images()->where('is_primary', true)->first();
                 if ($oldMain) {
-                    if (!Str::startsWith($oldMain->image_url, 'http')) Storage::disk('public')->delete($oldMain->image_url);
+                    if (!Str::startsWith($oldMain->image_url, 'http')) {
+                        Storage::disk('public')->delete($oldMain->image_url);
+                    }
                     $oldMain->delete();
                 }
                 $product->images()->create(['image_url' => $mainImageUrl, 'is_primary' => true]);
             }
 
-            // Cập nhật ảnh phụ
+            // 4. Cập nhật ảnh phụ
             $product->images()->where('is_primary', false)->get()->each(function ($image) {
-                if (!Str::startsWith($image->image_url, 'http')) Storage::disk('public')->delete($image->image_url);
+                if (!Str::startsWith($image->image_url, 'http')) {
+                    Storage::disk('public')->delete($image->image_url);
+                }
                 $image->delete();
             });
             if ($request->hasFile('images_files')) {
@@ -264,12 +269,67 @@ class ProductController extends Controller
                     $product->images()->create(['image_url' => $path, 'is_primary' => false]);
                 }
             }
-            if (!empty($request->images_urls[0])) {
-                $urls = is_string($request->images_urls[0]) ? explode(',', $request->images_urls[0]) : $request->images_urls;
-                foreach ($urls as $url) {
+            if (!empty($data['images_urls'])) {
+                foreach ($data['images_urls'] as $url) {
                     if (trim($url)) {
                         $product->images()->create(['image_url' => trim($url), 'is_primary' => false]);
                     }
+                }
+            }
+
+            // 5. Cập nhật biến thể và kho hàng
+            $existingVariantIds = $product->variants()->pluck('id')->toArray();
+            $submittedVariantIds = array_filter(array_column($data['variants'], 'id') ?: []);
+            $variantsToDelete = array_diff($existingVariantIds, $submittedVariantIds);
+
+            // Xóa các biến thể không còn trong request
+            if (!empty($variantsToDelete)) {
+                ProductVariant::whereIn('id', $variantsToDelete)->delete();
+                Inventory::whereIn('product_variant_id', $variantsToDelete)->delete();
+            }
+
+            foreach ($data['variants'] as $variantData) {
+                $attributes = [];
+                foreach ($variantData['attributes'] as $attr) {
+                    if (!empty($attr['name']) && !empty($attr['value'])) {
+                        $attributes[$attr['name']] = $attr['value'];
+                    }
+                }
+
+                $variantAttributes = [
+                    'sku' => $variantData['sku'],
+                    'attributes' => $attributes,
+                    'price' => $variantData['price'],
+                    'sale_price' => $variantData['sale_price'],
+                    'weight' => $variantData['weight'],
+                    'is_main_variant' => $variantData['is_main_variant'] ?? 0,
+                ];
+
+                if (!empty($variantData['id'])) {
+                    // Cập nhật biến thể hiện có
+                    $variant = ProductVariant::find($variantData['id']);
+                    if ($variant) {
+                        $variant->update($variantAttributes);
+                        // Cập nhật số lượng tồn kho
+                        $inventory = Inventory::where('product_variant_id', $variant->id)->first();
+                        if ($inventory) {
+                            $inventory->update(['quantity' => $variantData['stock']]);
+                        } else {
+                            Inventory::create([
+                                'product_id' => $product->id,
+                                'product_variant_id' => $variant->id,
+                                'quantity' => $variantData['stock'],
+                            ]);
+                        }
+                    }
+                } else {
+                    // Tạo biến thể mới
+                    $variant = $product->variants()->create($variantAttributes);
+                    Inventory::create([
+                        'product_id' => $product->id,
+                        'product_variant_id' => $variant->id,
+                        'quantity' => $variantData['stock'],
+                    ]);
                 }
             }
         });
@@ -277,6 +337,9 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Cập nhật sản phẩm thành công');
     }
 
+    /**
+     * Xóa sản phẩm.
+     */
     public function destroy(Product $product)
     {
         foreach ($product->images as $img) {
@@ -293,7 +356,6 @@ class ProductController extends Controller
      */
     public function getVariantsWithInventory(Product $product)
     {
-        // Tải sẵn thông tin kho hàng và vị trí cho mỗi biến thể
         $variants = $product->variants()->with(['inventory.location'])->get();
         return response()->json($variants);
     }

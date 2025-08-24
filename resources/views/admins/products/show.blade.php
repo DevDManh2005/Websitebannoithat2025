@@ -1,3 +1,4 @@
+
 @extends('admins.layouts.app')
 
 @section('title', 'Chi tiết sản phẩm: ' . $product->name)
@@ -27,23 +28,57 @@
 @endphp
 
 <style>
-    .card-soft{ border-radius:16px; border:1px solid rgba(32,25,21,.08) }
-    .card-soft .card-header{ background:transparent; border-bottom:1px dashed rgba(32,25,21,.12) }
-    .badge.bg-success-soft{ background:#e5f7ed; color:#1e6b3a }
-    .badge.bg-danger-soft{ background:#fde7e7; color:#992f2f }
-    .badge.bg-info-soft{ background:#e6f1ff; color:#0b4a8b }
-    .badge.bg-secondary-soft{ background:#f0f0f0; color:#555 }
-    .prod-cover{
-        width:100%; height: 360px; object-fit:cover; border-radius:14px;
-        border:1px solid rgba(32,25,21,.08); background:#faf6f0;
+    .card-soft { border-radius: 16px; border: 1px solid rgba(32,25,21,.08); }
+    .card-soft .card-header { background: transparent; border-bottom: 1px dashed rgba(32,25,21,.12); }
+    .badge.bg-success-soft { background: #e5f7ed; color: #1e6b3a; }
+    .badge.bg-danger-soft { background: #fde7e7; color: #992f2f; }
+    .badge.bg-info-soft { background: #e6f1ff; color: #0b4a8b; }
+    .badge.bg-secondary-soft { background: #f0f0f0; color: #555; }
+    .prod-cover {
+        width: 100%; max-height: 360px; object-fit: cover; border-radius: 14px;
+        border: 1px solid rgba(32,25,21,.08); background: #faf6f0;
     }
-    .thumb{
-        width:90px;height:90px;object-fit:cover;border-radius:12px;
-        border:1px solid rgba(32,25,21,.08); background:#faf6f0; cursor:zoom-in;
+    .thumb {
+        width: 90px; height: 90px; object-fit: cover; border-radius: 12px;
+        border: 1px solid rgba(32,25,21,.08); background: #faf6f0; cursor: zoom-in;
     }
-    .kv{ display:flex; gap:8px; align-items:center; }
-    .kv .k{ min-width:140px; color:#6c757d }
-    .table-variants td, .table-variants th{ vertical-align: middle; }
+    .kv { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .kv .k { min-width: 120px; color: #6c757d; }
+    .table-variants td, .table-variants th { vertical-align: middle; }
+    .table-variants th { font-size: 0.9rem; }
+    .table-variants td { font-size: 0.85rem; }
+    .badge { font-size: 0.8rem; padding: 0.4em 0.6em; }
+
+    /* Responsive styles */
+    @media (max-width: 991px) {
+        .prod-cover { max-height: 300px; }
+        .thumb { width: 70px; height: 70px; }
+        .kv .k { min-width: 100px; font-size: 0.9rem; }
+        .h1, .h4 { font-size: 1.5rem; }
+        .card-body { padding: 1rem; }
+        .table-variants th, .table-variants td { font-size: 0.8rem; }
+        .badge { font-size: 0.75rem; }
+    }
+    @media (max-width: 767px) {
+        .prod-cover { max-height: 250px; }
+        .thumb { width: 60px; height: 60px; }
+        .kv { flex-direction: column; align-items: flex-start; }
+        .kv .k { min-width: unset; font-size: 0.85rem; }
+        .d-flex.align-items-center.gap-3 { flex-direction: column; align-items: flex-start; }
+        .d-flex.gap-2 { flex-wrap: wrap; justify-content: center; }
+        .table-variants { font-size: 0.75rem; }
+        .table-variants th, .table-variants td { padding: 0.5rem; }
+        .card { margin-bottom: 1rem; }
+    }
+    @media (max-width: 575px) {
+        .prod-cover { max-height: 200px; }
+        .thumb { width: 50px; height: 50px; }
+        .h1, .h4 { font-size: 1.25rem; }
+        .btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+        .table-responsive { overflow-x: auto; }
+        .table-variants th, .table-variants td { font-size: 0.7rem; }
+        .badge { font-size: 0.7rem; }
+    }
 </style>
 
 <div class="container-fluid">
@@ -79,7 +114,7 @@
 
     {{-- Thẻ thông tin nhanh --}}
     <div class="row g-3 mb-3">
-        <div class="col-6 col-lg-3">
+        <div class="col-12 col-md-6 col-lg-3">
             <div class="card card-soft">
                 <div class="card-body">
                     <div class="kv">
@@ -93,7 +128,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-12 col-md-6 col-lg-3">
             <div class="card card-soft">
                 <div class="card-body">
                     <div class="k text-muted">Giá hiển thị</div>
@@ -112,13 +147,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-12 col-md-6 col-lg-3">
             <div class="card card-soft">
                 <div class="card-body">
                     <div class="k text-muted">Danh mục</div>
-                    <div class="mt-1">
+                    <div class="mt-1 d-flex flex-wrap gap-1">
                         @forelse($product->categories as $category)
-                            <span class="badge bg-primary-subtle text-primary-emphasis me-1 mb-1">{{ $category->name }}</span>
+                            <span class="badge bg-primary-subtle text-primary-emphasis">{{ $category->name }}</span>
                         @empty
                             <span class="text-muted">—</span>
                         @endforelse
@@ -126,7 +161,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="col-12 col-md-6 col-lg-3">
             <div class="card card-soft">
                 <div class="card-body">
                     <div class="kv">
@@ -143,11 +178,11 @@
     </div>
 
     {{-- 2 cột nội dung --}}
-    <div class="row">
+    <div class="row g-3">
         {{-- Cột trái --}}
-        <div class="col-lg-8">
+        <div class="col-12 col-lg-8">
             {{-- Ảnh sản phẩm --}}
-            <div class="card card-soft shadow-sm mb-4">
+            <div class="card card-soft shadow-sm mb-3">
                 <div class="card-header"><h5 class="card-title mb-0">Hình ảnh</h5></div>
                 <div class="card-body">
                     <img src="{{ $coverUrl }}" alt="Ảnh sản phẩm" class="prod-cover mb-3" id="coverImage">
@@ -167,7 +202,7 @@
             </div>
 
             {{-- Thông tin mô tả --}}
-            <div class="card card-soft shadow-sm mb-4">
+            <div class="card card-soft shadow-sm mb-3">
                 <div class="card-header"><h5 class="card-title mb-0">Thông tin cơ bản</h5></div>
                 <div class="card-body">
                     <div class="kv">
@@ -188,22 +223,23 @@
             </div>
 
             {{-- Biến thể --}}
-            <div class="card card-soft shadow-sm mb-4">
+            <div class="card card-soft shadow-sm mb-3">
                 <div class="card-header"><h5 class="card-title mb-0">Biến thể</h5></div>
                 <div class="card-body">
                     @if($product->variants->isEmpty())
                         <p class="text-muted mb-0">Chưa có biến thể.</p>
                     @else
                         <div class="table-responsive">
-                            <table class="table table-variants table-hover align-middle">
+                            <table class="table table-variants table-hover">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width:160px">SKU</th>
-                                        <th>Thuộc tính</th>
-                                        <th class="text-end" style="width:160px">Giá</th>
-                                        <th class="text-end" style="width:160px">Giá KM</th>
-                                        <th class="text-center" style="width:120px">Chính</th>
-                                        <th class="text-end" style="width:140px">Cân nặng</th>
+                                        <th style="width: 15%; min-width: 120px;">SKU</th>
+                                        <th style="width: 25%;">Thuộc tính</th>
+                                        <th class="text-end" style="width: 15%; min-width: 100px;">Giá</th>
+                                        <th class="text-end" style="width: 15%; min-width: 100px;">Giá KM</th>
+                                        <th class="text-end" style="width: 15%; min-width: 100px;">Tồn kho</th>
+                                        <th class="text-center" style="width: 10%; min-width: 80px;">Chính</th>
+                                        <th class="text-end" style="width: 15%; min-width: 100px;">Cân nặng</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -219,6 +255,7 @@
                                                     <span class="text-muted">—</span>
                                                 @endif
                                             </td>
+                                            <td class="text-end">{{ $variant->inventory ? number_format($variant->inventory->quantity) : '—' }}</td>
                                             <td class="text-center">
                                                 @if($variant->is_main_variant)
                                                     <span class="badge bg-success-soft">Có</span>
@@ -238,8 +275,8 @@
         </div>
 
         {{-- Cột phải --}}
-        <div class="col-lg-4">
-            <div class="card card-soft shadow-sm mb-4">
+        <div class="col-12 col-lg-4">
+            <div class="card card-soft shadow-sm mb-3">
                 <div class="card-header"><h5 class="card-title mb-0">Trạng thái & dán nhãn</h5></div>
                 <div class="card-body">
                     <div class="kv">
@@ -274,9 +311,9 @@
                 <div class="card-body">
                     <div class="kv">
                         <div class="k">Danh mục</div>
-                        <div class="v">
+                        <div class="v d-flex flex-wrap gap-1">
                             @forelse($product->categories as $category)
-                                <span class="badge bg-primary-subtle text-primary-emphasis me-1 mb-1">{{ $category->name }}</span>
+                                <span class="badge bg-primary-subtle text-primary-emphasis">{{ $category->name }}</span>
                             @empty
                                 <span class="text-muted">—</span>
                             @endforelse
@@ -304,11 +341,11 @@
 
 {{-- Modal xem ảnh lớn (dùng Bootstrap) --}}
 <div class="modal fade" id="imgModal" tabindex="-1" aria-labelledby="imgModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <img src="" id="imgModalSrc" class="w-100" alt="Ảnh sản phẩm" style="border-radius: .5rem;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <img src="" id="imgModalSrc" class="w-100" alt="Ảnh sản phẩm" style="border-radius: .5rem;">
+        </div>
     </div>
-  </div>
 </div>
 
 @push('scripts')
