@@ -191,7 +191,6 @@ Route::prefix('admin')
             Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
             Route::put('/{user}',      [UserController::class, 'update'])->name('update');
             Route::post('/{user}/toggle', [UserController::class, 'toggleLock'])->name('toggle');
-            Route::get('/{user}/logs',    [UserController::class, 'logs'])->name('logs');
         });
 
         // Đơn hàng
@@ -317,7 +316,6 @@ Route::prefix('staff')
             Route::get('/{user}/edit',     [UserController::class, 'edit'])->name('edit');
             Route::put('/{user}',          [UserController::class, 'update'])->name('update');
             Route::post('/{user}/toggle',  [UserController::class, 'toggleLock'])->name('toggle');
-            Route::get('/{user}/logs',     [UserController::class, 'logs'])->name('logs');
         });
 
         Route::resource('staffs', StaffController::class)->except(['show']);

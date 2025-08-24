@@ -71,14 +71,6 @@ class UserController extends Controller
             ]
         );
 
-        // 3) Ghi AuditLog
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'update',
-            'module' => 'user',
-            'description' => "Cập nhật người dùng #{$user->id}",
-            'ip_address' => $request->ip(),
-        ]);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'Cập nhật thành công');
@@ -92,13 +84,6 @@ class UserController extends Controller
         $user->is_active = !$user->is_active;
         $user->save();
 
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => $user->is_active ? 'unlock' : 'lock',
-            'module' => 'user',
-            'description' => ($user->is_active ? 'Mở khoá' : 'Khoá') . " người dùng #{$user->id}",
-            'ip_address' => request()->ip(),
-        ]);
 
         return back()->with('success', 'Đã ' . ($user->is_active ? 'mở khoá' : 'khoá') . ' tài khoản');
     }
@@ -109,22 +94,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load('profile');
-        $logs = AuditLog::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
 
         return view('admins.users.show', compact('user', 'logs'));
-    }
-
-    /**
-     * Xem lịch sử hoạt động
-     */
-    public function logs(User $user)
-    {
-        $logs = AuditLog::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        return view('admins.users.logs', compact('user', 'logs'));
     }
 }
