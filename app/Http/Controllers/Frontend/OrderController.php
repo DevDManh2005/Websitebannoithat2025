@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\AddressRequest;
-
 class OrderController extends Controller
 {
     public function index(Request $request)
@@ -119,14 +118,7 @@ class OrderController extends Controller
             return back()->with('error', 'Đơn hàng không thể chỉnh sửa ở trạng thái hiện tại.');
         }
 
-        $validated = $request->validated([
-            'receiver_name' => ['required', 'string', 'max:255'],
-            'phone'         => ['required', 'string', 'max:20'],
-            'city'          => ['required', 'string', 'max:255'],
-            'district'      => ['required', 'string', 'max:255'],
-            'ward'          => ['required', 'string', 'max:255'],
-            'address'       => ['required', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         if ($order->shipment) {
             $order->shipment->update($validated);
