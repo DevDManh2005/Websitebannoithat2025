@@ -1,5 +1,5 @@
 {{-- resources/views/admins/blog_categories/create.blade.php --}}
-@extends(auth()->user()->role->name === 'staff' ? 'staff.layouts.app' : 'admins.layouts.app')
+@extends(auth()->user()->role->name === 'staff' ? 'staffs.layouts.app' : 'admins.layouts.app')
 
 
 @section('title','Thêm danh mục bài viết')

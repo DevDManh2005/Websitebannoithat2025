@@ -1,5 +1,5 @@
 {{-- resources/views/admins/brands/show.blade.php --}}
-@extends(auth()->user()->role->name === 'staff' ? 'staff.layouts.app' : 'admins.layouts.app')
+@extends(auth()->user()->role->name === 'staff' ? 'staffs.layouts.app' : 'admins.layouts.app')
 
 
 
