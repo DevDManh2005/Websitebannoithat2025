@@ -25,12 +25,16 @@ class InventoryController extends Controller
         $query = Inventory::with(['product', 'variant', 'location']);
 
         if ($q) {
-            $query->whereHas('product', function ($sub) use ($q) {
-                $sub->where('name', 'like', "%{$q}%");
-            })->orWhereHas('variant', function ($sub) use ($q) {
-                $sub->where('sku', 'like', "%{$q}%");
+            $query->where(function ($sub) use ($q) {
+                $sub->whereHas('product', function ($q1) use ($q) {
+                    $q1->where('name', 'like', "%{$q}%");
+                })
+                    ->orWhereHas('variant', function ($q2) use ($q) {
+                        $q2->where('sku', 'like', "%{$q}%");
+                    });
             });
         }
+
 
         if ($low === 'zero') {
             $query->where('quantity', 0);
@@ -59,7 +63,7 @@ class InventoryController extends Controller
     public function variantsInventory($productId)
     {
         $variants = ProductVariant::where('product_id', $productId)
-            ->select(['id','product_id','sku','attributes'])
+            ->select(['id', 'product_id', 'sku', 'attributes'])
             ->get();
 
         $invByVariant = Inventory::with('location')
@@ -107,7 +111,7 @@ class InventoryController extends Controller
             foreach ($data['variants'] as $v) {
                 $inventory = Inventory::firstOrNew([
                     'product_id'        => $data['product_id'],
-                    'product_variant_id'=> $v['id'],
+                    'product_variant_id' => $v['id'],
                 ]);
 
                 $inventory->quantity = (int) $v['quantity'];
@@ -131,7 +135,7 @@ class InventoryController extends Controller
             return redirect()->route('admin.inventories.index')->with('success', 'Cập nhật kho hàng thành công.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Inventory bulk update failed: '.$e->getMessage());
+            Log::error('Inventory bulk update failed: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Đã xảy ra lỗi khi cập nhật kho.');
         }
     }
@@ -149,9 +153,9 @@ class InventoryController extends Controller
     {
         $products = Product::where('is_active', true)->orderBy('name')->get();
         // Tải sẵn toàn bộ variants (client sẽ lọc theo product_id)
-        $variants = ProductVariant::select(['id','product_id','sku','attributes'])->get();
+        $variants = ProductVariant::select(['id', 'product_id', 'sku', 'attributes'])->get();
 
-        return view('admins.inventories.edit', compact('inventory','products','variants'));
+        return view('admins.inventories.edit', compact('inventory', 'products', 'variants'));
     }
 
     public function update(Request $request, Inventory $inventory)
@@ -187,7 +191,7 @@ class InventoryController extends Controller
             return redirect()->route('admin.inventories.index')->with('success', 'Đã cập nhật kho.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Inventory update failed: '.$e->getMessage());
+            Log::error('Inventory update failed: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Cập nhật thất bại.');
         }
     }
@@ -204,7 +208,7 @@ class InventoryController extends Controller
             return redirect()->route('admin.inventories.index')->with('success', 'Xóa bản ghi kho thành công.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Inventory delete failed: '.$e->getMessage());
+            Log::error('Inventory delete failed: ' . $e->getMessage());
             return back()->with('error', 'Đã xảy ra lỗi khi xóa kho.');
         }
     }
