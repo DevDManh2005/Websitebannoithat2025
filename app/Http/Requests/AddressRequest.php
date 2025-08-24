@@ -16,7 +16,13 @@ class AddressRequest extends FormRequest
     {
         return [
             'receiver_name' => ['required', 'string', 'max:255'],
-            'phone'         => ['required', 'string', 'max:20'],
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^(0[1-9][0-9]{8,9}|(\+84)[1-9][0-9]{7,9})$/'
+            ],
+
             'city'          => ['required', 'string', 'max:255'],
             'district'      => ['required', 'string', 'max:255'],
             'ward'          => ['required', 'string', 'max:255'],
@@ -25,7 +31,7 @@ class AddressRequest extends FormRequest
             // các trường chỉ dùng khi checkout
             'note'          => ['nullable', 'string'],
             'shipping_fee'  => ['nullable', 'numeric', 'min:0'],
-            'payment_method'=> ['nullable', 'in:cod,vnpay'],
+            'payment_method' => ['nullable', 'in:cod,vnpay'],
 
             // ID hành chính (dùng nếu bạn cần mapping API GHN/GHTK)
             'province_id'   => ['nullable', 'integer'],
