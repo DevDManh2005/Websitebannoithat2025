@@ -180,8 +180,7 @@
                             <div class="row g-4">
                                 <div class="col-md-7">
                                     <div class="small text-muted">Người nhận</div>
-                                    <div class="fw-semibold">{{ optional($order->shipment)->receiver_name }} —
-                                        {{ optional($order->shipment)->phone }}</div>
+                                    <div class="fw-semibold">{{ optional($order->shipment)->receiver_name }} — {{ optional($order->shipment)->phone }}</div>
                                     <div class="small text-muted mt-3">Địa chỉ</div>
                                     <div>
                                         {{ optional($order->shipment)->address }},
@@ -229,66 +228,71 @@
                         </div>
 
                         <div id="address-edit-form" style="display:none;">
-                            <form action="{{ route('orders.update-address', $order) }}" method="POST"
-                                id="update-address-form">
+                            <form action="{{ route('orders.update-address', $order) }}" method="POST" id="update-address-form">
                                 @csrf
                                 @method('PATCH')
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label for="receiver_name" class="form-label">Họ và tên người nhận</label>
-                                        <input type="text" class="form-control form-control-modern" name="receiver_name"
-                                            value="{{ old('receiver_name', optional($order->shipment)->receiver_name) }}"
-                                            required>
+                                        <input type="text" class="form-control form-control-modern @error('receiver_name') is-invalid @enderror" 
+                                               name="receiver_name" value="{{ old('receiver_name', optional($order->shipment)->receiver_name) }}" 
+                                               required>
+                                        @error('receiver_name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="col-md-6">
-    <label for="phone" class="form-label">Số điện thoại</label>
-    <input type="text" 
-           class="form-control form-control-modern @error('phone') is-invalid @enderror" 
-           name="phone" 
-           value="{{ old('phone', optional($order->shipment)->phone ?? optional($user->profile)->phone) }}" 
-           required>
-
-    @error('phone')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
-                                    <div class="col-md-4">
-                                        <label for="province_id" class="form-label">Tỉnh/Thành <span
-                                                class="text-danger">*</span></label>
-                                        <input type="hidden" name="city" id="province_name_input_edit"
-                                            value="{{ old('city', optional($order->shipment)->city) }}">
-                                        <select class="form-select form-control-modern" id="province_id_edit"
-                                            name="province_id" required></select>
+                                        <label for="phone" class="form-label">Số điện thoại</label>
+                                        <input type="text" class="form-control form-control-modern @error('phone') is-invalid @enderror" 
+                                               name="phone" value="{{ old('phone', optional($order->shipment)->phone ?? optional($user->profile)->phone) }}" 
+                                               required>
+                                        @error('phone')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="district_id" class="form-label">Quận/Huyện <span
-                                                class="text-danger">*</span></label>
-                                        <input type="hidden" name="district" id="district_name_input_edit"
-                                            value="{{ old('district', optional($order->shipment)->district) }}">
-                                        <select class="form-select form-control-modern" id="district_id_edit"
-                                            name="district_id" required></select>
+                                        <label for="province_id" class="form-label">Tỉnh/Thành <span class="text-danger">*</span></label>
+                                        <input type="hidden" name="city" id="province_name_input_edit" value="{{ old('city', optional($order->shipment)->city) }}">
+                                        <input type="hidden" name="province_id" id="province_id_hidden_edit" value="{{ old('province_id', optional($order->shipment)->province_id) }}">
+                                        <select class="form-select form-control-modern @error('province_id') is-invalid @enderror" 
+                                                id="province_id_edit" name="province_id" required></select>
+                                        @error('province_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="ward_code" class="form-label">Phường/Xã <span
-                                                class="text-danger">*</span></label>
-                                        <input type="hidden" name="ward" id="ward_name_input_edit"
-                                            value="{{ old('ward', optional($order->shipment)->ward) }}">
-                                        <select class="form-select form-control-modern" id="ward_code_edit" name="ward_code"
-                                            required></select>
+                                        <label for="district_id" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                                        <input type="hidden" name="district" id="district_name_input_edit" value="{{ old('district', optional($order->shipment)->district) }}">
+                                        <input type="hidden" name="district_id" id="district_id_hidden_edit" value="{{ old('district_id', optional($order->shipment)->district_id) }}">
+                                        <select class="form-select form-control-modern @error('district_id') is-invalid @enderror" 
+                                                id="district_id_edit" name="district_id" required></select>
+                                        @error('district_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="ward_code" class="form-label">Phường/Xã <span class="text-danger">*</span></label>
+                                        <input type="hidden" name="ward" id="ward_name_input_edit" value="{{ old('ward', optional($order->shipment)->ward) }}">
+                                        <input type="hidden" name="ward_code" id="ward_code_hidden_edit" value="{{ old('ward_code', optional($order->shipment)->ward_code) }}">
+                                        <select class="form-select form-control-modern @error('ward_code') is-invalid @enderror" 
+                                                id="ward_code_edit" name="ward_code" required></select>
+                                        @error('ward_code')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="col-12">
-                                        <label for="address" class="form-label">Địa chỉ cụ thể (số nhà, tên
-                                            đường...)</label>
-                                        <input type="text" class="form-control form-control-modern" id="address_edit"
-                                            name="address" value="{{ old('address', optional($order->shipment)->address) }}"
-                                            required placeholder="Ví dụ: 123 Nguyễn Văn Linh">
+                                        <label for="address" class="form-label">Địa chỉ cụ thể (số nhà, tên đường...)</label>
+                                        <input type="text" class="form-control form-control-modern @error('address') is-invalid @enderror" 
+                                               id="address_edit" name="address" value="{{ old('address', optional($order->shipment)->address) }}"
+                                               required placeholder="Ví dụ: 123 Nguyễn Văn Linh">
+                                        @error('address')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2 mt-4">
                                     <button type="submit" class="btn btn-brand rounded-pill">Lưu thay đổi</button>
-                                    <button type="button" class="btn btn-outline-secondary rounded-pill"
-                                        id="cancel-edit-btn">Hủy</button>
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill" id="cancel-edit-btn">Hủy</button>
                                 </div>
                             </form>
                         </div>
@@ -325,18 +329,17 @@
 
                         <div class="d-grid gap-2 mt-4">
                             @if(in_array($order->status, ['pending', 'processing']))
-                                <div class="alert alert-info small p-2">Nếu đã thanh toán online, vui lòng liên hệ Admin để hỗ
-                                    trợ hoàn tiền sau khi hủy.</div>
+                                <div class="alert alert-info small p-2">Nếu đã thanh toán online, vui lòng liên hệ Admin để hỗ trợ hoàn tiền sau khi hủy.</div>
                                 <form action="{{ route('orders.cancel', $order) }}" method="POST"
                                     onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
                                     @csrf
                                     <button type="submit" class="btn btn-danger w-100 rounded-pill">Hủy đơn hàng</button>
                                 </form>
                             @elseif($order->status === 'delivered')
-                               <form action="{{ route('orders.receive', $order->id) }}" method="POST" onsubmit="return confirm('Xác nhận bạn đã nhận đủ hàng?');">
-                            @csrf
-                            <button type="submit" class="btn btn-success w-100 rounded-pill">Đã nhận được hàng</button>
-                            </form>
+                                <form action="{{ route('orders.receive', $order->id) }}" method="POST" onsubmit="return confirm('Xác nhận bạn đã nhận đủ hàng?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success w-100 rounded-pill">Đã nhận được hàng</button>
+                                </form>
                             @elseif($order->status === 'received')
                                 <div class="alert alert-success">Đã xác nhận nhận hàng. Cảm ơn bạn!</div>
                             @elseif($order->status === 'cancelled')
@@ -345,8 +348,7 @@
                                 <div class="alert alert-light">Đơn hàng đang được xử lý, hiện chưa có hành động khả dụng.</div>
                             @endif
 
-                            <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary w-100 rounded-pill">Quay
-                                lại danh sách</a>
+                            <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary w-100 rounded-pill">Quay lại danh sách</a>
                         </div>
                     </div>
                 </div>
@@ -669,11 +671,20 @@
         const provinceSelect = document.getElementById('province_id_edit');
         const districtSelect = document.getElementById('district_id_edit');
         const wardSelect = document.getElementById('ward_code_edit');
+        const receiverNameInput = document.querySelector('#update-address-form [name="receiver_name"]');
+        const phoneInput = document.querySelector('#update-address-form [name="phone"]');
+        const addressInput = document.querySelector('#update-address-form [name="address"]');
         const provinceNameInput = document.getElementById('province_name_input_edit');
         const districtNameInput = document.getElementById('district_name_input_edit');
         const wardNameInput = document.getElementById('ward_name_input_edit');
+        const provinceIdHidden = document.getElementById('province_id_hidden_edit');
+        const districtIdHidden = document.getElementById('district_id_hidden_edit');
+        const wardCodeHidden = document.getElementById('ward_code_hidden_edit');
 
         let saved = {
+            provinceId: provinceIdHidden?.value || '',
+            districtId: districtIdHidden?.value || '',
+            wardCode: wardCodeHidden?.value || '',
             province: provinceNameInput?.value || '',
             district: districtNameInput?.value || '',
             ward: wardNameInput?.value || ''
@@ -686,69 +697,70 @@
             } catch { return []; }
         };
 
-        const renderOptions = (select, list, placeholder, valKey, textKey, pickedText = '') => {
+        const renderOptions = (select, list, placeholder, valKey, textKey, pickedVal = '') => {
             select.innerHTML = `<option value="">${placeholder}</option>`;
             if (!Array.isArray(list)) return;
-            let pickedVal = null;
+            let pickedValFound = null;
             for (const item of list) {
                 const opt = new Option(item[textKey], item[valKey]);
-                if (pickedText && item[textKey] === pickedText) { 
-                    opt.selected = true; 
-                    pickedVal = item[valKey]; 
+                if (pickedVal && item[valKey] == pickedVal) {
+                    opt.selected = true;
+                    pickedValFound = item[valKey];
                 }
                 select.add(opt);
             }
-            if (pickedVal) {
-                select.value = pickedVal;
+            if (pickedValFound) {
+                select.value = pickedValFound;
                 setTimeout(() => select.dispatchEvent(new Event('change', { bubbles: true })), 0);
             }
         };
 
         const loadProvinces = async () => {
             const provinces = await fetchJson('{{ route("address.provinces") }}');
-            renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành', 'ProvinceID', 'ProvinceName', saved.province);
-            // Nếu có tỉnh/thành được chọn, tự động tải quận/huyện
-            if (saved.province && provinceSelect.value) {
+            renderOptions(provinceSelect, provinces, 'Chọn Tỉnh/Thành', 'ProvinceID', 'ProvinceName', saved.provinceId);
+            if (saved.provinceId && provinceSelect.value) {
                 await loadDistricts(provinceSelect.value);
             }
         };
 
         const loadDistricts = async (provinceId) => {
             const districts = await fetchJson(`{{ route("address.districts") }}?province_id=${provinceId}`);
-            renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', saved.district);
-            // Nếu có quận/huyện được chọn, tự động tải phường/xã
-            if (saved.district && districtSelect.value) {
+            renderOptions(districtSelect, districts, 'Chọn Quận/Huyện', 'DistrictID', 'DistrictName', saved.districtId);
+            if (saved.districtId && districtSelect.value) {
                 await loadWards(districtSelect.value);
             }
         };
 
         const loadWards = async (districtId) => {
             const wards = await fetchJson(`{{ route("address.wards") }}?district_id=${districtId}`);
-            renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', saved.ward);
+            renderOptions(wardSelect, wards, 'Chọn Phường/Xã', 'WardCode', 'WardName', saved.wardCode);
         };
 
         provinceSelect.addEventListener('change', async function () {
             if (provinceNameInput) provinceNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+            if (provinceIdHidden) provinceIdHidden.value = this.value;
             renderOptions(districtSelect, [], 'Vui lòng chờ...', 'DistrictID', 'DistrictName');
             renderOptions(wardSelect, [], 'Chọn Phường/Xã', 'WardCode', 'WardName');
             if (this.value) {
                 await loadDistricts(this.value);
             }
-            saved.district = '';
-            saved.ward = '';
+            saved.districtId = '';
+            saved.wardCode = '';
         });
 
         districtSelect.addEventListener('change', async function () {
             if (districtNameInput) districtNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+            if (districtIdHidden) districtIdHidden.value = this.value;
             renderOptions(wardSelect, [], 'Vui lòng chờ...', 'WardCode', 'WardName');
             if (this.value) {
                 await loadWards(this.value);
             }
-            saved.ward = '';
+            saved.wardCode = '';
         });
 
         wardSelect.addEventListener('change', function () {
             if (wardNameInput) wardNameInput.value = this.selectedIndex > 0 ? this.options[this.selectedIndex].text : '';
+            if (wardCodeHidden) wardCodeHidden.value = this.value;
         });
 
         editBtn.addEventListener('click', () => {
@@ -762,6 +774,90 @@
             displayDiv.style.display = 'block';
             editFormDiv.style.display = 'none';
             localStorage.removeItem("isEditingAddress");
+            // Xóa thông báo lỗi nếu có
+            form.querySelectorAll('.is-invalid').forEach(input => input.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(error => error.remove());
+        });
+
+        // Xử lý gửi form bằng AJAX
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            form.querySelector('button[type="submit"]').disabled = true;
+            form.querySelector('button[type="submit"]').textContent = 'Đang lưu...';
+
+            // Xóa thông báo lỗi trước đó
+            form.querySelectorAll('.is-invalid').forEach(input => input.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(error => error.remove());
+
+            const formData = new FormData(form);
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Cập nhật giao diện với dữ liệu mới
+                    displayDiv.querySelector('.col-md-7 .fw-semibold').textContent = `${result.receiver_name} — ${result.phone}`;
+                    displayDiv.querySelector('.col-md-7 div:nth-child(4)').textContent = `${result.address}, ${result.ward}, ${result.district}, ${result.city}`;
+
+                    // Ẩn form và hiển thị div thông tin
+                    editFormDiv.style.display = 'none';
+                    displayDiv.style.display = 'block';
+                    localStorage.removeItem("isEditingAddress");
+
+                    // Hiển thị thông báo thành công
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success shadow-sm';
+                    alertDiv.textContent = result.message || 'Cập nhật địa chỉ thành công!';
+                    document.querySelector('.container.my-5').prepend(alertDiv);
+                    setTimeout(() => alertDiv.remove(), 5000);
+                } else {
+                    // Hiển thị lỗi validate
+                    const errors = result.errors || {};
+                    Object.keys(errors).forEach(key => {
+                        const input = form.querySelector(`[name="${key}"]`);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'invalid-feedback';
+                            errorDiv.textContent = errors[key][0];
+                            input.parentNode.appendChild(errorDiv);
+                        }
+                    });
+
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-danger shadow-sm';
+                    alertDiv.textContent = result.message || 'Có lỗi xảy ra khi cập nhật địa chỉ.';
+                    document.querySelector('.container.my-5').prepend(alertDiv);
+                    setTimeout(() => alertDiv.remove(), 5000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger shadow-sm';
+                alertDiv.textContent = 'Có lỗi xảy ra khi gửi yêu cầu.';
+                document.querySelector('.container.my-5').prepend(alertDiv);
+                setTimeout(() => alertDiv.remove(), 5000);
+            } finally {
+                form.querySelector('button[type="submit"]').disabled = false;
+                form.querySelector('button[type="submit"]').textContent = 'Lưu thay đổi';
+            }
+        });
+
+        // Xóa thông báo lỗi khi người dùng nhập lại
+        form.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('is-invalid');
+                const errorDiv = input.parentNode.querySelector('.invalid-feedback');
+                if (errorDiv) errorDiv.remove();
+            });
         });
 
         // Kiểm tra lỗi validate hoặc session để mở form
