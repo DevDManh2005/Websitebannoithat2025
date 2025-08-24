@@ -17,31 +17,52 @@ class InventoryController extends Controller
      * Danh sách tồn kho + bộ lọc.
      * q: tìm theo tên SP / SKU, low: zero|low5
      */
-    public function index(Request $request)
-    {
-        $q   = $request->input('q');
-        $low = $request->input('low'); // zero | low5
+   public function index(Request $request)
+{
+    // Bắt đầu truy vấn từ Model Product
+    $query = Product::query()
+        // Chỉ lấy những sản phẩm có ít nhất một bản ghi tồn kho
+        ->whereHas('inventories')
+        // Tải sẵn các quan hệ cần thiết để tối ưu hiệu năng
+        ->with([
+            'inventories.variant.attributes', 
+            'inventories.location',
+            'images'
+        ]);
 
-        $query = Inventory::with(['product', 'variant', 'location']);
-
-        if ($q) {
-            $query->whereHas('product', function ($sub) use ($q) {
-                $sub->where('name', 'like', "%{$q}%");
-            })->orWhereHas('variant', function ($sub) use ($q) {
-                $sub->where('sku', 'like', "%{$q}%");
-            });
-        }
-
-        if ($low === 'zero') {
-            $query->where('quantity', 0);
-        } elseif ($low === 'low5') {
-            $query->where('quantity', '<=', 5);
-        }
-
-        $inventories = $query->latest()->paginate(15);
-
-        return view('admins.inventories.index', compact('inventories'));
+    // Xử lý bộ lọc tìm kiếm (q)
+    if ($request->filled('q')) {
+        $searchTerm = $request->q;
+        // Dùng where closure để nhóm các điều kiện OR lại với nhau
+        $query->where(function ($qBuilder) use ($searchTerm) {
+            $qBuilder->where('name', 'like', "%{$searchTerm}%")
+                     ->orWhere('sku', 'like', "%{$searchTerm}%")
+                     ->orWhereHas('variants', function ($variantQuery) use ($searchTerm) {
+                         $variantQuery->where('sku', 'like', "%{$searchTerm}%");
+                     });
+        });
     }
+    
+    // Xử lý bộ lọc tồn kho thấp (low)
+    if ($request->filled('low')) {
+        // Dùng whereHas để lọc các sản phẩm có inventory thỏa mãn điều kiện
+        $query->whereHas('inventories', function($inventoryQuery) use ($request) {
+            if ($request->low === 'zero') {
+                $inventoryQuery->where('quantity', '=', 0);
+            } elseif ($request->low === 'low5') {
+                $inventoryQuery->where('quantity', '<=', 5);
+            }
+        });
+    }
+
+    // Sắp xếp và thực hiện phân trang trên Product
+    $products = $query->latest('id')->paginate(15);
+
+    // Gửi biến $products sang view
+    return view('admins.inventories.index', [
+        'products' => $products,
+    ]); 
+}
 
     /**
      * Form cập nhật hàng loạt theo sản phẩm.
