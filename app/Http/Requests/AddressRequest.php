@@ -49,7 +49,7 @@ class AddressRequest extends FormRequest
             'district.required'      => 'Vui lòng chọn Quận/Huyện.',
             'ward.required'          => 'Vui lòng chọn Phường/Xã.',
             'address.required'       => 'Vui lòng nhập địa chỉ cụ thể.',
-
+            'phone.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng.',
             'shipping_fee.numeric'   => 'Phí vận chuyển không hợp lệ.',
             'payment_method.in'      => 'Phương thức thanh toán không hợp lệ.',
         ];
