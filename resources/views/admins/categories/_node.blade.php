@@ -24,8 +24,8 @@
          onerror="this.onerror=null;this.src='https://via.placeholder.com/56x56?text=DM';">
   </td>
 
-  <td class="text-truncate">
-    <div class="d-flex align-items-center gap-2">
+  <td class="text-truncate tree-cell">
+    <div class="d-flex align-items-center gap-2 node-wrap">
       @if($hasChildren)
         <button
           class="caret-toggle btn-icon border-0"
@@ -47,7 +47,9 @@
 
       <a class="fw-semibold text-decoration-none"
          href="{{ route('admin.categories.edit', $node) }}"
-         title="{{ $node->name }}">{{ $node->name }}</a>
+         title="{{ $node->name }}">
+        <span class="cat-name">{{ $node->name }}</span>
+      </a>
     </div>
   </td>
 
