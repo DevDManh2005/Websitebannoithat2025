@@ -129,9 +129,6 @@
                       </button>
                     @endif
                   </form>
-                  <a href="{{ route('admin.users.logs', $user->id) }}" class="btn btn-sm btn-outline-secondary" title="Logs">
-                    <i class="bi bi-file-text"></i>
-                  </a>
                 </div>
               </td>
             </tr>
