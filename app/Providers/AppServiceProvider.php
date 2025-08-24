@@ -114,34 +114,34 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('staffs.*', function ($view) {
-    $menu = collect();
-    $user = Auth::user();
+            $menu = collect();
+            $user = Auth::user();
 
-    if ($user) {
-        $rolePerms = optional($user->role)->permissions ?? collect();
-        $directPerms = method_exists($user, 'permissions') ? $user->permissions : collect();
-        $allPerms = $rolePerms->concat($directPerms)->unique('id');
+            if ($user) {
+                $rolePerms = optional($user->role)->permissions ?? collect();
+                $directPerms = method_exists($user, 'permissions') ? $user->permissions : collect();
+                $allPerms = $rolePerms->concat($directPerms)->unique('id');
 
-        $viewable = $allPerms->where('action', 'view')->groupBy('module_name')->keys();
-        $map = config('staff_modules', []);
+                $viewable = $allPerms->where('action', 'view')->groupBy('module_name')->keys();
+                $map = config('staff_modules', []);
 
-        foreach ($viewable as $module) {
-            if (!isset($map[$module])) continue;
-            $routeName = $map[$module]['index'] ?? null;
-            // Chỉ thêm route bắt đầu bằng 'staff.'
-            if ($routeName && \Illuminate\Support\Str::startsWith($routeName, 'staff.')) {
-                $menu->push([
-                    'label' => $map[$module]['label'] ?? ucfirst($module),
-                    'icon' => $map[$module]['icon'] ?? 'ri-circle-line',
-                    'route' => Route::has($routeName) ? $routeName : null,
-                    'active' => request()->routeIs('staff.' . $module . '.*'),
-                ]);
+                foreach ($viewable as $module) {
+                    if (!isset($map[$module])) continue;
+                    $routeName = $map[$module]['index'] ?? null;
+                    // Chỉ thêm route bắt đầu bằng 'staff.'
+                    if ($routeName && \Illuminate\Support\Str::startsWith($routeName, 'staff.')) {
+                        $menu->push([
+                            'label' => $map[$module]['label'] ?? ucfirst($module),
+                            'icon' => $map[$module]['icon'] ?? 'ri-circle-line',
+                            'route' => Route::has($routeName) ? $routeName : null,
+                            'active' => request()->routeIs('staff.' . $module . '.*'),
+                        ]);
+                    }
+                }
             }
-        }
-    }
 
-    $view->with('staffMenu', $menu);
-});
+            $view->with('staffMenu', $menu);
+        });
 
         View::composer('frontend.components.blog-category-menu', function ($view) {
             $blogCategories = \App\Models\BlogCategory::query()
@@ -172,7 +172,6 @@ class AppServiceProvider extends ServiceProvider
         if (request()->routeIs('staff.*') || request()->is('staff/*')) {
             View::replaceNamespace('admins', [
                 resource_path('views/staffs/admin-bridge'),
-                resource_path('views/admins'),
             ]);
         }
     }
