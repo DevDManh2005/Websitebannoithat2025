@@ -36,7 +36,22 @@
         <span class="text-muted small">({{ number_format($total) }} đơn)</span>
       </div>
     </div>
-
+    {{-- Bộ lọc --}}
+<form class="row g-2 mt-2" method="get" action="{{ route('admin.orders.index') }}">
+    {{-- Giữ nguyên status hiện tại khi lọc --}}
+    <input type="hidden" name="status" value="{{ $currentStatus }}">
+    
+    <div class="col-12 col-lg-9">
+        <div class="input-group">
+            <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
+            {{-- THÊM MỚI Ô TÌM KIẾM MÃ ĐƠN HÀNG Ở ĐÂY --}}
+            <input type="text" name="code" class="form-control" value="{{ request('code') }}" placeholder="Tìm theo mã đơn hàng, tên khách hàng...">
+        </div>
+    </div>
+    <div class="col-12 col-lg-3 d-grid">
+        <button class="btn btn-outline-secondary"><i class="bi bi-funnel me-1"></i>Lọc</button>
+    </div>
+</form>
     {{-- Thanh điều hướng trạng thái --}}
     <ul class="nav nav-pills mt-2 flex-wrap">
       <li class="nav-item">
@@ -69,6 +84,7 @@
   <div class="card card-soft">
     <div class="card-header d-flex justify-content-between align-items-center">
       <strong>Danh sách</strong>
+      
     </div>
 
     <div class="card-body">

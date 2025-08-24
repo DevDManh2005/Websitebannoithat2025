@@ -20,21 +20,35 @@ class OrderController extends Controller
     /**
      * Danh sách đơn + lọc theo trạng thái.
      */
-    public function index(Request $request): View
-    {
-        $status = (string) $request->query('status', 'all');
+   public function index(Request $request): View
+{
+    $status = (string) $request->query('status', 'all');
+    // THÊM MỚI: Lấy giá trị từ ô tìm kiếm
+    $search = (string) $request->query('code');
 
-        $orders = Order::with('user')
-            ->when($status !== 'all', fn ($q) => $q->where('status', $status))
-            ->latest()
-            ->paginate(15)
-            ->appends($request->query());
+    $orders = Order::with('user')
+        // Giữ nguyên logic lọc theo trạng thái
+        ->when($status !== 'all', fn ($q) => $q->where('status', 'status'))
 
-        return view('admins.orders.index', [
-            'orders'        => $orders,
-            'currentStatus' => $status,
-        ]);
-    }
+        // THÊM MỚI: Logic lọc theo mã đơn/tên khách hàng
+        ->when($search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('order_code', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($userQuery) use ($search) {
+                      $userQuery->where('name', 'like', "%{$search}%");
+                  });
+            });
+        })
+        
+        ->latest()
+        ->paginate(15)
+        ->appends($request->query());
+
+    return view('admins.orders.index', [
+        'orders'        => $orders,
+        'currentStatus' => $status,
+    ]);
+}
 
     /**
      * Chi tiết đơn: thông tin người dùng, mặt hàng, giao hàng, thanh toán.
