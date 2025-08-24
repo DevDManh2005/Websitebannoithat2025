@@ -683,16 +683,19 @@
             try {
                 const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
                 return r.ok ? r.json() : [];
-            }
-            catch { return []; }
+            } catch { return []; }
         };
+
         const renderOptions = (select, list, placeholder, valKey, textKey, pickedText = '') => {
             select.innerHTML = `<option value="">${placeholder}</option>`;
             if (!Array.isArray(list)) return;
             let pickedVal = null;
             for (const item of list) {
                 const opt = new Option(item[textKey], item[valKey]);
-                if (pickedText && item[textKey] === pickedText) { opt.selected = true; pickedVal = item[valKey]; }
+                if (pickedText && item[textKey] === pickedText) { 
+                    opt.selected = true; 
+                    pickedVal = item[valKey]; 
+                }
                 select.add(opt);
             }
             if (pickedVal) {
@@ -735,13 +738,36 @@
         editBtn.addEventListener('click', () => {
             displayDiv.style.display = 'none';
             editFormDiv.style.display = 'block';
+            localStorage.setItem("isEditingAddress", "true");
             loadProvinces();
         });
 
         cancelBtn.addEventListener('click', () => {
-            editFormDiv.style.display = 'none';
             displayDiv.style.display = 'block';
+            editFormDiv.style.display = 'none';
+            localStorage.removeItem("isEditingAddress");
         });
+
+        // Kiểm tra lỗi validate hoặc session để mở form
+        @if($errors->any())
+            displayDiv.style.display = 'none';
+            editFormDiv.style.display = 'block';
+            localStorage.setItem("isEditingAddress", "true");
+            loadProvinces();
+        @elseif (session('open_edit_address'))
+            displayDiv.style.display = 'none';
+            editFormDiv.style.display = 'block';
+            localStorage.setItem("isEditingAddress", "true");
+            loadProvinces();
+        @else
+            // Kiểm tra localStorage để mở form nếu đang chỉnh sửa dở
+            if (localStorage.getItem("isEditingAddress") === "true") {
+                displayDiv.style.display = 'none';
+                editFormDiv.style.display = 'block';
+                loadProvinces();
+            }
+        @endif
+
         // AOS init
         if (typeof AOS !== 'undefined') {
             AOS.init({
@@ -750,41 +776,6 @@
                 offset: 80
             });
         }
-
-     const orderStatus = "{{ $order->status }}";
-    if (!['pending', 'processing'].includes(orderStatus)) return;
-
-    const editBtn = document.getElementById('edit-address-btn');
-    const cancelBtn = document.getElementById('cancel-edit-btn');
-    const displayDiv = document.getElementById('address-display');
-    const editFormDiv = document.getElementById('address-edit-form');
-
-    if (!editBtn || !cancelBtn || !displayDiv || !editFormDiv) return;
-
-    function showForm() {
-        displayDiv.style.display = "none";
-        editFormDiv.style.display = "block";
-        localStorage.setItem("isEditingAddress", "true");
-    }
-
-    function hideForm() {
-        displayDiv.style.display = "block";
-        editFormDiv.style.display = "none";
-        localStorage.removeItem("isEditingAddress");
-    }
-
-    editBtn.addEventListener('click', () => showForm());
-    cancelBtn.addEventListener('click', () => hideForm());
-
-    // Nếu có lỗi validate hoặc đang edit dở thì mở lại form
-    @if($errors->any())
-        showForm();
-    @elseif (session('open_edit_address'))
-        showForm();
-    @elseif (localStorage.getItem("isEditingAddress") === "true")
-        showForm();
-    @endif
-})();
+    })();
 </script>
-
 @endpush
