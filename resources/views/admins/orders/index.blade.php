@@ -1,4 +1,5 @@
-@extends('admins::layouts.app')
+@extends(auth()->user()->role->name === 'staff' ? 'staff.layouts.app' : 'admins.layouts.app')
+
 @include('admins.partials.area_route')
 
 @section('title', 'Quản lý Đơn hàng')
