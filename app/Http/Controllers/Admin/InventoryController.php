@@ -61,7 +61,7 @@ class InventoryController extends Controller
     // Gửi biến $products sang view
     return view('admins.inventories.index', [
         'products' => $products,
-    ]); 
+    ]);
 }
 
     /**

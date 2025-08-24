@@ -166,28 +166,24 @@
                                     $variantCount = $inventories->count();
                                     $totalQty = (int) $inventories->sum('quantity');
                                     $collapseId = 'pv-' . $product->id;
-                                @endphp 
+                                @endphp
 
                                 {{-- Hàng tóm tắt theo sản phẩm (click để xổ) --}}
                                 <tr class="toggle-row" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}"
                                     aria-expanded="false" aria-controls="{{ $collapseId }}">
-                                    <td class="text-muted">#{{ $p?->id ?? 'N/A' }}</td>
+                                    <td class="text-muted">#{{ $product->id }}</td>
                                     <td>
                                         <img src="{{ $thumb ?? 'https://via.placeholder.com/48x48?text=SP' }}"
-                                            alt="{{ $p?->name ?? 'SP' }}" class="prod-thumb" loading="lazy"
+                                            alt="{{ $product->name }}" class="prod-thumb" loading="lazy"
                                             onerror="this.onerror=null;this.src='https://via.placeholder.com/48x48?text=SP';">
                                     </td>
                                     <td class="text-truncate">
-                                        @if($p)
-                                            <a class="fw-semibold text-decoration-none"
-                                                href="{{ route('admin.products.edit', $p->id) }}" title="{{ $p->name }}">
-                                                {{ $p->name }}
-                                            </a>
-                                            <div class="small text-muted">SKU:
-                                                {{ $rows->first()?->variant?->sku ?? ($p->sku ?? '—') }}</div>
-                                        @else
-                                            <span class="text-muted">N/A</span>
-                                        @endif
+                                        <a class="fw-semibold text-decoration-none"
+                                            href="{{ route('admin.products.edit', $product->id) }}"
+                                            title="{{ $product->name }}">
+                                            {{ $product->name }}
+                                        </a>
+                                        <div class="small text-muted">SKU: {{ $product->sku ?? '—' }}</div>
                                     </td>
                                     <td class="text-center">
                                         <span class="badge bg-info-soft">{{ $variantCount }}</span>
@@ -197,13 +193,13 @@
                                             class="badge {{ $totalQty > 0 ? 'bg-success-soft' : 'bg-danger-soft' }}">{{ number_format($totalQty) }}</span>
                                     </td>
                                     <td class="text-end">
-                                        <i class="bi bi-chevron-down chev" id="{{ $chevId }}"></i>
+                                        <i class="bi bi-chevron-down chev"></i>
                                     </td>
                                 </tr>
 
                                 {{-- Hàng con: danh sách biến thể của sản phẩm --}}
-                                <tr class="collapse inv-collapse" id="{{ $collapseId }}" data-pid="{{ $productId }}">
-                                    <td colspan="6" class="bg-light">
+                                <tr class="collapse inv-collapse" id="{{ $collapseId }}" data-pid="{{ $product->id }}">
+                                    <td colspan="6" class="p-0" style="background-color: #f8f9fa;">
                                         <div class="table-responsive">
                                             <table class="table table-sm subtable align-middle mb-0">
                                                 <thead>
@@ -218,84 +214,84 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach($rows as $inventory)
-                                                                            @php
-                                                                                $attrsText = '';
-                                                                                if ($inventory->variant && is_array($inventory->variant->attributes ?? null)) {
-                                                                                    $parts = [];
-                                                                                    foreach ($inventory->variant->attributes as $k => $v) {
-                                                                                        $parts[] = ucfirst($k) . ': ' . $v;
-                                                                                    }
-                                                                                    $attrsText = implode(', ', $parts);
-                                                                                }
-                                                                                $qty = (int) ($inventory->quantity ?? 0);
-                                                                                $loc = $inventory->location;
-                                                                            @endphp
+                                                        @php
+                                                            $attrsText = '';
+                                                            if ($inventory->variant && is_array($inventory->variant->attributes ?? null)) {
+                                                                $parts = [];
+                                                                foreach ($inventory->variant->attributes as $k => $v) {
+                                                                    $parts[] = ucfirst($k) . ': ' . $v;
+                                                                }
+                                                                $attrsText = implode(', ', $parts);
+                                                            }
+                                                            $qty = (int) ($inventory->quantity ?? 0);
+                                                            $loc = $inventory->location;
+                                                        @endphp
                                                         <tr>
-                                                                                <td class="text-muted">#{{ $inventory->id }}</td>
-                                                                                <td><strong>{{ $inventory->variant?->sku ?? '—' }}</strong></td>
-                                                                                <td class="small text-truncate">{{ $attrsText ?: '—' }}</td>
-                                                                                <td class="text-end">
-                                                                                    <span
-                                                                                        class="badge {{ $qty > 0 ? 'bg-success-soft' : 'bg-danger-soft' }}">{{ $qty }}</span>
-                                                                                </td>
-                                                                                <td class="small">
-                                                                                    @if($loc?->name || $loc?->address)
-                                                                                        <div class="fw-semibold">{{ $loc?->name ?? 'Kho' }}</div>
-                                                                                        @if($loc?->address)
-                                                                                        <div class="text-muted">{{ $loc->address }}</div>@endif
-                                                                                    @else
-                                                                                        <span class="text-muted">N/A</span>
-                                                                                    @endif
-                                                                                </td>
-                                                                                <td class="text-end">
-                                                                                    <div class="d-none d-md-inline-flex gap-1">
-                                                                                        <a href="{{ route('admin.inventories.show', $inventory->id) }}"
-                                                                                            class="btn btn-sm btn-outline-secondary" title="Xem">
-                                                                                            <i class="bi bi-eye"></i>
-                                                                                        </a>
-                                                                                        <a href="{{ route('admin.inventories.edit', $inventory->id) }}"
-                                                                                            class="btn btn-sm btn-warning" title="Sửa">
-                                                                                            <i class="bi bi-pencil-square"></i>
-                                                                                        </a>
-                                                                                        <form
-                                                                                            action="{{ route('admin.inventories.destroy', $inventory->id) }}"
-                                                                                            method="POST" class="d-inline"
-                                                                                            onsubmit="return confirm('Xóa bản ghi kho #{{ $inventory->id }}?');">
-                                                                                            @csrf @method('DELETE')
-                                                                                            <button type="submit" class="btn btn-sm btn-danger"
-                                                                                                title="Xóa">
-                                                                                                <i class="bi bi-trash"></i>
-                                                                                            </button>
-                                                                                        </form>
-                                                                                    </div>
-                                                                                    <div class="dropdown d-inline d-md-none">
-                                                                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                                                                            data-bs-toggle="dropdown">Hành động</button>
-                                                                                        <ul class="dropdown-menu dropdown-menu-end">
-                                                                                            <li><a class="dropdown-item"
-                                                                                                    href="{{ route('admin.inventories.show', $inventory->id) }}"><i
-                                                                                                        class="bi bi-eye me-2"></i>Xem</a></li>
-                                                                                            <li><a class="dropdown-item"
-                                                                                                    href="{{ route('admin.inventories.edit', $inventory->id) }}"><i
-                                                                                                        class="bi bi-pencil-square me-2"></i>Sửa</a>
-                                                                                            </li>
-                                                                                            <li>
-                                                                                                <hr class="dropdown-divider">
-                                                                                            </li>
-                                                                                            <li>
-                                                                                                <form
-                                                                                                    action="{{ route('admin.inventories.destroy', $inventory->id) }}"
-                                                                                                    method="POST"
-                                                                                                    onsubmit="return confirm('Xóa bản ghi kho #{{ $inventory->id }}?');">
-                                                                                                    @csrf @method('DELETE')
-                                                                                                    <button class="dropdown-item text-danger"><i
-                                                                                                            class="bi bi-trash me-2"></i>Xóa</button>
-                                                                                                </form>
-                                                                                            </li>
-                                                                                        </ul>
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
+                                                            <td class="text-muted">#{{ $inventory->id }}</td>
+                                                            <td><strong>{{ $inventory->variant?->sku ?? '—' }}</strong></td>
+                                                            <td class="small text-truncate">{{ $attrsText ?: '—' }}</td>
+                                                            <td class="text-end">
+                                                                <span
+                                                                    class="badge {{ $qty > 0 ? 'bg-success-soft' : 'bg-danger-soft' }}">{{ $qty }}</span>
+                                                            </td>
+                                                            <td class="small">
+                                                                @if($loc?->name || $loc?->address)
+                                                                    <div class="fw-semibold">{{ $loc?->name ?? 'Kho' }}</div>
+                                                                    @if($loc?->address)
+                                                                    <div class="text-muted">{{ $loc->address }}</div>@endif
+                                                                @else
+                                                                    <span class="text-muted">N/A</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-end">
+                                                                <div class="d-none d-md-inline-flex gap-1">
+                                                                    <a href="{{ route('admin.inventories.show', $inventory->id) }}"
+                                                                        class="btn btn-sm btn-outline-secondary" title="Xem">
+                                                                        <i class="bi bi-eye"></i>
+                                                                    </a>
+                                                                    <a href="{{ route('admin.inventories.edit', $inventory->id) }}"
+                                                                        class="btn btn-sm btn-warning" title="Sửa">
+                                                                        <i class="bi bi-pencil-square"></i>
+                                                                    </a>
+                                                                    <form
+                                                                        action="{{ route('admin.inventories.destroy', $inventory->id) }}"
+                                                                        method="POST" class="d-inline"
+                                                                        onsubmit="return confirm('Xóa bản ghi kho #{{ $inventory->id }}?');">
+                                                                        @csrf @method('DELETE')
+                                                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                                            title="Xóa">
+                                                                            <i class="bi bi-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                                <div class="dropdown d-inline d-md-none">
+                                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                                        data-bs-toggle="dropdown">Hành động</button>
+                                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                                        <li><a class="dropdown-item"
+                                                                                href="{{ route('admin.inventories.show', $inventory->id) }}"><i
+                                                                                    class="bi bi-eye me-2"></i>Xem</a></li>
+                                                                        <li><a class="dropdown-item"
+                                                                                href="{{ route('admin.inventories.edit', $inventory->id) }}"><i
+                                                                                    class="bi bi-pencil-square me-2"></i>Sửa</a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <hr class="dropdown-divider">
+                                                                        </li>
+                                                                        <li>
+                                                                            <form
+                                                                                action="{{ route('admin.inventories.destroy', $inventory->id) }}"
+                                                                                method="POST"
+                                                                                onsubmit="return confirm('Xóa bản ghi kho #{{ $inventory->id }}?');">
+                                                                                @csrf @method('DELETE')
+                                                                                <button class="dropdown-item text-danger"><i
+                                                                                        class="bi bi-trash me-2"></i>Xóa</button>
+                                                                            </form>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
@@ -322,8 +318,8 @@
             document.addEventListener('DOMContentLoaded', function () {
                 // Xoay icon khi mở/đóng collapse
                 document.querySelectorAll('.inv-collapse').forEach(function (el) {
-                    const pid = el.getAttribute('data-pid');
-                    const icon = document.getElementById('chev-' + pid);
+                    const row = el.previousElementSibling;
+                    const icon = row.querySelector('.chev');
                     el.addEventListener('show.bs.collapse', () => icon && icon.classList.add('rot'));
                     el.addEventListener('hide.bs.collapse', () => icon && icon.classList.remove('rot'));
                 });
