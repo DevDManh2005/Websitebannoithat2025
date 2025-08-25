@@ -59,9 +59,6 @@
       <span class="chip">{{ $user->name }}</span>
     </div>
     <div class="d-flex gap-2">
-      <a href="{{ route('admin.users.logs', $user->id) }}" class="btn btn-outline-primary">
-        <i class="bi bi-clock-history me-1"></i> Logs
-      </a>
       <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-warning">
         <i class="bi bi-pencil-square me-1"></i> Sửa
       </a>
