@@ -15,16 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('address')->nullable();
-
-            $table->unsignedBigInteger('city_id')->nullable();
-            $table->string('city_name')->nullable();
-
-            $table->unsignedBigInteger('district_id')->nullable();
-            $table->string('district_name')->nullable();
-
-            $table->unsignedBigInteger('ward_id')->nullable();
-            $table->string('ward_name')->nullable();
-
             $table->timestamps();
         });
     }
