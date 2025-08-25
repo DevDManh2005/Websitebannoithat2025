@@ -95,6 +95,6 @@ class UserController extends Controller
     {
         $user->load('profile');
 
-        return view('admins.users.show', compact('user', 'logs'));
+        return view('admins.users.show', compact('user'));
     }
 }
