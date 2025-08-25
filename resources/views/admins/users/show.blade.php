@@ -156,16 +156,6 @@
           </dl>
         </div>
       </div>
-
-      {{-- Thẻ nhanh --}}
-      <div class="card card-soft">
-        <div class="card-header fw-semibold">Ghi chú</div>
-        <div class="card-body">
-          <div class="text-muted">
-            Không có ghi chú thêm.
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
