@@ -134,31 +134,43 @@ class OrderController extends Controller
     /**
      * Admin đánh dấu đã THU COD (chỉ cho đơn COD, chưa paid).
      */
-    public function markCodPaid(Order $order): RedirectResponse
-    {
-        if (($order->payment_method ?? 'cod') !== 'cod') {
-            return back()->with('error', 'Chỉ áp dụng cho đơn thanh toán COD.');
-        }
-        if (in_array($order->status, ['cancelled', 'received'], true)) {
-            return back()->with('error', 'Đơn ở trạng thái hiện tại không thể thu COD.');
-        }
+   public function markCodPaid(Order $order): RedirectResponse
+{
+    if (($order->payment_method ?? 'cod') !== 'cod') {
+        return back()->with('error', 'Chỉ áp dụng cho đơn thanh toán COD.');
+    }
+    if (in_array($order->status, ['cancelled', 'received'], true)) {
+        return back()->with('error', 'Đơn ở trạng thái hiện tại không thể thu COD.');
+    }
 
-        DB::transaction(function () use ($order) {
-            $order->update([
-                'is_paid'        => 1,
-                'payment_status' => 'paid',
-                'paid_at'        => now(),
-                'payment_ref'    => $order->payment_ref ?: ('COD-ADMIN-' . now()->format('YmdHis')),
+    DB::transaction(function () use ($order) {
+        // Cập nhật trạng thái tiền của Order
+        $order->is_paid        = 1;
+        $order->payment_status = 'paid';
+        $order->paid_at        = now();
+        $order->payment_ref    = $order->payment_ref ?: ('COD-ADMIN-' . now()->format('YmdHis'));
+        $order->save();
+
+        // Cập nhật Payment bằng instance để kích hoạt Observer
+        $payment = $order->payment; // <-- lấy model instance
+        if ($payment) {
+            $payment->status         = 'paid';
+            $payment->transaction_id = $payment->transaction_id ?: $order->payment_ref;
+            $payment->save(); // <-- sẽ kích hoạt PaymentObserver -> deductForOrder()
+        } else {
+            // Phòng trường hợp hiếm: chưa có payment record
+            $payment = $order->payment()->create([
+                'method'         => 'cod',
+                'status'         => 'paid',
+                'transaction_id' => $order->payment_ref,
             ]);
 
-            if ($order->payment()->exists()) {
-                $order->payment()->update([
-                    'status'    => 'paid',
-                    'updated_at'=> now(),
-                ]);
-            }
-        });
+            // Vì Observer chỉ lắng nghe "updated", còn đây là "created",
+            // ta gọi service trừ kho trực tiếp (idempotent nên an toàn):
+            app(\App\Services\InventoryService::class)->deductForOrder($order, auth()->id());
+        }
+    });
 
-        return back()->with('success', 'Đã đánh dấu “đã thu COD”.');
-    }
+    return back()->with('success', 'Đã đánh dấu “đã thu COD” và đồng bộ kho.');
+}
 }
