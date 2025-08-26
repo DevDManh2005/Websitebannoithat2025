@@ -169,11 +169,11 @@
                 <div class="card card-glass rounded-4" data-aos="fade-right" data-aos-delay="100">
                     <div class="card-header bg-transparent border-0 px-4 pt-4 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold text-brand">Thông tin giao hàng</h5>
-                        @if(in_array($order->status, ['pending', 'processing']))
+                        {{-- @if(in_array($order->status, ['pending', 'processing']))
                             <button type="button" class="btn btn-sm btn-outline-brand rounded-pill" id="edit-address-btn">
                                 <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa
                             </button>
-                        @endif
+                        @endif --}}
                     </div>
                     <div class="card-body p-4 pt-0">
                         <div id="address-display">
@@ -228,7 +228,7 @@
                             </div>
                         </div>
 
-                        <div id="address-edit-form" style="display:none;">
+                        {{-- <div id="address-edit-form" style="display:none;">
                             <form action="{{ route('orders.update-address', $order) }}" method="POST"
                                 id="update-address-form">
                                 @csrf
@@ -294,7 +294,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             {{-- RIGHT: SUMMARY + ACTIONS --}}
             <div class="col-lg-4">
