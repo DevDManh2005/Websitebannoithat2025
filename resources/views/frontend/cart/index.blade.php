@@ -28,13 +28,13 @@
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert" data-aos="fade-up">
                 {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
             </div>
         @endif
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert" data-aos="fade-up">
                 {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
             </div>
         @endif
 
@@ -96,14 +96,14 @@
                                         <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex align-items-center cart-qty-form">
                                             @csrf @method('PATCH')
                                             <div class="input-group input-group-sm qty-group">
+                                                {{-- BỎ onchange inline, thay bằng JS --}}
                                                 <input
                                                     type="number"
                                                     name="quantity"
                                                     value="{{ $item->quantity }}"
                                                     min="1"
-                                                    class="form-control text-center form-control-modern"
-                                                    style="width: 70px;"
-                                                    onchange="this.form.submit()">
+                                                    class="form-control text-center form-control-modern js-cart-qty-input"
+                                                    style="width: 70px;">
                                             </div>
                                         </form>
 
@@ -609,45 +609,34 @@
         });
     }
 
-    // ===== Chặn cập nhật số lượng > 5 cho từng mặt hàng
-    // Dù input có inline onchange="this.form.submit()", ta vẫn ngăn ở sự kiện submit của form.
-    document.querySelectorAll('.cart-qty-form').forEach(form => {
-        const qtyInput = form.querySelector('input[name="quantity"]');
-        if (!qtyInput) return;
+    // ===== GIỮA JS: Kiểm soát thay đổi số lượng (bỏ hẳn onchange inline)
+    document.querySelectorAll('.cart-qty-form .js-cart-qty-input').forEach((qtyInput) => {
+        const form = qtyInput.closest('form');
+        // Dự phòng nếu HTML nào đó vẫn có onchange:
+        qtyInput.onchange = null;
+        qtyInput.removeAttribute('onchange');
 
-        // Lưu giá trị ban đầu làm "prev"
+        // Lưu prev
         qtyInput.dataset.prev = qtyInput.value;
 
-        // Nếu người dùng focus -> lưu lại prev trước khi thay đổi
         qtyInput.addEventListener('focus', () => {
             qtyInput.dataset.prev = qtyInput.value;
         });
 
-        // Bắt sự kiện submit để chặn nếu > 5
-        form.addEventListener('submit', function(e){
+        qtyInput.addEventListener('change', () => {
             const v = parseInt(qtyInput.value || '1', 10);
             if (v > ITEM_QTY_LIMIT) {
-                e.preventDefault();
-                // Trả về giá trị cũ (hoặc 5)
-                qtyInput.value = qtyInput.dataset.prev || String(ITEM_QTY_LIMIT);
+                // Trả về prev (hoặc 5 nếu prev cũng >5)
+                const prev = parseInt(qtyInput.dataset.prev || '1', 10);
+                qtyInput.value = Math.min(prev, ITEM_QTY_LIMIT);
                 qtyInput.blur();
                 showItemQtyLimitModal();
-            } else {
-                // Cho phép submit; trang sẽ reload nên không cần set prev, nhưng set cho chắc
-                qtyInput.dataset.prev = qtyInput.value;
+                return;
             }
-        });
-
-        // Nếu user gõ tay và rời input nhưng vì lý do nào đó chưa submit, vẫn đảm bảo không vượt 5
-        qtyInput.addEventListener('change', function(){
-            const v = parseInt(qtyInput.value || '1', 10);
-            if (v > ITEM_QTY_LIMIT) {
-                // Onchange sẽ cố submit (inline), nhưng submit listener ở trên đã chặn
-                // Ở đây chỉ đảm bảo UI hiển thị đúng sau khi modal đóng
-                setTimeout(() => {
-                    qtyInput.value = qtyInput.dataset.prev || String(ITEM_QTY_LIMIT);
-                }, 0);
-            }
+            // Cập nhật prev và submit chuẩn (có trigger submit event)
+            qtyInput.dataset.prev = String(v);
+            if (form && form.requestSubmit) form.requestSubmit();
+            else if (form) form.submit();
         });
     });
 

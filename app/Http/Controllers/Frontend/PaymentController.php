@@ -60,7 +60,6 @@ class PaymentController extends Controller
             'vnp_Amount'     => $amountVnd * 100, // VND x100
             'vnp_Command'    => 'pay',
             'vnp_CreateDate' => now('Asia/Ho_Chi_Minh')->format('YmdHis'),
-            // 'vnp_ExpireDate' => now('Asia/Ho_Chi_Minh')->addMinutes(15)->format('YmdHis'),
             'vnp_CurrCode'   => 'VND',
             'vnp_IpAddr'     => $ip,
             'vnp_Locale'     => 'vn',
