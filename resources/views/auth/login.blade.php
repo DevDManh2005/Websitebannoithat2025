@@ -44,7 +44,7 @@
           <span class="input-group-text"><i class="bi bi-envelope"></i></span>
           {{-- BỔ SUNG: Thêm ID, pattern và title --}}
           <input type="email" id="emailInput" name="email"
-            class="form-control @error('email') is-invalid @enderror" placeholder="admin@gmail.com"
+            class="form-control @error('email') is-invalid @enderror" placeholder="user@gmail.com"
             value="{{ old('email') }}" autocomplete="username" required pattern=".*@gmail\.com"
             title="Email phải có đuôi @gmail.com">
           </div>
