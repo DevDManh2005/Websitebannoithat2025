@@ -477,25 +477,6 @@
         transform: scale(1.06);
     }
 
-    /* =================== Desktop layout: force summary on the right =================== */
-    @media (min-width: 992px) {
-        /* container ngay sau .support-hero */
-        .support-hero + .container .row.g-4.g-lg-5 {
-            display: grid !important;
-            grid-template-columns: 1fr minmax(340px, 420px);
-            align-items: start;
-            column-gap: 2rem;
-        }
-        .support-hero + .container .row.g-4.g-lg-5 > .col-lg-8 { grid-column: 1; }
-        .support-hero + .container .row.g-4.g-lg-5 > .col-lg-4 { grid-column: 2; }
-
-        /* giữ sticky */
-        .support-hero + .container .row.g-4.g-lg-5 .sticky-lg-top {
-            position: sticky !important;
-            top: 96px;
-        }
-    }
-
     /* =================== Responsive Design =================== */
     @media (max-width: 991px) {
         .support-hero {
