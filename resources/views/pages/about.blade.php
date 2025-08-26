@@ -11,7 +11,7 @@
         <div class="col-lg-6 mb-4 mb-lg-0" data-aos="fade-right">
             <h1 class="display-4 fw-bold text-brand">Về Chúng Tôi</h1>
             <p class="lead text-muted">
-                Chào mừng bạn đến với [Tên công ty/cửa hàng của bạn]. Chúng tôi tự hào là đơn vị cung cấp các giải pháp nội thất hàng đầu, mang đến không gian sống đẳng cấp và tiện nghi cho mọi gia đình.
+                Chào mừng bạn đến với EternaHome. Chúng tôi tự hào là đơn vị cung cấp các giải pháp nội thất hàng đầu, mang đến không gian sống đẳng cấp và tiện nghi cho mọi gia đình.
             </p>
             <p>
                 Với nhiều năm kinh nghiệm trong ngành, đội ngũ của chúng tôi luôn nỗ lực không ngừng để tạo ra những sản phẩm chất lượng cao, thiết kế tinh tế và phù hợp với xu hướng hiện đại.
