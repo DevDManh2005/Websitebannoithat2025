@@ -7,8 +7,8 @@ use App\Mail\OrderPlaced;
 use App\Models\Cart;
 use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;   // <-- thêm
-use Illuminate\Support\Facades\Log;  // <-- thêm
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class PaymentController extends Controller
@@ -43,7 +43,6 @@ class PaymentController extends Controller
         // TxnRef: chỉ chữ–số
         $txnRef = (string) ($order->order_code ?? $order->id);
 
-
         // Tính amount an toàn
         $baseAmount = $order->final_amount
             ?? $order->total_amount
@@ -61,7 +60,7 @@ class PaymentController extends Controller
             'vnp_Amount'     => $amountVnd * 100, // VND x100
             'vnp_Command'    => 'pay',
             'vnp_CreateDate' => now('Asia/Ho_Chi_Minh')->format('YmdHis'),
-            // 'vnp_ExpireDate' => now('Asia/Ho_Chi_Minh')->addMinutes(15)->format('YmdHis'), // thêm lại khi cần
+            // 'vnp_ExpireDate' => now('Asia/Ho_Chi_Minh')->addMinutes(15)->format('YmdHis'),
             'vnp_CurrCode'   => 'VND',
             'vnp_IpAddr'     => $ip,
             'vnp_Locale'     => 'vn',
@@ -71,7 +70,7 @@ class PaymentController extends Controller
             'vnp_TxnRef'     => $txnRef,
         ];
 
-        // Debug: không gửi BankCode; khi ổn có thể set NCB qua .env
+        // BankCode (tùy chọn)
         $bank = trim((string) env('VNP_BANKCODE', ''));
         if ($bank !== '') {
             $input['vnp_BankCode'] = $bank;
@@ -156,6 +155,25 @@ class PaymentController extends Controller
                 try { Mail::to($order->user->email)->send(new OrderPlaced($order)); } catch (\Throwable) {}
             }
 
+            /*** ⬇️ QUAN TRỌNG: cập nhật bảng payments để kích hoạt PaymentObserver ⬇️ ***/
+            $order->loadMissing('payment');
+            if ($order->payment) {
+                if ($order->payment->status !== 'paid') {
+                    $order->payment->update([
+                        'status'         => 'paid',
+                        'method'         => 'vnpay',
+                        'transaction_id' => $signed['vnp_TransactionNo'] ?? null,
+                    ]);
+                }
+            } else {
+                $order->payment()->create([
+                    'method'         => 'vnpay',
+                    'status'         => 'paid',
+                    'transaction_id' => $signed['vnp_TransactionNo'] ?? null,
+                ]);
+            }
+            /*** ⬆️ Observer sẽ tự trừ kho + ghi log qua InventoryService ***/
+
             Log::info('VNPAY IPN OK', ['order' => $order->order_code]);
             return response()->json(['RspCode' => '00', 'Message' => 'Confirm Success']);
         }
@@ -212,6 +230,25 @@ class PaymentController extends Controller
                 try { Cart::where('user_id', $order->user_id)->delete(); } catch (\Throwable) {}
                 try { Mail::to($order->user->email)->send(new OrderPlaced($order)); } catch (\Throwable) {}
             }
+
+            /*** ⬇️ Cập nhật bảng payments để trigger Observer (an toàn/idempotent) ⬇️ ***/
+            $order->loadMissing('payment');
+            if ($order->payment) {
+                if ($order->payment->status !== 'paid') {
+                    $order->payment->update([
+                        'status'         => 'paid',
+                        'method'         => 'vnpay',
+                        'transaction_id' => $signed['vnp_TransactionNo'] ?? null,
+                    ]);
+                }
+            } else {
+                $order->payment()->create([
+                    'method'         => 'vnpay',
+                    'status'         => 'paid',
+                    'transaction_id' => $signed['vnp_TransactionNo'] ?? null,
+                ]);
+            }
+            /*** ⬆️ Nếu IPN tới sau, điều kiện if sẽ ngăn update lặp ***/
 
             return redirect()->route('orders.show', $order)->with('success', 'Giao dịch đã tiếp nhận.');
         }

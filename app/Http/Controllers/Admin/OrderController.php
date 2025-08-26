@@ -28,7 +28,7 @@ class OrderController extends Controller
 
     $orders = Order::with('user')
         // Giữ nguyên logic lọc theo trạng thái
-        ->when($status !== 'all', fn ($q) => $q->where('status', 'status'))
+        ->when($status !== 'all', fn ($q) => $q->where('status', $status))
 
         // THÊM MỚI: Logic lọc theo mã đơn/tên khách hàng
         ->when($search, function ($query, $search) {

@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {   
-         Payment::observe(PaymentObserver::class);
+       
         if (Schema::hasTable('settings')) {
             $settings = Cache::rememberForever(
                 'settings',
@@ -177,5 +177,8 @@ class AppServiceProvider extends ServiceProvider
                 resource_path('views/staffs/admin-bridge'),
             ]);
         }
+
+          Payment::observe(PaymentObserver::class);
     }
+    
 }
