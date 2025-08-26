@@ -146,6 +146,31 @@
             </div>
         @endif
     </div>
+
+    {{-- =================== MODAL: CẢNH BÁO GIÁ TRỊ ĐƠN HÀNG LỚN =================== --}}
+    <div class="modal fade" id="orderTotalLimitModal" tabindex="-1" aria-labelledby="orderTotalLimitModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-brand" id="orderTotalLimitModalLabel">
+                        Thông báo giá trị đơn hàng lớn
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">
+                        Tổng giá trị các sản phẩm đã chọn vượt quá
+                        <strong>100.000.000₫</strong>.
+                        Vui lòng <span class="text-brand fw-semibold">liên hệ với chúng tôi</span>
+                        để được hướng dẫn và nhận thêm ưu đãi.
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-brand rounded-pill" data-bs-dismiss="modal">Đã hiểu</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('styles')
@@ -319,10 +344,9 @@
     overflow: visible;
 }
 
-/* =================== Empty Cart =================== */
-.bi-cart-x {
-    transition: color 0.2s ease;
-}
+/* =================== Modal tweak =================== */
+#orderTotalLimitModal .modal-content { border: 1px solid rgba(15,23,42,.06); }
+#orderTotalLimitModal .modal-title { color: var(--brand); }
 
 /* =================== Responsive Design =================== */
 @media (max-width: 991px) {
@@ -434,7 +458,7 @@
 
 @push('scripts-page')
 <script>
-    // ===== Auto sticky offset theo chiều cao header (home/internal khác nhau)
+    // ===== Auto sticky offset theo chiều cao header
     (function(){
         function updateStickyOffset(){
             const header = document.querySelector('header.sticky-top, header.navbar-transparent, header');
@@ -463,6 +487,10 @@
     const totalPriceDisplay = document.getElementById('total-price-display');
     const checkoutBtn = document.getElementById('checkout-btn');
     const selectedItemsCount = document.getElementById('selected-items-count');
+
+    const ORDER_TOTAL_LIMIT = 100000000; // 100 triệu
+    let currentSelectedTotal = 0;
+
     const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
 
     let debounceTimer;
@@ -486,16 +514,22 @@
         let total = 0;
         selected.forEach(cb => total += parseFloat(cb.dataset.price) * parseFloat(cb.dataset.quantity));
 
+        currentSelectedTotal = total; // lưu để kiểm tra khi click thanh toán
+
         totalPriceDisplay.textContent = formatCurrency(total);
         selectedItemsCount.textContent = selected.length;
 
         // Disable/enable actions
         const disabled = selected.length === 0;
-        checkoutBtn.classList.toggle('disabled', disabled);
-        deleteSelectedBtn.disabled = disabled;
+        if (checkoutBtn) {
+            checkoutBtn.classList.toggle('disabled', disabled);
+            checkoutBtn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+            if (disabled) checkoutBtn.setAttribute('tabindex', '-1'); else checkoutBtn.removeAttribute('tabindex');
+        }
+        if (deleteSelectedBtn) deleteSelectedBtn.disabled = disabled;
 
         // Select-all state
-        if (checkboxes.length > 0) {
+        if (checkboxes.length > 0 && selectAllCheckbox) {
             selectAllCheckbox.checked = selected.length === checkboxes.length && selected.length > 0;
         }
 
@@ -510,6 +544,30 @@
         });
     }
     checkboxes.forEach(cb => cb.addEventListener('change', updateTotalsAndUI));
+
+    // Chặn thanh toán khi vượt 100 triệu: hiện modal thay vì chuyển trang
+    function showOrderTotalLimitModal(){
+        const el = document.getElementById('orderTotalLimitModal');
+        if (window.bootstrap && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(el).show();
+        } else {
+            alert('Tổng giá trị các sản phẩm đã chọn vượt 100.000.000₫. Vui lòng liên hệ với chúng tôi để được hướng dẫn và nhận thêm ưu đãi.');
+        }
+    }
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function(e){
+            // Nếu không có sản phẩm được chọn -> để UI hiện disabled xử lý, nhưng vẫn ngăn điều hướng
+            const noSelected = document.querySelectorAll('.item-checkbox:checked').length === 0;
+            if (noSelected) {
+                e.preventDefault();
+                return;
+            }
+            if (currentSelectedTotal > ORDER_TOTAL_LIMIT) {
+                e.preventDefault();
+                showOrderTotalLimitModal();
+            }
+        });
+    }
 
     // Init on load
     updateTotalsAndUI();
