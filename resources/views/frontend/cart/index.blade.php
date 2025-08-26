@@ -93,10 +93,17 @@
                                     </div>
 
                                     <div class="d-flex align-items-center ms-3">
-                                        <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex align-items-center">
+                                        <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex align-items-center cart-qty-form">
                                             @csrf @method('PATCH')
                                             <div class="input-group input-group-sm qty-group">
-                                                <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control text-center form-control-modern" style="width: 70px;" onchange="this.form.submit()">
+                                                <input
+                                                    type="number"
+                                                    name="quantity"
+                                                    value="{{ $item->quantity }}"
+                                                    min="1"
+                                                    class="form-control text-center form-control-modern"
+                                                    style="width: 70px;"
+                                                    onchange="this.form.submit()">
                                             </div>
                                         </form>
 
@@ -147,7 +154,7 @@
         @endif
     </div>
 
-    {{-- =================== MODAL: CẢNH BÁO GIÁ TRỊ ĐƠN HÀNG LỚN =================== --}}
+    {{-- =================== MODAL: GIỚI HẠN GIÁ TRỊ ĐƠN HÀNG =================== --}}
     <div class="modal fade" id="orderTotalLimitModal" tabindex="-1" aria-labelledby="orderTotalLimitModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 shadow">
@@ -161,6 +168,30 @@
                     <p class="mb-0">
                         Tổng giá trị các sản phẩm đã chọn vượt quá
                         <strong>100.000.000₫</strong>.
+                        Vui lòng <span class="text-brand fw-semibold">liên hệ với chúng tôi</span>
+                        để được hướng dẫn và nhận thêm ưu đãi.
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-brand rounded-pill" data-bs-dismiss="modal">Đã hiểu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- =================== MODAL: GIỚI HẠN SỐ LƯỢNG MỖI SẢN PHẨM (>5) =================== --}}
+    <div class="modal fade" id="itemQtyLimitModal" tabindex="-1" aria-labelledby="itemQtyLimitModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-brand" id="itemQtyLimitModalLabel">
+                        Thông báo số lượng lớn cho 1 sản phẩm
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">
+                        Bạn đang đặt <strong>trên 5 sản phẩm</strong> cho một mặt hàng.
                         Vui lòng <span class="text-brand fw-semibold">liên hệ với chúng tôi</span>
                         để được hướng dẫn và nhận thêm ưu đãi.
                     </p>
@@ -345,8 +376,10 @@
 }
 
 /* =================== Modal tweak =================== */
-#orderTotalLimitModal .modal-content { border: 1px solid rgba(15,23,42,.06); }
-#orderTotalLimitModal .modal-title { color: var(--brand); }
+#orderTotalLimitModal .modal-content,
+#itemQtyLimitModal .modal-content { border: 1px solid rgba(15,23,42,.06); }
+#orderTotalLimitModal .modal-title,
+#itemQtyLimitModal .modal-title { color: var(--brand); }
 
 /* =================== Responsive Design =================== */
 @media (max-width: 991px) {
@@ -489,6 +522,7 @@
     const selectedItemsCount = document.getElementById('selected-items-count');
 
     const ORDER_TOTAL_LIMIT = 100000000; // 100 triệu
+    const ITEM_QTY_LIMIT = 5; // 5 sản phẩm / 1 mặt hàng
     let currentSelectedTotal = 0;
 
     const formatCurrency = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
@@ -514,7 +548,7 @@
         let total = 0;
         selected.forEach(cb => total += parseFloat(cb.dataset.price) * parseFloat(cb.dataset.quantity));
 
-        currentSelectedTotal = total; // lưu để kiểm tra khi click thanh toán
+        currentSelectedTotal = total;
 
         totalPriceDisplay.textContent = formatCurrency(total);
         selectedItemsCount.textContent = selected.length;
@@ -545,7 +579,7 @@
     }
     checkboxes.forEach(cb => cb.addEventListener('change', updateTotalsAndUI));
 
-    // Chặn thanh toán khi vượt 100 triệu: hiện modal thay vì chuyển trang
+    // ===== Modal helpers
     function showOrderTotalLimitModal(){
         const el = document.getElementById('orderTotalLimitModal');
         if (window.bootstrap && bootstrap.Modal) {
@@ -554,20 +588,68 @@
             alert('Tổng giá trị các sản phẩm đã chọn vượt 100.000.000₫. Vui lòng liên hệ với chúng tôi để được hướng dẫn và nhận thêm ưu đãi.');
         }
     }
+    function showItemQtyLimitModal(){
+        const el = document.getElementById('itemQtyLimitModal');
+        if (window.bootstrap && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(el).show();
+        } else {
+            alert('Bạn đang đặt trên 5 sản phẩm cho một mặt hàng. Vui lòng liên hệ với chúng tôi để được hướng dẫn và nhận thêm ưu đãi.');
+        }
+    }
+
+    // ===== Chặn thanh toán khi vượt 100 triệu
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', function(e){
-            // Nếu không có sản phẩm được chọn -> để UI hiện disabled xử lý, nhưng vẫn ngăn điều hướng
             const noSelected = document.querySelectorAll('.item-checkbox:checked').length === 0;
-            if (noSelected) {
-                e.preventDefault();
-                return;
-            }
+            if (noSelected) { e.preventDefault(); return; }
             if (currentSelectedTotal > ORDER_TOTAL_LIMIT) {
                 e.preventDefault();
                 showOrderTotalLimitModal();
             }
         });
     }
+
+    // ===== Chặn cập nhật số lượng > 5 cho từng mặt hàng
+    // Dù input có inline onchange="this.form.submit()", ta vẫn ngăn ở sự kiện submit của form.
+    document.querySelectorAll('.cart-qty-form').forEach(form => {
+        const qtyInput = form.querySelector('input[name="quantity"]');
+        if (!qtyInput) return;
+
+        // Lưu giá trị ban đầu làm "prev"
+        qtyInput.dataset.prev = qtyInput.value;
+
+        // Nếu người dùng focus -> lưu lại prev trước khi thay đổi
+        qtyInput.addEventListener('focus', () => {
+            qtyInput.dataset.prev = qtyInput.value;
+        });
+
+        // Bắt sự kiện submit để chặn nếu > 5
+        form.addEventListener('submit', function(e){
+            const v = parseInt(qtyInput.value || '1', 10);
+            if (v > ITEM_QTY_LIMIT) {
+                e.preventDefault();
+                // Trả về giá trị cũ (hoặc 5)
+                qtyInput.value = qtyInput.dataset.prev || String(ITEM_QTY_LIMIT);
+                qtyInput.blur();
+                showItemQtyLimitModal();
+            } else {
+                // Cho phép submit; trang sẽ reload nên không cần set prev, nhưng set cho chắc
+                qtyInput.dataset.prev = qtyInput.value;
+            }
+        });
+
+        // Nếu user gõ tay và rời input nhưng vì lý do nào đó chưa submit, vẫn đảm bảo không vượt 5
+        qtyInput.addEventListener('change', function(){
+            const v = parseInt(qtyInput.value || '1', 10);
+            if (v > ITEM_QTY_LIMIT) {
+                // Onchange sẽ cố submit (inline), nhưng submit listener ở trên đã chặn
+                // Ở đây chỉ đảm bảo UI hiển thị đúng sau khi modal đóng
+                setTimeout(() => {
+                    qtyInput.value = qtyInput.dataset.prev || String(ITEM_QTY_LIMIT);
+                }, 0);
+            }
+        });
+    });
 
     // Init on load
     updateTotalsAndUI();
