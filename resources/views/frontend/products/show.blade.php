@@ -30,12 +30,12 @@
                             @forelse($product->images as $image)
                                 <div class="swiper-slide">
                                     <img src="{{ $image->image_url_path }}" class="w-100 h-100 object-fit-cover"
-                                        alt="{{ $product->name }}">
+                                         alt="{{ $product->name }}">
                                 </div>
                             @empty
                                 <div class="swiper-slide">
                                     <img src="https://placehold.co/800x800?text=No+Image" class="w-100 h-100 object-fit-cover"
-                                        alt="No Image Available">
+                                         alt="No Image Available">
                                 </div>
                             @endforelse
                         </div>
@@ -94,7 +94,7 @@
                                     @foreach($values as $value)
                                         @php $id = Str::slug($name . '-' . $value); @endphp
                                         <input type="radio" class="btn-check variant-option" name="{{ $name }}" value="{{ $value }}"
-                                            id="{{ $id }}" autocomplete="off">
+                                               id="{{ $id }}" autocomplete="off">
                                         <label class="btn btn-outline-brand btn-variant" for="{{ $id }}">{{ $value }}</label>
                                     @endforeach
                                 </div>
@@ -107,11 +107,11 @@
                         <label class="me-3 fw-semibold">Số lượng:</label>
                         <div class="input-group quantity-group">
                             <button type="button" class="btn btn-outline-brand" id="quantity-minus"
-                                aria-label="Giảm số lượng">−</button>
+                                    aria-label="Giảm số lượng">−</button>
                             <input type="number" class="form-control text-center form-control-modern" name="quantity" id="quantity-selector"
-                                value="1" min="1" inputmode="numeric">
+                                   value="1" min="1" inputmode="numeric">
                             <button type="button" class="btn btn-outline-brand" id="quantity-plus"
-                                aria-label="Tăng số lượng">+</button>
+                                    aria-label="Tăng số lượng">+</button>
                         </div>
                     </div>
 
@@ -119,11 +119,11 @@
                     @auth
                         <div class="d-grid gap-2 d-sm-flex">
                             <button type="button" class="btn btn-outline-brand btn-lg flex-grow-1 rounded-pill"
-                                id="add-to-cart-btn" disabled>
+                                    id="add-to-cart-btn" disabled>
                                 <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
                             </button>
                             <button type="button" class="btn btn-brand btn-lg flex-grow-1 rounded-pill" id="buy-now-btn"
-                                disabled>
+                                    disabled>
                                 <i class="bi bi-bag-check-fill me-2"></i>Mua ngay
                             </button>
                         </div>
@@ -180,6 +180,42 @@
             </div>
         </div>
     </div>
+
+    {{-- =================== MODAL: CẢNH BÁO SỐ LƯỢNG > 5 =================== --}}
+    @php
+        use Illuminate\Support\Facades\Storage;
+        use Illuminate\Support\Str;
+        use Illuminate\Support\Facades\Route as RouteFacade;
+        $contactRoute = RouteFacade::has('contact') ? route('contact') : null;
+    @endphp
+
+    <div class="modal fade" id="qtyLimitModal" tabindex="-1" aria-labelledby="qtyLimitModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-brand" id="qtyLimitModalLabel">
+                        Thông báo số lượng lớn
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">
+                        Bạn đang chọn mua <strong>trên 5 sản phẩm</strong>. Vui lòng
+                        <span class="text-brand fw-semibold">liên hệ với chúng tôi</span>
+                        để được tư vấn, hướng dẫn và nhận thêm ưu đãi.
+                    </p>
+                    @if($contactRoute)
+                        <p class="mt-2 mb-0">
+                            <a href="{{ $contactRoute }}" class="text-decoration-none">Đi tới trang liên hệ</a>
+                        </p>
+                    @endif
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-brand rounded-pill" data-bs-dismiss="modal">Đã hiểu</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('styles')
@@ -190,279 +226,123 @@
             color: var(--sand);
             transition: color 0.2s ease;
         }
-        .breadcrumb-item a:hover {
-            color: var(--brand);
-        }
-        .breadcrumb-item.active {
-            color: var(--muted);
-        }
+        .breadcrumb-item a:hover { color: var(--brand); }
+        .breadcrumb-item.active { color: var(--muted); }
 
         /* =================== Gallery =================== */
         .product-gallery .main-image-swiper {
-            height: 520px;
-            background: #fff;
+            height: 520px; background: #fff;
             transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
         .product-gallery .main-image-swiper:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
-        .product-gallery .thumbnail-swiper {
-            height: 96px;
-            padding: 8px 0;
-        }
+        .product-gallery .thumbnail-swiper { height: 96px; padding: 8px 0; }
         .product-gallery .thumbnail-swiper .swiper-slide {
-            width: 25%;
-            height: 100%;
-            opacity: 0.6;
-            transition: opacity 0.25s ease, transform 0.25s ease;
-            cursor: pointer;
+            width: 25%; height: 100%; opacity: .6;
+            transition: opacity .25s ease, transform .25s ease; cursor: pointer;
         }
-        .product-gallery .thumbnail-swiper .swiper-slide:hover {
-            opacity: 1;
-            transform: translateY(-2px);
-        }
+        .product-gallery .thumbnail-swiper .swiper-slide:hover { opacity: 1; transform: translateY(-2px); }
         .product-gallery .thumbnail-swiper .swiper-slide-thumb-active {
-            opacity: 1;
-            transform: translateY(-2px);
-            outline: 2px solid var(--brand);
-            outline-offset: 2px;
-            border-radius: 0.5rem;
+            opacity: 1; transform: translateY(-2px);
+            outline: 2px solid var(--brand); outline-offset: 2px; border-radius: .5rem;
         }
-        .product-gallery .thumbnail-swiper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 0.5rem;
-        }
+        .product-gallery .thumbnail-swiper img { width:100%; height:100%; object-fit:cover; border-radius:.5rem; }
         .swiper-button-next, .swiper-button-prev {
-            color: var(--brand);
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            transition: background 0.2s ease;
+            color: var(--brand); background: rgba(255,255,255,.9);
+            border-radius:50%; width:40px; height:40px; transition: background .2s ease;
         }
-        .swiper-button-next:hover, .swiper-button-prev:hover {
-            background: var(--brand);
-            color: #fff;
-        }
+        .swiper-button-next:hover, .swiper-button-prev:hover { background: var(--brand); color:#fff; }
 
         /* =================== Card and Price Box =================== */
         .card-glass {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.98));
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(15, 23, 42, 0.04);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.98));
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            border: 1px solid rgba(15,23,42,.04);
+            transition: transform .25s ease, box-shadow .25s ease;
         }
-        .card-glass:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        }
-        .product-price-box {
-            border: 2px solid var(--brand);
-            transition: border-color 0.2s ease;
-        }
-        .product-price-box:hover {
-            border-color: var(--brand-600);
-        }
-        .rounded-4 {
-            border-radius: 1rem !important;
-        }
+        .card-glass:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+        .product-price-box { border: 2px solid var(--brand); transition: border-color .2s ease; }
+        .product-price-box:hover { border-color: var(--brand-600); }
+        .rounded-4 { border-radius: 1rem !important; }
 
         /* =================== Tabs =================== */
         .nav-tabs-modern .nav-link {
-            border: none;
-            color: var(--muted);
-            position: relative;
-            padding: 0.5rem 0;
-            font-weight: 500;
-            transition: color 0.2s ease;
+            border: none; color: var(--muted); position: relative;
+            padding: .5rem 0; font-weight: 500; transition: color .2s ease;
         }
-        .nav-tabs-modern .nav-link.active {
-            color: var(--brand);
-        }
+        .nav-tabs-modern .nav-link.active { color: var(--brand); }
         .nav-tabs-modern .nav-link.active::after,
         .nav-tabs-modern .nav-link:hover::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: -8px;
-            height: 2px;
-            background: var(--brand);
+            content:""; position:absolute; left:0; right:0; bottom:-8px; height:2px; background:var(--brand);
         }
 
         /* =================== Form and Button Styles =================== */
         .btn-brand {
-            background-color: var(--brand);
-            border-color: var(--brand);
-            color: #fff;
-            padding: 0.5rem 1rem;
-            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            background-color: var(--brand); border-color: var(--brand); color:#fff; padding:.5rem 1rem;
+            transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
         }
-        .btn-brand:hover {
-            background-color: var(--brand-600);
-            border-color: var(--brand-600);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        .btn-brand:hover { background-color: var(--brand-600); border-color: var(--brand-600);
+            transform: translateY(-2px); box-shadow: 0 8px 24px var(--ring);
         }
         .btn-outline-brand {
-            color: var(--brand);
-            border-color: var(--brand);
-            padding: 0.45rem 0.9rem;
-            transition: background 0.15s ease, color 0.15s ease;
+            color: var(--brand); border-color: var(--brand); padding: .45rem .9rem;
+            transition: background .15s ease, color .15s ease;
         }
-        .btn-outline-brand:hover {
-            background-color: var(--brand);
-            border-color: var(--brand);
-            color: #fff;
-        }
-        .btn-variant {
-            border-radius: 999px;
-            padding: 0.35rem 0.85rem;
-            font-size: 0.9rem;
-            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        .btn-outline-brand:hover { background-color: var(--brand); border-color: var(--brand); color:#fff; }
+        .btn-variant { border-radius: 999px; padding:.35rem .85rem; font-size:.9rem;
+            transition: background .2s ease, color .2s ease, box-shadow .2s ease;
         }
         .btn-check:checked + .btn-variant {
-            background: var(--brand);
-            border-color: var(--brand);
-            color: #fff;
-            box-shadow: 0 6px 14px var(--ring);
+            background: var(--brand); border-color: var(--brand); color:#fff; box-shadow: 0 6px 14px var(--ring);
         }
         .form-control-modern {
-            border-radius: 0.8rem;
-            border: 1px solid #e9ecef;
-            background: #fff;
-            font-size: 1rem;
+            border-radius: .8rem; border:1px solid #e9ecef; background:#fff; font-size:1rem;
         }
-        .form-control-modern:focus {
-            border-color: var(--brand);
-            box-shadow: 0 0 0 0.2rem var(--ring);
-        }
-        .quantity-group {
-            width: 160px;
-        }
-        .quantity-group .form-control {
-            border-left: 0;
-            border-right: 0;
-            border-radius: 0;
-        }
-        .text-brand {
-            color: var(--brand);
-        }
-        .text-muted {
-            color: var(--muted);
-        }
-        .badge-soft-brand {
-            background: rgba(var(--brand-rgb), 0.1);
-            color: var(--brand);
-            font-size: 0.85rem;
-        }
+        .form-control-modern:focus { border-color: var(--brand); box-shadow: 0 0 0 .2rem var(--ring); }
+        .quantity-group { width: 160px; }
+        .quantity-group .form-control { border-left:0; border-right:0; border-radius:0; }
+        .text-brand { color: var(--brand); }
+        .text-muted { color: var(--muted); }
+        .badge-soft-brand { background: rgba(var(--brand-rgb), .1); color: var(--brand); font-size:.85rem; }
 
-        /* =================== Links =================== */
-        a {
-            color: var(--brand);
-            text-decoration: none;
-        }
-        a:hover {
-            color: var(--brand-600);
-        }
+        /* =================== Modal tweak (theming) =================== */
+        #qtyLimitModal .modal-content{ border:1px solid rgba(15,23,42,.06); }
+        #qtyLimitModal .modal-title{ color: var(--brand); }
 
         /* =================== Responsive Design =================== */
         @media (max-width: 991px) {
-            .col-lg-6 {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-            .product-gallery .main-image-swiper {
-                height: 400px;
-            }
-            .product-gallery .thumbnail-swiper {
-                height: 80px;
-            }
-            .quantity-group {
-                width: 140px;
-            }
-            .btn-lg {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.9rem;
-            }
-            .card {
-                padding: 1.5rem;
-            }
+            .col-lg-6 { flex: 0 0 100%; max-width: 100%; }
+            .product-gallery .main-image-swiper { height: 400px; }
+            .product-gallery .thumbnail-swiper { height: 80px; }
+            .quantity-group { width: 140px; }
+            .btn-lg { padding: .4rem .8rem; font-size: .9rem; }
+            .card { padding: 1.5rem; }
         }
-
         @media (max-width: 767px) {
-            .product-gallery .main-image-swiper {
-                height: 320px;
-            }
-            .product-gallery .thumbnail-swiper {
-                height: 70px;
-            }
-            .container {
-                padding-left: 15px;
-                padding-right: 15px;
-            }
-            .card {
-                padding: 1rem;
-            }
-            .tab-content {
-                padding: 1rem;
-            }
-            .btn-lg {
-                padding: 0.35rem 0.7rem;
-                font-size: 0.85rem;
-            }
-            .quantity-group {
-                width: 120px;
-            }
-            .btn-variant {
-                padding: 0.3rem 0.7rem;
-                font-size: 0.85rem;
-            }
-            .product-price-box h3 {
-                font-size: 1.5rem;
-            }
-            .bi-star-fill, .bi-star-half, .bi-star {
-                font-size: 0.9rem;
-            }
+            .product-gallery .main-image-swiper { height: 320px; }
+            .product-gallery .thumbnail-swiper { height: 70px; }
+            .container { padding-left: 15px; padding-right: 15px; }
+            .card { padding: 1rem; }
+            .tab-content { padding: 1rem; }
+            .btn-lg { padding: .35rem .7rem; font-size: .85rem; }
+            .quantity-group { width: 120px; }
+            .btn-variant { padding: .3rem .7rem; font-size: .85rem; }
+            .product-price-box h3 { font-size: 1.5rem; }
+            .bi-star-fill, .bi-star-half, .bi-star { font-size: .9rem; }
         }
-
         @media (max-width: 575px) {
-            .product-gallery .main-image-swiper {
-                height: 280px;
-            }
-            .product-gallery .thumbnail-swiper {
-                height: 60px;
-            }
-            .card {
-                padding: 0.75rem;
-            }
-            .tab-content {
-                padding: 0.75rem;
-            }
-            .btn-lg {
-                padding: 0.3rem 0.6rem;
-                font-size: 0.8rem;
-            }
-            .quantity-group {
-                width: 100px;
-            }
-            .btn-variant {
-                padding: 0.25rem 0.6rem;
-                font-size: 0.8rem;
-            }
-            .product-price-box h3 {
-                font-size: 1.25rem;
-            }
-            .breadcrumb {
-                font-size: 0.85rem;
-            }
-            .nav-tabs-modern .nav-link {
-                font-size: 0.9rem;
-            }
+            .product-gallery .main-image-swiper { height: 280px; }
+            .product-gallery .thumbnail-swiper { height: 60px; }
+            .card { padding: .75rem; }
+            .tab-content { padding: .75rem; }
+            .btn-lg { padding: .3rem .6rem; font-size: .8rem; }
+            .quantity-group { width: 100px; }
+            .btn-variant { padding: .25rem .6rem; font-size: .8rem; }
+            .product-price-box h3 { font-size: 1.25rem; }
+            .breadcrumb { font-size: .85rem; }
+            .nav-tabs-modern .nav-link { font-size: .9rem; }
         }
     </style>
 @endpush
@@ -524,6 +404,16 @@
             quantitySelector.value = currentVal + 1;
         });
 
+        function showQtyLimitModal() {
+            const el = document.getElementById('qtyLimitModal');
+            if (window.bootstrap && bootstrap.Modal) {
+                const m = bootstrap.Modal.getOrCreateInstance(el);
+                m.show();
+            } else {
+                alert('Bạn mua trên 5 sản phẩm. Vui lòng liên hệ với chúng tôi để được hướng dẫn và nhận thêm ưu đãi.');
+            }
+        }
+
         async function handleCartAction(url, formData) {
             try {
                 const response = await fetch(url, {
@@ -542,6 +432,12 @@
         }
 
         addToCartBtn?.addEventListener('click', async function () {
+            const qty = parseInt(quantitySelector.value || '1', 10);
+            if (qty > 5) { // > 5 thì bật modal và dừng
+                showQtyLimitModal();
+                return;
+            }
+
             this.disabled = true;
             const formData = new FormData(document.getElementById('action-form'));
             const result = await handleCartAction('{{ route("cart.add") }}', formData);
@@ -553,14 +449,24 @@
                     cartBadge.textContent = result.cart_count ?? cartBadge.textContent;
                     cartBadge.style.display = parseInt(cartBadge.textContent || '0', 10) > 0 ? 'inline-block' : 'none';
                 }
-                Swal.fire({ icon: 'success', title: 'Đã thêm vào giỏ!', showConfirmButton: false, timer: 1400, toast: true, position: 'top-end' });
+                if (window.Swal) {
+                    Swal.fire({ icon: 'success', title: 'Đã thêm vào giỏ!', showConfirmButton: false, timer: 1400, toast: true, position: 'top-end' });
+                }
             } else {
-                Swal.fire({ icon: 'error', title: 'Thất bại', text: result.message || 'Không thể thêm vào giỏ.' });
+                if (window.Swal) {
+                    Swal.fire({ icon: 'error', title: 'Thất bại', text: result.message || 'Không thể thêm vào giỏ.' });
+                }
             }
             this.disabled = false;
         });
 
         buyNowBtn?.addEventListener('click', async function () {
+            const qty = parseInt(quantitySelector.value || '1', 10);
+            if (qty > 5) { // > 5 thì bật modal và dừng
+                showQtyLimitModal();
+                return;
+            }
+
             this.disabled = true;
             const formData = new FormData(document.getElementById('action-form'));
             const result = await handleCartAction('{{ route("cart.buyNow") }}', formData);
@@ -568,7 +474,9 @@
             if (result.success && result.redirect_url) {
                 window.location.href = result.redirect_url;
             } else {
-                Swal.fire({ icon: 'error', title: 'Thất bại', text: result.message || 'Không thể xử lý đơn hàng.' });
+                if (window.Swal) {
+                    Swal.fire({ icon: 'error', title: 'Thất bại', text: result.message || 'Không thể xử lý đơn hàng.' });
+                }
                 this.disabled = false;
             }
         });
@@ -597,11 +505,7 @@
 
         // AOS init
         if (typeof AOS !== 'undefined') {
-            AOS.init({
-                duration: 600,
-                once: true,
-                offset: 80
-            });
+            AOS.init({ duration: 600, once: true, offset: 80 });
         }
     </script>
 @endpush
