@@ -222,7 +222,9 @@
                                 </div>
                             </div>
                         </div>
-
+                    </div>
+                </div> {{-- /Shipping info card --}}
+            </div> {{-- /col-lg-8 LEFT --}}
 
             {{-- RIGHT: SUMMARY + ACTIONS --}}
             <div class="col-lg-4">
@@ -262,9 +264,9 @@
                                 </form>
                             @elseif($order->status === 'delivered')
                                <form action="{{ route('orders.receive', $order->id) }}" method="POST" onsubmit="return confirm('Xác nhận bạn đã nhận đủ hàng?');">
-                            @csrf
-                            <button type="submit" class="btn btn-success w-100 rounded-pill">Đã nhận được hàng</button>
-                            </form>
+                                    @csrf
+                                    <button type="submit" class="btn btn-success w-100 rounded-pill">Đã nhận được hàng</button>
+                                </form>
                             @elseif($order->status === 'received')
                                 <div class="alert alert-success">Đã xác nhận nhận hàng. Cảm ơn bạn!</div>
                             @elseif($order->status === 'cancelled')
@@ -278,8 +280,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div> {{-- /col-lg-4 RIGHT --}}
+        </div> {{-- /.row --}}
     </div>
 @endsection
 
@@ -475,34 +477,47 @@
         transform: scale(1.06);
     }
 
+    /* =================== Desktop layout: force summary on the right =================== */
+    @media (min-width: 992px) {
+        /* container ngay sau .support-hero */
+        .support-hero + .container .row.g-4.g-lg-5 {
+            display: grid !important;
+            grid-template-columns: 1fr minmax(340px, 420px);
+            align-items: start;
+            column-gap: 2rem;
+        }
+        .support-hero + .container .row.g-4.g-lg-5 > .col-lg-8 { grid-column: 1; }
+        .support-hero + .container .row.g-4.g-lg-5 > .col-lg-4 { grid-column: 2; }
+
+        /* giữ sticky */
+        .support-hero + .container .row.g-4.g-lg-5 .sticky-lg-top {
+            position: sticky !important;
+            top: 96px;
+        }
+    }
+
     /* =================== Responsive Design =================== */
-   /* === Force 2-column layout on desktop and pin "Tổng cộng" to the right === */
-@media (min-width: 992px) {
-  /* chỉ áp dụng cho trang này: container ngay sau .support-hero */
-  .support-hero + .container .row.g-4.g-lg-5{
-    display: grid !important;
-    grid-template-columns: 1fr minmax(340px, 420px);
-    align-items: start;
-    column-gap: 2rem; /* không ảnh hưởng AOS/hiệu ứng */
-  }
-
-  /* cột trái (sản phẩm + thông tin giao hàng) */
-  .support-hero + .container .row.g-4.g-lg-5 > .col-lg-8{
-    grid-column: 1;
-  }
-
-  /* cột phải (Tổng cộng) */
-  .support-hero + .container .row.g-4.g-lg-5 > .col-lg-4{
-    grid-column: 2;
-  }
-
-  /* giữ sticky y như cũ */
-  .support-hero + .container .row.g-4.g-lg-5 .sticky-lg-top{
-    position: sticky !important;
-    top: 96px;
-  }
-}
-
+    @media (max-width: 991px) {
+        .support-hero {
+            min-height: 180px;
+        }
+        .support-hero h1 {
+            font-size: 2rem;
+        }
+        .col-lg-8, .col-lg-4 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        .sticky-lg-top {
+            position: static !important;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .order-steps {
+            gap: 1rem;
+        }
+    }
 
     @media (max-width: 767px) {
         .support-hero {
