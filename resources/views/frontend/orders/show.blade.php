@@ -169,11 +169,6 @@
                 <div class="card card-glass rounded-4" data-aos="fade-right" data-aos-delay="100">
                     <div class="card-header bg-transparent border-0 px-4 pt-4 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold text-brand">Thông tin giao hàng</h5>
-                        {{-- @if(in_array($order->status, ['pending', 'processing']))
-                            <button type="button" class="btn btn-sm btn-outline-brand rounded-pill" id="edit-address-btn">
-                                <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa
-                            </button>
-                        @endif --}}
                     </div>
                     <div class="card-body p-4 pt-0">
                         <div id="address-display">
@@ -228,73 +223,6 @@
                             </div>
                         </div>
 
-                        {{-- <div id="address-edit-form" style="display:none;">
-                            <form action="{{ route('orders.update-address', $order) }}" method="POST"
-                                id="update-address-form">
-                                @csrf
-                                @method('PATCH')
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="receiver_name" class="form-label">Họ và tên người nhận</label>
-                                        <input type="text" class="form-control form-control-modern" name="receiver_name"
-                                            value="{{ old('receiver_name', optional($order->shipment)->receiver_name) }}"
-                                            required>
-                                    </div>
-                                    <div class="col-md-6">
-    <label for="phone" class="form-label">Số điện thoại</label>
-    <input type="text" 
-           class="form-control form-control-modern @error('phone') is-invalid @enderror" 
-           name="phone" 
-           value="{{ old('phone', optional($order->shipment)->phone ?? optional($user->profile)->phone) }}" 
-           required>
-
-    @error('phone')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
-                                    <div class="col-md-4">
-                                        <label for="province_id" class="form-label">Tỉnh/Thành <span
-                                                class="text-danger">*</span></label>
-                                        <input type="hidden" name="city" id="province_name_input_edit"
-                                            value="{{ old('city', optional($order->shipment)->city) }}">
-                                        <select class="form-select form-control-modern" id="province_id_edit"
-                                            name="province_id" required></select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="district_id" class="form-label">Quận/Huyện <span
-                                                class="text-danger">*</span></label>
-                                        <input type="hidden" name="district" id="district_name_input_edit"
-                                            value="{{ old('district', optional($order->shipment)->district) }}">
-                                        <select class="form-select form-control-modern" id="district_id_edit"
-                                            name="district_id" required></select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="ward_code" class="form-label">Phường/Xã <span
-                                                class="text-danger">*</span></label>
-                                        <input type="hidden" name="ward" id="ward_name_input_edit"
-                                            value="{{ old('ward', optional($order->shipment)->ward) }}">
-                                        <select class="form-select form-control-modern" id="ward_code_edit" name="ward_code"
-                                            required></select>
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="address" class="form-label">Địa chỉ cụ thể (số nhà, tên
-                                            đường...)</label>
-                                        <input type="text" class="form-control form-control-modern" id="address_edit"
-                                            name="address" value="{{ old('address', optional($order->shipment)->address) }}"
-                                            required placeholder="Ví dụ: 123 Nguyễn Văn Linh">
-                                    </div>
-                                </div>
-                                <div class="d-flex gap-2 mt-4">
-                                    <button type="submit" class="btn btn-brand rounded-pill">Lưu thay đổi</button>
-                                    <button type="button" class="btn btn-outline-secondary rounded-pill"
-                                        id="cancel-edit-btn">Hủy</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
 
             {{-- RIGHT: SUMMARY + ACTIONS --}}
             <div class="col-lg-4">
@@ -548,27 +476,33 @@
     }
 
     /* =================== Responsive Design =================== */
-    @media (max-width: 991px) {
-        .support-hero {
-            min-height: 180px;
-        }
-        .support-hero h1 {
-            font-size: 2rem;
-        }
-        .col-lg-8, .col-lg-4 {
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
-        .sticky-lg-top {
-            position: static !important;
-        }
-        .card-body {
-            padding: 1.5rem;
-        }
-        .order-steps {
-            gap: 1rem;
-        }
-    }
+   /* === Force 2-column layout on desktop and pin "Tổng cộng" to the right === */
+@media (min-width: 992px) {
+  /* chỉ áp dụng cho trang này: container ngay sau .support-hero */
+  .support-hero + .container .row.g-4.g-lg-5{
+    display: grid !important;
+    grid-template-columns: 1fr minmax(340px, 420px);
+    align-items: start;
+    column-gap: 2rem; /* không ảnh hưởng AOS/hiệu ứng */
+  }
+
+  /* cột trái (sản phẩm + thông tin giao hàng) */
+  .support-hero + .container .row.g-4.g-lg-5 > .col-lg-8{
+    grid-column: 1;
+  }
+
+  /* cột phải (Tổng cộng) */
+  .support-hero + .container .row.g-4.g-lg-5 > .col-lg-4{
+    grid-column: 2;
+  }
+
+  /* giữ sticky y như cũ */
+  .support-hero + .container .row.g-4.g-lg-5 .sticky-lg-top{
+    position: sticky !important;
+    top: 96px;
+  }
+}
+
 
     @media (max-width: 767px) {
         .support-hero {
