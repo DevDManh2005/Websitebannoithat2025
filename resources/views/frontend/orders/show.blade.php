@@ -228,7 +228,7 @@
 
             {{-- RIGHT: SUMMARY + ACTIONS --}}
             <div class="col-lg-4">
-                <div class="card card-glass rounded-4 sticky-lg-top" style="top: 160px;" data-aos="fade-left">
+                <div class="card card-glass rounded-4 sticky-lg-top" data-aos="fade-left">
                     <div class="card-header bg-transparent border-0 px-4 pt-4">
                         <h5 class="mb-0 fw-bold text-brand">Tổng cộng</h5>
                     </div>
