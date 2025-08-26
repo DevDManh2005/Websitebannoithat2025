@@ -7,6 +7,7 @@ use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Location;
+use App\Models\InventoryTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -96,49 +97,74 @@ class InventoryController extends Controller
      * Lưu/cập nhật nhiều biến thể cho 1 sản phẩm.
      */
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'product_id'            => 'required|exists:products,id',
-            'variants'              => 'required|array',
-            'variants.*.id'         => 'required|exists:product_variants,id',
-            'variants.*.quantity'   => 'required|integer|min:0',
-            'variants.*.address'    => 'nullable|string|max:500',
-        ]);
+{
+    $data = $request->validate([
+        'product_id'            => 'required|exists:products,id',
+        'variants'              => 'required|array',
+        'variants.*.id'         => 'required|exists:product_variants,id',
+        'variants.*.quantity'   => 'required|integer|min:0',
+        'variants.*.address'    => 'nullable|string|max:500',
+        // nếu muốn cho phép ghi chú giao dịch:
+        'variants.*.note'       => 'nullable|string|max:1000',
+    ]);
 
-        try {
-            DB::beginTransaction();
+    try {
+        DB::beginTransaction();
 
-            foreach ($data['variants'] as $v) {
-                $inventory = Inventory::firstOrNew([
-                    'product_id'        => $data['product_id'],
-                    'product_variant_id' => $v['id'],
+        $userId = auth()->id();
+
+        foreach ($data['variants'] as $v) {
+            // Tìm/khởi tạo bản ghi tồn kho cho biến thể
+            $inventory = Inventory::firstOrNew([
+                'product_id'         => $data['product_id'],
+                'product_variant_id' => $v['id'],
+            ]);
+
+            $oldQty = (int) ($inventory->quantity ?? 0);
+            $newQty = (int) $v['quantity'];
+
+            // Cập nhật hoặc tạo mới location
+            $addr = $v['address'] ?? null;
+            if ($inventory->exists && $inventory->location) {
+                // Giữ nguyên hành vi cũ: update luôn (kể cả null để xóa địa chỉ)
+                $inventory->location->update(['address' => $addr]);
+            } else {
+                $location = Location::create([
+                    'name'    => 'Kho biến thể #' . $v['id'],
+                    'address' => $addr,
                 ]);
-
-                $inventory->quantity = (int) $v['quantity'];
-
-                // Cập nhật hoặc tạo mới location
-                $addr = $v['address'] ?? null;
-                if ($inventory->location) {
-                    $inventory->location->update(['address' => $addr]);
-                } else {
-                    $location = Location::create([
-                        'name'    => 'Kho biến thể #' . $v['id'],
-                        'address' => $addr,
-                    ]);
-                    $inventory->location_id = $location->id;
-                }
-
-                $inventory->save();
+                $inventory->location_id = $location->id;
             }
 
-            DB::commit();
-            return redirect()->route('admin.inventories.index')->with('success', 'Cập nhật kho hàng thành công.');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Inventory bulk update failed: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Đã xảy ra lỗi khi cập nhật kho.');
+            // Lưu số lượng mới
+            $inventory->quantity = $newQty;
+            $inventory->save();
+
+            // Ghi lịch sử giao dịch nếu có thay đổi
+            $delta = $newQty - $oldQty;
+            if ($delta !== 0) {
+                InventoryTransaction::create([
+                    'inventory_id' => $inventory->id,
+                    'type'         => $delta > 0 ? InventoryTransaction::TYPE_IN : InventoryTransaction::TYPE_OUT, // 'in' | 'out'
+                    'quantity'     => abs($delta),
+                    'description'  => $v['note'] ?? ('Cập nhật số lượng từ ' . $oldQty . ' → ' . $newQty),
+                    'user_id'      => $userId,
+                ]);
+            }
+            // Nếu delta = 0 thì bỏ qua, vì DB chưa hỗ trợ 'adjust'
         }
+
+        DB::commit();
+        return redirect()
+            ->route('admin.inventories.index')
+            ->with('success', 'Cập nhật kho hàng thành công.');
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        Log::error('Inventory bulk update failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+        return back()->withInput()->with('error', 'Đã xảy ra lỗi khi cập nhật kho.');
     }
+}
+
 
     public function show(Inventory $inventory)
     {
@@ -159,42 +185,71 @@ class InventoryController extends Controller
     }
 
     public function update(Request $request, Inventory $inventory)
-    {
-        $data = $request->validate([
-            'product_id'         => 'required|exists:products,id',
-            'product_variant_id' => 'nullable|exists:product_variants,id',
-            'quantity'           => 'required|integer|min:0',
-            'address'            => 'nullable|string|max:500',
-        ]);
+{
+    $data = $request->validate([
+        'product_id'         => 'required|exists:products,id',
+        'product_variant_id' => 'nullable|exists:product_variants,id',
+        'quantity'           => 'required|integer|min:0',
+        'address'            => 'nullable|string|max:500',
+        // tùy chọn: ghi chú giao dịch
+        'note'               => 'nullable|string|max:1000',
+    ]);
 
-        try {
-            DB::beginTransaction();
+    try {
+        DB::beginTransaction();
 
-            $inventory->product_id         = $data['product_id'];
-            $inventory->product_variant_id = $data['product_variant_id'] ?: null;
-            $inventory->quantity           = (int) $data['quantity'];
+        // Lưu lại trạng thái cũ
+        $oldQty       = (int) ($inventory->quantity ?? 0);
+        $oldVariantId = $inventory->product_variant_id;
 
-            $addr = $data['address'] ?? null;
-            if ($inventory->location) {
-                $inventory->location->update(['address' => $addr]);
-            } else {
-                $location = Location::create([
-                    'name'    => 'Kho sản phẩm #' . $inventory->product_id,
-                    'address' => $addr,
-                ]);
-                $inventory->location_id = $location->id;
-            }
+        // Cập nhật thông tin chính
+        $inventory->product_id         = $data['product_id'];
+        $inventory->product_variant_id = $data['product_variant_id'] ?: null;
 
-            $inventory->save();
+        $newQty = (int) $data['quantity'];
+        $inventory->quantity = $newQty;
 
-            DB::commit();
-            return redirect()->route('admin.inventories.index')->with('success', 'Đã cập nhật kho.');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Inventory update failed: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Cập nhật thất bại.');
+        // Cập nhật / tạo Location
+        $addr = $data['address'] ?? null;
+        if ($inventory->location) {
+            $inventory->location->update(['address' => $addr]);
+        } else {
+            $location = Location::create([
+                'name'    => 'Kho sản phẩm #' . $inventory->product_id,
+                'address' => $addr,
+            ]);
+            $inventory->location_id = $location->id;
         }
+
+        $inventory->save();
+
+        // Ghi lịch sử nếu có thay đổi số lượng
+        $delta = $newQty - $oldQty;
+        if ($delta !== 0) {
+            $variantChanged = $oldVariantId != $inventory->product_variant_id;
+
+            InventoryTransaction::create([
+                'inventory_id' => $inventory->id,
+                'type'         => $delta > 0
+                                  ? InventoryTransaction::TYPE_IN   // 'in'
+                                  : InventoryTransaction::TYPE_OUT, // 'out'
+                'quantity'     => abs($delta),
+                'description'  => $data['note']
+                                  ?? ('Cập nhật số lượng từ ' . $oldQty . ' → ' . $newQty
+                                      . ($variantChanged ? ('; biến thể: ' . ($oldVariantId ?: 'null')
+                                      . ' → ' . ($inventory->product_variant_id ?: 'null')) : '')),
+                'user_id'      => auth()->id(),
+            ]);
+        }
+
+        DB::commit();
+        return redirect()->route('admin.inventories.index')->with('success', 'Đã cập nhật kho.');
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        Log::error('Inventory update failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+        return back()->withInput()->with('error', 'Cập nhật thất bại.');
     }
+}
 
     public function destroy(Inventory $inventory)
     {

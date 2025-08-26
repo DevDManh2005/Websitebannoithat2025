@@ -71,34 +71,46 @@
         <div class="card-body">
           <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
             <table class="table table-sm table-borderless mb-0">
-              <tbody>
-                @forelse($inventory->transactions->sortByDesc('created_at') as $t)
-                  <tr>
-                    <td>
-                      @if($t->type === 'import')
-                        <span class="badge bg-success">Nhập</span>
-                      @elseif($t->type === 'export')
-                        <span class="badge bg-danger">Xuất</span>
-                      @else
-                        <span class="badge bg-warning text-dark">Điều chỉnh</span>
-                      @endif
-                    </td>
-                    <td>
-                      @if($t->type === 'import')
-                        <strong class="text-success">+{{ $t->quantity }}</strong>
-                      @else
-                        <strong class="text-danger">-{{ $t->quantity }}</strong>
-                      @endif
-                    </td>
-                    <td class="text-muted text-end">
-                      {{ $t->user?->name ?? 'Hệ thống' }}<br>
-                      <small>{{ $t->created_at->format('d/m/y H:i') }}</small>
-                    </td>
-                  </tr>
-                @empty
-                  <tr><td class="text-center text-muted">Chưa có giao dịch nào.</td></tr>
-                @endforelse
-              </tbody>
+             <tbody>
+  @forelse($inventory->transactions->sortByDesc('created_at') as $t)
+    <tr>
+      <td>
+        @switch($t->type)
+          @case('in')
+            <span class="badge bg-success">Nhập</span>
+            @break
+          @case('out')
+            <span class="badge bg-danger">Xuất</span>
+            @break
+          @default
+            <span class="badge bg-warning text-dark">Khác</span>
+        @endswitch
+      </td>
+
+      <td>
+        @if($t->type === 'in')
+          <strong class="text-success">+{{ $t->quantity }}</strong>
+        @elseif($t->type === 'out')
+          <strong class="text-danger">-{{ $t->quantity }}</strong>
+        @else
+          <strong>{{ $t->quantity }}</strong>
+        @endif
+
+        @if(!empty($t->description))
+          <div class="small text-muted">{{ $t->description }}</div>
+        @endif
+      </td>
+
+      <td class="text-muted text-end">
+        {{ $t->user?->name ?? 'Hệ thống' }}<br>
+        <small>{{ optional($t->created_at)->format('d/m/y H:i') }}</small>
+      </td>
+    </tr>
+  @empty
+    <tr><td class="text-center text-muted">Chưa có giao dịch nào.</td></tr>
+  @endforelse
+</tbody>
+
             </table>
           </div>
         </div>
