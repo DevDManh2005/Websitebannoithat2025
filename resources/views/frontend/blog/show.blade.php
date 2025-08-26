@@ -56,8 +56,7 @@
             <div class="blog-featured-image mb-4">
               <img src="{{ Storage::url($post->thumbnail) }}" 
                    alt="{{ $post->title }}" 
-                   class="img-fluid w-100">
-              <div class="image-overlay"></div>
+                   class="img-fluid w-100" class="image-overlay">
             </div>
           @endif
 
