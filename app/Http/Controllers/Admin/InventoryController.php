@@ -171,8 +171,13 @@ class InventoryController extends Controller
 
     public function show(Inventory $inventory)
     {
-        $inventory->load(['product', 'variant', 'location', 'transactions.user']);
-        return view('admins.inventories.show', compact('inventory'));
+        $inventory->load([
+        'product',
+        'variant',
+        'location',
+        'transactions' => fn($q) => $q->latest()->with('user')
+    ]);
+    return view('admins.inventories.show', compact('inventory'));
     }
 
     /**
