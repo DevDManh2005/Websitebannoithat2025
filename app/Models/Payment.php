@@ -19,7 +19,7 @@ class Payment extends Model
     /**
      * Lấy đơn hàng mà thanh toán này thuộc về.
      */
-    public function order()
+   public function order()
     {
         return $this->belongsTo(Order::class);
     }

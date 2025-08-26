@@ -14,6 +14,8 @@ use App\Models\RoutePermission;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Pagination\Paginator;
+use App\Models\Payment;
+use App\Observers\PaymentObserver;
 // Thêm model SupportTicket
 use App\Models\SupportTicket;
 
@@ -25,7 +27,8 @@ class AppServiceProvider extends ServiceProvider
     }
 
     public function boot(): void
-    {
+    {   
+         Payment::observe(PaymentObserver::class);
         if (Schema::hasTable('settings')) {
             $settings = Cache::rememberForever(
                 'settings',

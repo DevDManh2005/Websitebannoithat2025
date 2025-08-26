@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use Illuminate\Validation\ValidationException;
+use App\Models\Order;
 use App\Models\Location;
 use App\Models\InventoryTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
 
 class InventoryController extends Controller
 {
@@ -250,7 +253,97 @@ class InventoryController extends Controller
         return back()->withInput()->with('error', 'Cập nhật thất bại.');
     }
 }
+    /**
+     * Trừ kho cho đơn đã thanh toán.
+     * Idempotent theo từng item: nếu đã tạo giao dịch cho item#ID thì bỏ qua.
+     */
+    public function deductForOrder(Order $order, ?int $actorId = null): void
+    {
+        DB::transaction(function () use ($order, $actorId) {
+            $items = $order->items()->lockForUpdate()->get();
 
+            foreach ($items as $item) {
+                // Tìm variant + inventory
+                $variant = ProductVariant::findOrFail($item->product_variant_id);
+                $inv = Inventory::where('product_id', $variant->product_id)
+                    ->where('product_variant_id', $variant->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$inv) {
+                    throw ValidationException::withMessages([
+                        'inventory' => "Chưa khai báo tồn kho cho SKU {$variant->sku}.",
+                    ]);
+                }
+                if ($inv->quantity < $item->quantity) {
+                    throw ValidationException::withMessages([
+                        'inventory' => "Không đủ tồn kho (SKU {$variant->sku}).",
+                    ]);
+                }
+
+                // Chống trừ kho lặp lại theo từng item
+                $descKey = 'order '.$order->order_code.' item#'.$item->id;
+                $already = InventoryTransaction::where('inventory_id', $inv->id)
+                    ->where('type', InventoryTransaction::TYPE_OUT)
+                    ->where('description', 'like', '%'.$descKey.'%')
+                    ->exists();
+
+                if ($already) {
+                    continue; // item này đã trừ trước đó
+                }
+
+                // Trừ kho + ghi log
+                $inv->decrement('quantity', $item->quantity);
+
+                InventoryTransaction::create([
+                    'inventory_id' => $inv->id,
+                    'type'         => InventoryTransaction::TYPE_OUT, // 'out'
+                    'quantity'     => $item->quantity,
+                    'description'  => 'Trừ kho theo đơn '.$order->order_code.' ('.$descKey.')',
+                    'user_id'      => $actorId, // có thể null -> "Hệ thống"
+                ]);
+            }
+        });
+    }
+
+    /**
+     * (Tuỳ chọn) Hoàn kho khi huỷ/hoàn tiền.
+     */
+    public function restockForOrder(Order $order, ?int $actorId = null): void
+    {
+        DB::transaction(function () use ($order, $actorId) {
+            $items = $order->items()->lockForUpdate()->get();
+
+            foreach ($items as $item) {
+                $variant = ProductVariant::findOrFail($item->product_variant_id);
+                $inv = Inventory::firstOrCreate(
+                    ['product_id' => $variant->product_id, 'product_variant_id' => $variant->id],
+                    ['quantity' => 0]
+                );
+
+                // Chống hoàn kho lặp
+                $descKey = 'RESTOCK order '.$order->order_code.' item#'.$item->id;
+                $already = InventoryTransaction::where('inventory_id', $inv->id)
+                    ->where('type', InventoryTransaction::TYPE_IN)
+                    ->where('description', 'like', '%'.$descKey.'%')
+                    ->exists();
+
+                if ($already) {
+                    continue;
+                }
+
+                $inv->increment('quantity', $item->quantity);
+
+                InventoryTransaction::create([
+                    'inventory_id' => $inv->id,
+                    'type'         => InventoryTransaction::TYPE_IN, // 'in'
+                    'quantity'     => $item->quantity,
+                    'description'  => 'Hoàn kho đơn '.$order->order_code.' ('.$descKey.')',
+                    'user_id'      => $actorId,
+                ]);
+            }
+        });
+    }
     public function destroy(Inventory $inventory)
     {
         try {
