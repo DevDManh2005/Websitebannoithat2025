@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
     /**
-     * Danh sách sản phẩm + bộ lọc + sắp xếp.
+     * Danh sách sản phẩm + bộ lọc + sắp xếp
      */
     public function index(Request $request)
     {
