@@ -216,24 +216,24 @@
                                         $canReply = $canReplyGlobal;
                                     @endphp
                                     <div class="d-flex flex-wrap gap-2 small">
-                                        @if($isOwner || $isStaffOrAdmin)
-                                            <a class="link-secondary" data-bs-toggle="collapse" href="#edit-review-{{ $review->id }}">Sửa</a>
-                                            <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $review) }}"
-                                                  onsubmit="return confirm('Xoá đánh giá này?')">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
-                                            </form>
-                                        @endif
+                                       @if($isOwner)
+    <a class="link-secondary" data-bs-toggle="collapse" href="#edit-review-{{ $review->id }}">Sửa</a>
+    <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $review) }}"
+          onsubmit="return confirm('Xoá đánh giá này?')">
+        @csrf @method('DELETE')
+        <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
+    </form>
+@endif
                                         @if($canReply)
                                             <a class="link-secondary" data-bs-toggle="collapse" href="#reply-review-{{ $review->id }}">Trả lời</a>
                                         @endif
                                     </div>
 
                                     {{-- Edit review --}}
-                                    @if($isOwner || $isStaffOrAdmin)
+                                    @if($isOwner)
                                         <div class="collapse mt-2" id="edit-review-{{ $review->id }}">
-                                            <form method="POST" action="{{ route('reviews.update', $review) }}">
-                                                @csrf @method('PATCH')
+                                             <form method="POST" action="{{ route('reviews.update', $review) }}">
+            @csrf @method('PATCH')
                                                 <div class="row g-2">
                                                     <div class="col-12 col-md-3">
                                                         <label class="form-label small">Số sao</label>
@@ -291,24 +291,24 @@
                                                     <div>{!! nl2br(e($rep->review)) !!}</div>
 
                                                     @auth
-                                                        @php $repOwner = auth()->id() === $rep->user_id; @endphp
-                                                        @if($repOwner || $isStaffOrAdmin)
-                                                            <div class="small mt-1">
-                                                                <a class="link-secondary" data-bs-toggle="collapse" href="#edit-reply-{{ $rep->id }}">Sửa</a>
-                                                                <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $rep) }}"
-                                                                      onsubmit="return confirm('Xoá phản hồi này?')">
-                                                                    @csrf @method('DELETE')
-                                                                    <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
-                                                                </form>
-                                                            </div>
-                                                            <div class="collapse mt-1" id="edit-reply-{{ $rep->id }}">
-                                                                <form method="POST" action="{{ route('reviews.update', $rep) }}">
-                                                                    @csrf @method('PATCH')
-                                                                    <textarea name="content" rows="2" class="form-control">{{ $rep->review }}</textarea>
-                                                                    <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
-                                                                </form>
-                                                            </div>
-                                                        @endif
+                                                       @php $repOwner = auth()->id() === $rep->user_id; @endphp
+@if($repOwner)
+    <div class="small mt-1">
+        <a class="link-secondary" data-bs-toggle="collapse" href="#edit-reply-{{ $rep->id }}">Sửa</a>
+        <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $rep) }}"
+              onsubmit="return confirm('Xoá phản hồi này?')">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
+        </form>
+    </div>
+    <div class="collapse mt-1" id="edit-reply-{{ $rep->id }}">
+        <form method="POST" action="{{ route('reviews.update', $rep) }}">
+            @csrf @method('PATCH')
+            <textarea name="content" rows="2" class="form-control">{{ $rep->review }}</textarea>
+            <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
+        </form>
+    </div>
+@endif
                                                     @endauth
                                                 </div>
                                             </div>
