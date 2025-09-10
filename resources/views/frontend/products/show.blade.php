@@ -20,9 +20,50 @@
         </div>
     </div>
 
+    @php
+        use Illuminate\Support\Str;
+
+        // Đếm chỉ review gốc (không tính phản hồi)
+        $rootCount = $product->approvedReviews
+            ->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'))
+            ->count();
+
+        // Chuẩn bị dữ liệu review + replies
+        $allApproved = $product->approvedReviews()->with('user')->latest()->get();
+        $rootReviews = $allApproved->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'));
+
+        $repliesMap = [];
+        foreach ($allApproved as $r) {
+            if (Str::startsWith($r->review, '[reply:#')) {
+                if (preg_match('/^\[reply:#(\d+)\]\s*/u', $r->review, $m)) {
+                    $pid = (int) $m[1];
+                    $r->review = preg_replace('/^\[reply:#\d+\]\s*/u', '', $r->review); // bỏ prefix hiển thị
+                    $repliesMap[$pid] = $repliesMap[$pid] ?? [];
+                    $repliesMap[$pid][] = $r;
+                }
+            }
+        }
+
+        $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']);
+        $canReplyGlobal = $isStaffOrAdmin || ($userHasPurchased ?? false);
+
+        // Chuẩn bị "Sản phẩm liên quan"
+        // Ưu tiên: nếu controller đã truyền $relatedProducts -> dùng.
+        // Nếu không có, fallback tự tìm theo category đầu tiên (giữ số query ở mức tối thiểu).
+        $related = isset($relatedProducts) ? $relatedProducts : collect();
+        if ($related->isEmpty() && $product->categories->isNotEmpty()) {
+            $catIds = $product->categories->pluck('id');
+            $related = \App\Models\Product::with(['images','variants'])
+                ->where('id','!=',$product->id)
+                ->whereHas('categories', fn($q)=>$q->whereIn('categories.id', $catIds))
+                ->latest()->take(8)->get();
+        }
+    @endphp
+
     <div class="container my-5">
+        {{-- =================== HÀNG 1: GALLERY + INFO/ACTIONS =================== --}}
         <div class="row g-4 g-lg-5">
-            {{-- =================== GALLERY =================== --}}
+            {{-- GALLERY --}}
             <div class="col-lg-6" data-aos="fade-right">
                 <div class="product-gallery">
                     <div class="swiper main-image-swiper rounded-4 shadow-sm">
@@ -57,7 +98,7 @@
                 </div>
             </div>
 
-            {{-- =================== INFO / ACTIONS =================== --}}
+            {{-- INFO / ACTIONS --}}
             <div class="col-lg-6" data-aos="fade-left" data-aos-delay="100">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h1 class="fw-bold mb-0 text-dark pe-3">{{ $product->name }}</h1>
@@ -66,14 +107,9 @@
                     </div>
                 </div>
 
-                @php
-                    $rootCount = $product->approvedReviews
-                        ->filter(fn($r) => !\Illuminate\Support\Str::startsWith($r->review, '[reply:#'))
-                        ->count();
-                @endphp
                 <div class="d-flex align-items-center mb-3">
                     @include('frontend.components.star-rating', ['rating' => $product->average_rating])
-                    <a href="#reviews-content" class="ms-3 text-muted small text-decoration-none border-start ps-3">
+                    <a href="#reviews-section" class="ms-3 text-muted small text-decoration-none border-start ps-3">
                         {{ $rootCount }} đánh giá
                     </a>
                 </div>
@@ -111,24 +147,20 @@
                     <div class="d-flex align-items-center mb-4">
                         <label class="me-3 fw-semibold">Số lượng:</label>
                         <div class="input-group quantity-group">
-                            <button type="button" class="btn btn-outline-brand" id="quantity-minus"
-                                    aria-label="Giảm số lượng">−</button>
+                            <button type="button" class="btn btn-outline-brand" id="quantity-minus" aria-label="Giảm số lượng">−</button>
                             <input type="number" class="form-control text-center form-control-modern" name="quantity" id="quantity-selector"
                                    value="1" min="1" inputmode="numeric">
-                            <button type="button" class="btn btn-outline-brand" id="quantity-plus"
-                                    aria-label="Tăng số lượng">+</button>
+                            <button type="button" class="btn btn-outline-brand" id="quantity-plus" aria-label="Tăng số lượng">+</button>
                         </div>
                     </div>
 
                     {{-- CTA --}}
                     @auth
                         <div class="d-grid gap-2 d-sm-flex">
-                            <button type="button" class="btn btn-outline-brand btn-lg flex-grow-1 rounded-pill"
-                                    id="add-to-cart-btn" disabled>
+                            <button type="button" class="btn btn-outline-brand btn-lg flex-grow-1 rounded-pill" id="add-to-cart-btn" disabled>
                                 <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
                             </button>
-                            <button type="button" class="btn btn-brand btn-lg flex-grow-1 rounded-pill" id="buy-now-btn"
-                                    disabled>
+                            <button type="button" class="btn btn-brand btn-lg flex-grow-1 rounded-pill" id="buy-now-btn" disabled>
                                 <i class="bi bi-bag-check-fill me-2"></i>Mua ngay
                             </button>
                         </div>
@@ -141,198 +173,225 @@
             </div>
         </div>
 
-        {{-- =================== TABS =================== --}}
-        <div class="row mt-5" data-aos="fade-up">
+        {{-- =================== HÀNG 2: MÔ TẢ SẢN PHẨM =================== --}}
+        <div class="row mt-5" data-aos="fade-up" id="description-section">
             <div class="col-12">
-                <ul class="nav nav-underline nav-tabs-modern gap-3" id="productTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#description-content">
-                            Mô tả sản phẩm
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews-content">
-                            Đánh giá ({{ $rootCount }})
-                        </button>
-                    </li>
-                </ul>
-
-                <div class="tab-content p-4 rounded-4 mt-3 card-glass">
-                    <div class="tab-pane fade show active" id="description-content">
-                        {!! $product->description !!}
-                    </div>
-
-                    {{-- ======== REVIEWS (đã chỉnh) ======== --}}
-                    <div class="tab-pane fade" id="reviews-content">
-                        @php
-                            use Illuminate\Support\Str;
-                            $allApproved = $product->approvedReviews()->with('user')->latest()->get();
-                            $rootReviews = $allApproved->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'));
-
-                            $repliesMap = [];
-                            foreach ($allApproved as $r) {
-                                if (Str::startsWith($r->review, '[reply:#')) {
-                                    if (preg_match('/^\[reply:#(\d+)\]\s*/u', $r->review, $m)) {
-                                        $pid = (int) $m[1];
-                                        $r->review = preg_replace('/^\[reply:#\d+\]\s*/u', '', $r->review);
-                                        $repliesMap[$pid] = $repliesMap[$pid] ?? [];
-                                        $repliesMap[$pid][] = $r;
-                                    }
-                                }
-                            }
-                            $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']);
-                            $canReplyGlobal = $isStaffOrAdmin || ($userHasPurchased ?? false);
-                        @endphp
-
-                        @forelse($rootReviews as $review)
-                            <div class="review-item d-flex gap-3 py-3 border-bottom">
-                                <div class="flex-shrink-0">
-                                    <img src="https://i.pravatar.cc/64?u={{ $review->user_id }}" alt="avatar"
-                                         class="rounded-circle border" width="48" height="48">
-                                </div>
-                                <div class="flex-grow-1">
-                                    {{-- Sao ở trên --}}
-                                    <div class="d-flex align-items-center gap-1 mb-1">
-                                        @for($i=1;$i<=5;$i++)
-                                            <i class="bi {{ $i <= (int)$review->rating ? 'bi-star-fill text-warning' : 'bi-star text-secondary' }}"></i>
-                                        @endfor
-                                    </div>
-                                    {{-- Tên dưới (ngang avatar) --}}
-                                    <div class="d-flex align-items-center mb-1">
-                                        <strong>{{ $review->user->name ?? '—' }}</strong>
-                                        <small class="text-muted ms-2">{{ $review->created_at?->format('d/m/Y H:i') }}</small>
-                                    </div>
-
-                                    <div class="mb-2">{!! nl2br(e($review->review)) !!}</div>
-
-                                    @auth
-                                        @php
-                                            $isOwner = auth()->id() === $review->user_id;
-                                            $canReply = $canReplyGlobal;
-                                        @endphp
-                                        <div class="d-flex flex-wrap gap-2 small">
-                                            @if($isOwner || $isStaffOrAdmin)
-                                                <a class="link-secondary" data-bs-toggle="collapse" href="#edit-review-{{ $review->id }}">Sửa</a>
-                                                <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $review) }}"
-                                                      onsubmit="return confirm('Xoá đánh giá này?')">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
-                                                </form>
-                                            @endif
-                                            @if($canReply)
-                                                <a class="link-secondary" data-bs-toggle="collapse" href="#reply-review-{{ $review->id }}">Trả lời</a>
-                                            @endif
-                                        </div>
-
-                                        {{-- Edit review --}}
-                                        @if($isOwner || $isStaffOrAdmin)
-                                            <div class="collapse mt-2" id="edit-review-{{ $review->id }}">
-                                                <form method="POST" action="{{ route('reviews.update', $review) }}">
-                                                    @csrf @method('PATCH')
-                                                    <div class="row g-2">
-                                                        <div class="col-12 col-md-3">
-                                                            <label class="form-label small">Số sao</label>
-                                                            <select name="rating" class="form-select">
-                                                                @for($i=5;$i>=1;$i--)
-                                                                    <option value="{{ $i }}" {{ (int)$review->rating===$i?'selected':'' }}>{{ $i }}</option>
-                                                                @endfor
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-12 col-md-9">
-                                                            <label class="form-label small">Nội dung</label>
-                                                            <textarea name="content" rows="2" class="form-control">{{ $review->review }}</textarea>
-                                                        </div>
-                                                        <div class="col-12">
-                                                            <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
-                                                        </div>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        @endif
-
-                                        {{-- Reply form --}}
-                                        @if($canReply)
-                                            <div class="collapse mt-2" id="reply-review-{{ $review->id }}">
-                                                <form method="POST" action="{{ route('reviews.reply', $review) }}">
-                                                    @csrf
-                                                    <div class="row g-2">
-                                                        <div class="col-12">
-                                                            <label class="form-label small">Phản hồi</label>
-                                                            <textarea name="content" rows="2" class="form-control" placeholder="Nhập nội dung phản hồi..."></textarea>
-                                                        </div>
-                                                        <div class="col-12">
-                                                            <button class="btn btn-sm btn-outline-brand rounded-pill mt-1">Gửi phản hồi</button>
-                                                        </div>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        @endif
-                                    @endauth
-
-                                    {{-- Replies --}}
-                                    @if(!empty($repliesMap[$review->id] ?? []))
-                                        <div class="mt-3 ps-3 border-start">
-                                            @foreach($repliesMap[$review->id] as $rep)
-                                                <div class="d-flex gap-2 mb-2">
-                                                    <div class="flex-shrink-0">
-                                                        <img src="https://i.pravatar.cc/64?u={{ $rep->user_id }}" class="rounded-circle border" width="32" height="32" alt="avatar">
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <div class="d-flex align-items-center">
-                                                            <strong>{{ $rep->user->name ?? '—' }}</strong>
-                                                            <span class="badge bg-light text-muted ms-2">Phản hồi</span>
-                                                            <small class="text-muted ms-2">{{ $rep->created_at?->format('d/m/Y H:i') }}</small>
-                                                        </div>
-                                                        <div>{!! nl2br(e($rep->review)) !!}</div>
-
-                                                        @auth
-                                                            @php $repOwner = auth()->id() === $rep->user_id; @endphp
-                                                            @if($repOwner || $isStaffOrAdmin)
-                                                                <div class="small mt-1">
-                                                                    <a class="link-secondary" data-bs-toggle="collapse" href="#edit-reply-{{ $rep->id }}">Sửa</a>
-                                                                    <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $rep) }}"
-                                                                          onsubmit="return confirm('Xoá phản hồi này?')">
-                                                                        @csrf @method('DELETE')
-                                                                        <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
-                                                                    </form>
-                                                                </div>
-                                                                <div class="collapse mt-1" id="edit-reply-{{ $rep->id }}">
-                                                                    <form method="POST" action="{{ route('reviews.update', $rep) }}">
-                                                                        @csrf @method('PATCH')
-                                                                        <textarea name="content" rows="2" class="form-control">{{ $rep->review }}</textarea>
-                                                                        <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
-                                                                    </form>
-                                                                </div>
-                                                            @endif
-                                                        @endauth
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        @empty
-                            <p>Chưa có đánh giá nào cho sản phẩm này.</p>
-                        @endforelse
-
-                        {{-- Form đánh giá gốc (user đã mua hoặc admin/staff) --}}
-                        @auth
-                            @php $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']); @endphp
-                            @if($userHasPurchased || $isStaffOrAdmin)
-                                @include('frontend.components.review-form', ['product' => $product])
-                            @else
-                                <div class="alert alert-warning mt-4">Bạn cần mua sản phẩm để đánh giá.</div>
-                            @endif
-                        @else
-                            <div class="alert alert-info mt-4">
-                                <a href="{{ route('login.form') }}">Đăng nhập</a> để gửi đánh giá.
-                            </div>
-                        @endauth
-                    </div>
+                <div class="card-glass p-4 rounded-4">
+                    <h5 class="fw-bold mb-3">Mô tả sản phẩm</h5>
+                    <div class="content">{!! $product->description !!}</div>
                 </div>
             </div>
         </div>
+
+        {{-- =================== HÀNG 3: ĐÁNH GIÁ =================== --}}
+        <div class="row mt-4" data-aos="fade-up" id="reviews-section">
+            <div class="col-12">
+                <div class="card-glass p-4 rounded-4">
+                    <h5 class="fw-bold mb-3">Đánh giá ({{ $rootCount }})</h5>
+
+                    @forelse($rootReviews as $review)
+                        <div class="review-item d-flex gap-3 py-3 border-bottom">
+                            <div class="flex-shrink-0">
+                                <img src="https://i.pravatar.cc/64?u={{ $review->user_id }}" alt="avatar"
+                                     class="rounded-circle border" width="48" height="48">
+                            </div>
+                            <div class="flex-grow-1">
+                                {{-- Sao ở trên --}}
+                                <div class="d-flex align-items-center gap-1 mb-1">
+                                    @for($i=1;$i<=5;$i++)
+                                        <i class="bi {{ $i <= (int)$review->rating ? 'bi-star-fill text-warning' : 'bi-star text-secondary' }}"></i>
+                                    @endfor
+                                </div>
+                                {{-- Tên dưới (ngang avatar) --}}
+                                <div class="d-flex align-items-center mb-1">
+                                    <strong>{{ $review->user->name ?? '—' }}</strong>
+                                    <small class="text-muted ms-2">{{ $review->created_at?->format('d/m/Y H:i') }}</small>
+                                </div>
+
+                                <div class="mb-2">{!! nl2br(e($review->review)) !!}</div>
+
+                                @auth
+                                    @php
+                                        $isOwner = auth()->id() === $review->user_id;
+                                        $canReply = $canReplyGlobal;
+                                    @endphp
+                                    <div class="d-flex flex-wrap gap-2 small">
+                                        @if($isOwner || $isStaffOrAdmin)
+                                            <a class="link-secondary" data-bs-toggle="collapse" href="#edit-review-{{ $review->id }}">Sửa</a>
+                                            <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $review) }}"
+                                                  onsubmit="return confirm('Xoá đánh giá này?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
+                                            </form>
+                                        @endif
+                                        @if($canReply)
+                                            <a class="link-secondary" data-bs-toggle="collapse" href="#reply-review-{{ $review->id }}">Trả lời</a>
+                                        @endif
+                                    </div>
+
+                                    {{-- Edit review --}}
+                                    @if($isOwner || $isStaffOrAdmin)
+                                        <div class="collapse mt-2" id="edit-review-{{ $review->id }}">
+                                            <form method="POST" action="{{ route('reviews.update', $review) }}">
+                                                @csrf @method('PATCH')
+                                                <div class="row g-2">
+                                                    <div class="col-12 col-md-3">
+                                                        <label class="form-label small">Số sao</label>
+                                                        <select name="rating" class="form-select">
+                                                            @for($i=5;$i>=1;$i--)
+                                                                <option value="{{ $i }}" {{ (int)$review->rating===$i?'selected':'' }}>{{ $i }}</option>
+                                                            @endfor
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-12 col-md-9">
+                                                        <label class="form-label small">Nội dung</label>
+                                                        <textarea name="content" rows="2" class="form-control">{{ $review->review }}</textarea>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    @endif
+
+                                    {{-- Reply form --}}
+                                    @if($canReply)
+                                        <div class="collapse mt-2" id="reply-review-{{ $review->id }}">
+                                            <form method="POST" action="{{ route('reviews.reply', $review) }}">
+                                                @csrf
+                                                <div class="row g-2">
+                                                    <div class="col-12">
+                                                        <label class="form-label small">Phản hồi</label>
+                                                        <textarea name="content" rows="2" class="form-control" placeholder="Nhập nội dung phản hồi..."></textarea>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <button class="btn btn-sm btn-outline-brand rounded-pill mt-1">Gửi phản hồi</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    @endif
+                                @endauth
+
+                                {{-- Replies --}}
+                                @if(!empty($repliesMap[$review->id] ?? []))
+                                    <div class="mt-3 ps-3 border-start">
+                                        @foreach($repliesMap[$review->id] as $rep)
+                                            <div class="d-flex gap-2 mb-2">
+                                                <div class="flex-shrink-0">
+                                                    <img src="https://i.pravatar.cc/64?u={{ $rep->user_id }}" class="rounded-circle border" width="32" height="32" alt="avatar">
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center">
+                                                        <strong>{{ $rep->user->name ?? '—' }}</strong>
+                                                        <span class="badge bg-light text-muted ms-2">Phản hồi</span>
+                                                        <small class="text-muted ms-2">{{ $rep->created_at?->format('d/m/Y H:i') }}</small>
+                                                    </div>
+                                                    <div>{!! nl2br(e($rep->review)) !!}</div>
+
+                                                    @auth
+                                                        @php $repOwner = auth()->id() === $rep->user_id; @endphp
+                                                        @if($repOwner || $isStaffOrAdmin)
+                                                            <div class="small mt-1">
+                                                                <a class="link-secondary" data-bs-toggle="collapse" href="#edit-reply-{{ $rep->id }}">Sửa</a>
+                                                                <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $rep) }}"
+                                                                      onsubmit="return confirm('Xoá phản hồi này?')">
+                                                                    @csrf @method('DELETE')
+                                                                    <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
+                                                                </form>
+                                                            </div>
+                                                            <div class="collapse mt-1" id="edit-reply-{{ $rep->id }}">
+                                                                <form method="POST" action="{{ route('reviews.update', $rep) }}">
+                                                                    @csrf @method('PATCH')
+                                                                    <textarea name="content" rows="2" class="form-control">{{ $rep->review }}</textarea>
+                                                                    <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
+                                                                </form>
+                                                            </div>
+                                                        @endif
+                                                    @endauth
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <p class="mb-0">Chưa có đánh giá nào cho sản phẩm này.</p>
+                    @endforelse
+
+                    {{-- Form đánh giá gốc (user đã mua hoặc admin/staff) --}}
+                    @auth
+                        @php $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']); @endphp
+                        @if($userHasPurchased || $isStaffOrAdmin)
+                            @include('frontend.components.review-form', ['product' => $product])
+                        @else
+                            <div class="alert alert-warning mt-4">Bạn cần mua sản phẩm để đánh giá.</div>
+                        @endif
+                    @else
+                        <div class="alert alert-info mt-4">
+                            <a href="{{ route('login.form') }}">Đăng nhập</a> để gửi đánh giá.
+                        </div>
+                    @endauth
+                </div>
+            </div>
+        </div>
+
+        {{-- =================== HÀNG 4: SẢN PHẨM LIÊN QUAN =================== --}}
+        @if($related->isNotEmpty())
+            <div class="row mt-4" data-aos="fade-up" id="related-section">
+                <div class="col-12">
+                    <div class="card-glass p-4 rounded-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Sản phẩm liên quan</h5>
+                            {{-- Nếu muốn kéo bằng Swiper, có thể thêm nút điều hướng ở đây --}}
+                        </div>
+                        <div class="row g-3 g-md-4">
+                            @foreach($related as $rp)
+                                @php
+                                    // Tính giá hiển thị tối thiểu từ variants (nếu có)
+                                    $baseMin = optional($rp->variants)->min('price');
+                                    $saleMin = optional($rp->variants)->where('sale_price','>',0)->min('sale_price');
+                                    $hasSale = $saleMin && $baseMin && $saleMin < $baseMin;
+
+                                    $img = optional($rp->primaryImage)->image_url_path ?? ($rp->images->first()->image_url_path ?? 'https://placehold.co/600x600?text=No+Image');
+                                @endphp
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <div class="card card-glass h-100 rounded-4 overflow-hidden">
+                                        <a href="{{ route('product.show', $rp->slug) }}" class="d-block">
+                                            <div class="ratio ratio-1x1">
+                                                <img src="{{ $img }}" class="w-100 h-100 object-fit-cover" alt="{{ $rp->name }}">
+                                            </div>
+                                        </a>
+                                        <div class="card-body p-3">
+                                            <a href="{{ route('product.show', $rp->slug) }}" class="text-decoration-none text-dark">
+                                                <div class="fw-semibold text-truncate">{{ $rp->name }}</div>
+                                            </a>
+                                            <div class="d-flex align-items-center mt-1">
+                                                @include('frontend.components.star-rating', ['rating' => $rp->average_rating])
+                                            </div>
+                                            <div class="mt-2">
+                                                @if($baseMin)
+                                                    @if($hasSale)
+                                                        <span class="text-muted text-decoration-line-through me-1">{{ number_format($baseMin) }} ₫</span>
+                                                        <strong class="text-brand">{{ number_format($saleMin) }} ₫</strong>
+                                                    @else
+                                                        <strong class="text-brand">{{ number_format($baseMin) }} ₫</strong>
+                                                    @endif
+                                                @else
+                                                    <span class="text-muted small">Xem chi tiết</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div> {{-- row --}}
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     {{-- =================== MODAL: CẢNH BÁO SỐ LƯỢNG > 5 =================== --}}
@@ -390,12 +449,6 @@
         .product-price-box:hover { border-color: var(--brand-600); }
         .rounded-4 { border-radius: 1rem !important; }
 
-        /* =================== Tabs =================== */
-        .nav-tabs-modern .nav-link { border: none; color: var(--muted); position: relative; padding: .5rem 0; font-weight: 500; transition: color .2s ease; }
-        .nav-tabs-modern .nav-link.active { color: var(--brand); }
-        .nav-tabs-modern .nav-link.active::after,
-        .nav-tabs-modern .nav-link:hover::after { content:""; position:absolute; left:0; right:0; bottom:-8px; height:2px; background:var(--brand); }
-
         /* =================== Form and Button Styles =================== */
         .btn-brand { background-color: var(--brand); border-color: var(--brand); color:#fff; padding:.5rem 1rem; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
         .btn-brand:hover { background-color: var(--brand-600); border-color: var(--brand-600); transform: translateY(-2px); box-shadow: 0 8px 24px var(--ring); }
@@ -410,8 +463,6 @@
         .text-brand { color: var(--brand); }
         .text-muted { color: var(--muted); }
         .badge-soft-brand { background: rgba(var(--brand-rgb), .1); color: var(--brand); font-size:.85rem; }
-        #qtyLimitModal .modal-content{ border:1px solid rgba(15,23,42,.06); }
-        #qtyLimitModal .modal-title{ color: var(--brand); }
 
         /* =================== Responsive =================== */
         @media (max-width: 991px) {
@@ -427,7 +478,6 @@
             .product-gallery .thumbnail-swiper { height: 70px; }
             .container { padding-left: 15px; padding-right: 15px; }
             .card { padding: 1rem; }
-            .tab-content { padding: 1rem; }
             .btn-lg { padding: .35rem .7rem; font-size: .85rem; }
             .quantity-group { width: 120px; }
             .btn-variant { padding: .3rem .7rem; font-size: .85rem; }
@@ -438,13 +488,11 @@
             .product-gallery .main-image-swiper { height: 280px; }
             .product-gallery .thumbnail-swiper { height: 60px; }
             .card { padding: .75rem; }
-            .tab-content { padding: .75rem; }
             .btn-lg { padding: .3rem .6rem; font-size: .8rem; }
             .quantity-group { width: 100px; }
             .btn-variant { padding: .25rem .6rem; font-size: .8rem; }
             .product-price-box h3 { font-size: 1.25rem; }
             .breadcrumb { font-size: .85rem; }
-            .nav-tabs-modern .nav-link { font-size: .9rem; }
         }
     </style>
 @endpush

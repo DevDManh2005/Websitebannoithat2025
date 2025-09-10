@@ -1,4 +1,4 @@
-@extends(auth()->user()->role->name === 'staff' ? 'staffs.layouts.app' : 'admins.layouts.app')
+@extends(in_array(auth()->user()->role->name ?? '', ['staff','nhanvien']) ? 'staffs.layouts.app' : 'admins.layouts.app')
 
 @section('title', 'Quản lý Đánh giá')
 
@@ -140,7 +140,7 @@
                                 </td>
                                 <td class="text-end">
                                     <div class="d-inline-flex gap-1">
-                                        {{-- Trả lời (cho review gốc) --}}
+                                        {{-- Phản hồi (chỉ review gốc) --}}
                                         @if(!$isReply)
                                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#reply-{{ $review->id }}">
                                                 <i class="bi bi-reply me-1"></i>Phản hồi
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function(){
             try{
                 const res = await fetch('{{ url("/admin/reviews") }}/'+id+'/history', {headers:{'Accept':'application/json'}});
                 const data = await res.json();
-                if (!data.length) {
+                if (!Array.isArray(data) || !data.length) {
                     histBody.innerHTML = '<div class="text-muted">Chưa có lịch sử.</div>';
                 } else {
                     let html = '<div class="list-group">';
@@ -248,10 +248,10 @@ document.addEventListener('DOMContentLoaded', function(){
                         html += `
                           <div class="list-group-item">
                             <div class="d-flex justify-content-between">
-                              <strong>${i.action.toUpperCase()}</strong>
-                              <span class="text-muted">${i.ts}</span>
+                              <strong>${(i.action||'').toString().toUpperCase()}</strong>
+                              <span class="text-muted">${i.ts ?? ''}</span>
                             </div>
-                            <div class="mt-1">Bởi: <em>${i.by?.name ?? ''} (#${i.by?.id ?? ''})</em></div>
+                            <div class="mt-1">Bởi: <em>${i.by?.name ?? ''} ${i.by?.id ? '(#'+i.by.id+')' : ''}</em></div>
                             ${i.action==='update' ? `
                               <div class="mt-1"><u>Trước</u>: ${oldR? oldR+'/5 - ': ''}${oldT}</div>
                               <div class="mt-1"><u>Sau</u>: ${newR? newR+'/5 - ': ''}${newT}</div>
