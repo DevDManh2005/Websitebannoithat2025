@@ -68,7 +68,7 @@
 
                 @php
                     $rootCount = $product->approvedReviews
-                        ->filter(fn($r) => !\Illuminate\Support\Str::startsWith($r->review, '[reply:#')))
+                        ->filter(fn($r) => !\Illuminate\Support\Str::startsWith($r->review, '[reply:#'))
                         ->count();
                 @endphp
                 <div class="d-flex align-items-center mb-3">
