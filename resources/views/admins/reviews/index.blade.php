@@ -195,7 +195,7 @@
                                     @if($review->image)
                                         <img src="{{ asset('storage/' . $review->image) }}" class="thumb-mini review-image"
                                              data-full="{{ asset('storage/' . $review->image) }}" alt="Ảnh đánh giá" loading="lazy">
-                                    @endif>
+                                    @endif
                                     <div class="small text-muted mt-1">
                                         {{ $review->created_at?->format('d/m/Y H:i') }}
                                     </div>
