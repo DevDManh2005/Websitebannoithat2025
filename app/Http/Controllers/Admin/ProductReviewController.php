@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ProductReview;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProductReviewController extends Controller
 {
@@ -15,23 +14,25 @@ class ProductReviewController extends Controller
         return view('admins.reviews.index', compact('reviews'));
     }
 
-    public function toggleStatus(ProductReview $review)
+    /** Xem lịch sử chỉnh sửa/xoá từ file JSON */
+    public function history(ProductReview $review)
     {
-        // Lật ngược trạng thái: nếu đang chờ thì duyệt, nếu đã duyệt thì chuyển về chờ
-        $newStatus = $review->status === 'approved' ? 'pending' : 'approved';
-        $review->update(['status' => $newStatus]);
-
-        $message = $newStatus === 'approved' ? 'Đã duyệt đánh giá.' : 'Đã ẩn đánh giá.';
-        return back()->with('success', $message);
+        $path = storage_path('app/reviews_history/'.$review->id.'.json');
+        $data = [];
+        if (file_exists($path)) {
+            $json = @file_get_contents($path);
+            $data = json_decode($json ?: '[]', true) ?: [];
+        }
+        return response()->json($data);
     }
-    
+
+    /** Xoá review (giữ nguyên như cũ) */
     public function destroy(ProductReview $review)
     {
         if ($review->image) {
-            Storage::disk('public')->delete($review->image);
+            \Storage::disk('public')->delete($review->image);
         }
         $review->delete();
-
         return back()->with('success', 'Đã xóa đánh giá thành công.');
     }
 }

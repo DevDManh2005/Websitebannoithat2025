@@ -66,10 +66,15 @@
                     </div>
                 </div>
 
+                @php
+                    $rootCount = $product->approvedReviews
+                        ->filter(fn($r) => !\Illuminate\Support\Str::startsWith($r->review, '[reply:#')))
+                        ->count();
+                @endphp
                 <div class="d-flex align-items-center mb-3">
                     @include('frontend.components.star-rating', ['rating' => $product->average_rating])
                     <a href="#reviews-content" class="ms-3 text-muted small text-decoration-none border-start ps-3">
-                        {{ $product->approvedReviews->count() }} đánh giá
+                        {{ $rootCount }} đánh giá
                     </a>
                 </div>
 
@@ -147,7 +152,7 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews-content">
-                            Đánh giá ({{ $product->approvedReviews->count() }})
+                            Đánh giá ({{ $rootCount }})
                         </button>
                     </li>
                 </ul>
@@ -157,15 +162,164 @@
                         {!! $product->description !!}
                     </div>
 
+                    {{-- ======== REVIEWS (đã chỉnh) ======== --}}
                     <div class="tab-pane fade" id="reviews-content">
-                        @forelse($product->approvedReviews as $review)
-                            @include('frontend.components.review-item', ['review' => $review])
+                        @php
+                            use Illuminate\Support\Str;
+                            $allApproved = $product->approvedReviews()->with('user')->latest()->get();
+                            $rootReviews = $allApproved->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'));
+
+                            $repliesMap = [];
+                            foreach ($allApproved as $r) {
+                                if (Str::startsWith($r->review, '[reply:#')) {
+                                    if (preg_match('/^\[reply:#(\d+)\]\s*/u', $r->review, $m)) {
+                                        $pid = (int) $m[1];
+                                        $r->review = preg_replace('/^\[reply:#\d+\]\s*/u', '', $r->review);
+                                        $repliesMap[$pid] = $repliesMap[$pid] ?? [];
+                                        $repliesMap[$pid][] = $r;
+                                    }
+                                }
+                            }
+                            $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']);
+                            $canReplyGlobal = $isStaffOrAdmin || ($userHasPurchased ?? false);
+                        @endphp
+
+                        @forelse($rootReviews as $review)
+                            <div class="review-item d-flex gap-3 py-3 border-bottom">
+                                <div class="flex-shrink-0">
+                                    <img src="https://i.pravatar.cc/64?u={{ $review->user_id }}" alt="avatar"
+                                         class="rounded-circle border" width="48" height="48">
+                                </div>
+                                <div class="flex-grow-1">
+                                    {{-- Sao ở trên --}}
+                                    <div class="d-flex align-items-center gap-1 mb-1">
+                                        @for($i=1;$i<=5;$i++)
+                                            <i class="bi {{ $i <= (int)$review->rating ? 'bi-star-fill text-warning' : 'bi-star text-secondary' }}"></i>
+                                        @endfor
+                                    </div>
+                                    {{-- Tên dưới (ngang avatar) --}}
+                                    <div class="d-flex align-items-center mb-1">
+                                        <strong>{{ $review->user->name ?? '—' }}</strong>
+                                        <small class="text-muted ms-2">{{ $review->created_at?->format('d/m/Y H:i') }}</small>
+                                    </div>
+
+                                    <div class="mb-2">{!! nl2br(e($review->review)) !!}</div>
+
+                                    @auth
+                                        @php
+                                            $isOwner = auth()->id() === $review->user_id;
+                                            $canReply = $canReplyGlobal;
+                                        @endphp
+                                        <div class="d-flex flex-wrap gap-2 small">
+                                            @if($isOwner || $isStaffOrAdmin)
+                                                <a class="link-secondary" data-bs-toggle="collapse" href="#edit-review-{{ $review->id }}">Sửa</a>
+                                                <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $review) }}"
+                                                      onsubmit="return confirm('Xoá đánh giá này?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
+                                                </form>
+                                            @endif
+                                            @if($canReply)
+                                                <a class="link-secondary" data-bs-toggle="collapse" href="#reply-review-{{ $review->id }}">Trả lời</a>
+                                            @endif
+                                        </div>
+
+                                        {{-- Edit review --}}
+                                        @if($isOwner || $isStaffOrAdmin)
+                                            <div class="collapse mt-2" id="edit-review-{{ $review->id }}">
+                                                <form method="POST" action="{{ route('reviews.update', $review) }}">
+                                                    @csrf @method('PATCH')
+                                                    <div class="row g-2">
+                                                        <div class="col-12 col-md-3">
+                                                            <label class="form-label small">Số sao</label>
+                                                            <select name="rating" class="form-select">
+                                                                @for($i=5;$i>=1;$i--)
+                                                                    <option value="{{ $i }}" {{ (int)$review->rating===$i?'selected':'' }}>{{ $i }}</option>
+                                                                @endfor
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-12 col-md-9">
+                                                            <label class="form-label small">Nội dung</label>
+                                                            <textarea name="content" rows="2" class="form-control">{{ $review->review }}</textarea>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        @endif
+
+                                        {{-- Reply form --}}
+                                        @if($canReply)
+                                            <div class="collapse mt-2" id="reply-review-{{ $review->id }}">
+                                                <form method="POST" action="{{ route('reviews.reply', $review) }}">
+                                                    @csrf
+                                                    <div class="row g-2">
+                                                        <div class="col-12">
+                                                            <label class="form-label small">Phản hồi</label>
+                                                            <textarea name="content" rows="2" class="form-control" placeholder="Nhập nội dung phản hồi..."></textarea>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <button class="btn btn-sm btn-outline-brand rounded-pill mt-1">Gửi phản hồi</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endauth
+
+                                    {{-- Replies --}}
+                                    @if(!empty($repliesMap[$review->id] ?? []))
+                                        <div class="mt-3 ps-3 border-start">
+                                            @foreach($repliesMap[$review->id] as $rep)
+                                                <div class="d-flex gap-2 mb-2">
+                                                    <div class="flex-shrink-0">
+                                                        <img src="https://i.pravatar.cc/64?u={{ $rep->user_id }}" class="rounded-circle border" width="32" height="32" alt="avatar">
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center">
+                                                            <strong>{{ $rep->user->name ?? '—' }}</strong>
+                                                            <span class="badge bg-light text-muted ms-2">Phản hồi</span>
+                                                            <small class="text-muted ms-2">{{ $rep->created_at?->format('d/m/Y H:i') }}</small>
+                                                        </div>
+                                                        <div>{!! nl2br(e($rep->review)) !!}</div>
+
+                                                        @auth
+                                                            @php $repOwner = auth()->id() === $rep->user_id; @endphp
+                                                            @if($repOwner || $isStaffOrAdmin)
+                                                                <div class="small mt-1">
+                                                                    <a class="link-secondary" data-bs-toggle="collapse" href="#edit-reply-{{ $rep->id }}">Sửa</a>
+                                                                    <form class="d-inline" method="POST" action="{{ route('reviews.destroy', $rep) }}"
+                                                                          onsubmit="return confirm('Xoá phản hồi này?')">
+                                                                        @csrf @method('DELETE')
+                                                                        <button type="submit" class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
+                                                                    </form>
+                                                                </div>
+                                                                <div class="collapse mt-1" id="edit-reply-{{ $rep->id }}">
+                                                                    <form method="POST" action="{{ route('reviews.update', $rep) }}">
+                                                                        @csrf @method('PATCH')
+                                                                        <textarea name="content" rows="2" class="form-control">{{ $rep->review }}</textarea>
+                                                                        <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
+                                                                    </form>
+                                                                </div>
+                                                            @endif
+                                                        @endauth
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
                         @empty
                             <p>Chưa có đánh giá nào cho sản phẩm này.</p>
                         @endforelse
 
+                        {{-- Form đánh giá gốc (user đã mua hoặc admin/staff) --}}
                         @auth
-                            @if($userHasPurchased)
+                            @php $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']); @endphp
+                            @if($userHasPurchased || $isStaffOrAdmin)
                                 @include('frontend.components.review-form', ['product' => $product])
                             @else
                                 <div class="alert alert-warning mt-4">Bạn cần mua sản phẩm để đánh giá.</div>
@@ -183,19 +337,14 @@
 
     {{-- =================== MODAL: CẢNH BÁO SỐ LƯỢNG > 5 =================== --}}
     @php
-        use Illuminate\Support\Facades\Storage;
-        use Illuminate\Support\Str;
         use Illuminate\Support\Facades\Route as RouteFacade;
         $contactRoute = RouteFacade::has('contact') ? route('contact') : null;
     @endphp
-
     <div class="modal fade" id="qtyLimitModal" tabindex="-1" aria-labelledby="qtyLimitModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold text-brand" id="qtyLimitModalLabel">
-                        Thông báo số lượng lớn
-                    </h5>
+                    <h5 class="modal-title fw-bold text-brand" id="qtyLimitModalLabel">Thông báo số lượng lớn</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
                 <div class="modal-body">
@@ -205,9 +354,7 @@
                         để được tư vấn, hướng dẫn và nhận thêm ưu đãi.
                     </p>
                     @if($contactRoute)
-                        <p class="mt-2 mb-0">
-                            <a href="{{ $contactRoute }}" class="text-decoration-none">Đi tới trang liên hệ</a>
-                        </p>
+                        <p class="mt-2 mb-0"><a href="{{ $contactRoute }}" class="text-decoration-none">Đi tới trang liên hệ</a></p>
                     @endif
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -221,97 +368,52 @@
 @push('styles')
     <style>
         /* =================== Breadcrumb =================== */
-        .breadcrumb-item a {
-            text-decoration: none;
-            color: var(--sand);
-            transition: color 0.2s ease;
-        }
+        .breadcrumb-item a { text-decoration: none; color: var(--sand); transition: color 0.2s ease; }
         .breadcrumb-item a:hover { color: var(--brand); }
         .breadcrumb-item.active { color: var(--muted); }
 
         /* =================== Gallery =================== */
-        .product-gallery .main-image-swiper {
-            height: 520px; background: #fff;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        .product-gallery .main-image-swiper:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        }
+        .product-gallery .main-image-swiper { height: 520px; background: #fff; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .product-gallery .main-image-swiper:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); }
         .product-gallery .thumbnail-swiper { height: 96px; padding: 8px 0; }
-        .product-gallery .thumbnail-swiper .swiper-slide {
-            width: 25%; height: 100%; opacity: .6;
-            transition: opacity .25s ease, transform .25s ease; cursor: pointer;
-        }
+        .product-gallery .thumbnail-swiper .swiper-slide { width: 25%; height: 100%; opacity: .6; transition: opacity .25s ease, transform .25s ease; cursor: pointer; }
         .product-gallery .thumbnail-swiper .swiper-slide:hover { opacity: 1; transform: translateY(-2px); }
-        .product-gallery .thumbnail-swiper .swiper-slide-thumb-active {
-            opacity: 1; transform: translateY(-2px);
-            outline: 2px solid var(--brand); outline-offset: 2px; border-radius: .5rem;
-        }
+        .product-gallery .thumbnail-swiper .swiper-slide-thumb-active { opacity: 1; transform: translateY(-2px); outline: 2px solid var(--brand); outline-offset: 2px; border-radius: .5rem; }
         .product-gallery .thumbnail-swiper img { width:100%; height:100%; object-fit:cover; border-radius:.5rem; }
-        .swiper-button-next, .swiper-button-prev {
-            color: var(--brand); background: rgba(255,255,255,.9);
-            border-radius:50%; width:40px; height:40px; transition: background .2s ease;
-        }
+        .swiper-button-next, .swiper-button-prev { color: var(--brand); background: rgba(255,255,255,.9); border-radius:50%; width:40px; height:40px; transition: background .2s ease; }
         .swiper-button-next:hover, .swiper-button-prev:hover { background: var(--brand); color:#fff; }
 
         /* =================== Card and Price Box =================== */
-        .card-glass {
-            background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.98));
-            border-radius: var(--radius); box-shadow: var(--shadow);
-            border: 1px solid rgba(15,23,42,.04);
-            transition: transform .25s ease, box-shadow .25s ease;
-        }
+        .card-glass { background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.98)); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid rgba(15,23,42,.04); transition: transform .25s ease, box-shadow .25s ease; }
         .card-glass:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
         .product-price-box { border: 2px solid var(--brand); transition: border-color .2s ease; }
         .product-price-box:hover { border-color: var(--brand-600); }
         .rounded-4 { border-radius: 1rem !important; }
 
         /* =================== Tabs =================== */
-        .nav-tabs-modern .nav-link {
-            border: none; color: var(--muted); position: relative;
-            padding: .5rem 0; font-weight: 500; transition: color .2s ease;
-        }
+        .nav-tabs-modern .nav-link { border: none; color: var(--muted); position: relative; padding: .5rem 0; font-weight: 500; transition: color .2s ease; }
         .nav-tabs-modern .nav-link.active { color: var(--brand); }
         .nav-tabs-modern .nav-link.active::after,
-        .nav-tabs-modern .nav-link:hover::after {
-            content:""; position:absolute; left:0; right:0; bottom:-8px; height:2px; background:var(--brand);
-        }
+        .nav-tabs-modern .nav-link:hover::after { content:""; position:absolute; left:0; right:0; bottom:-8px; height:2px; background:var(--brand); }
 
         /* =================== Form and Button Styles =================== */
-        .btn-brand {
-            background-color: var(--brand); border-color: var(--brand); color:#fff; padding:.5rem 1rem;
-            transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-        }
-        .btn-brand:hover { background-color: var(--brand-600); border-color: var(--brand-600);
-            transform: translateY(-2px); box-shadow: 0 8px 24px var(--ring);
-        }
-        .btn-outline-brand {
-            color: var(--brand); border-color: var(--brand); padding: .45rem .9rem;
-            transition: background .15s ease, color .15s ease;
-        }
+        .btn-brand { background-color: var(--brand); border-color: var(--brand); color:#fff; padding:.5rem 1rem; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+        .btn-brand:hover { background-color: var(--brand-600); border-color: var(--brand-600); transform: translateY(-2px); box-shadow: 0 8px 24px var(--ring); }
+        .btn-outline-brand { color: var(--brand); border-color: var(--brand); padding: .45rem .9rem; transition: background .15s ease, color .15s ease; }
         .btn-outline-brand:hover { background-color: var(--brand); border-color: var(--brand); color:#fff; }
-        .btn-variant { border-radius: 999px; padding:.35rem .85rem; font-size:.9rem;
-            transition: background .2s ease, color .2s ease, box-shadow .2s ease;
-        }
-        .btn-check:checked + .btn-variant {
-            background: var(--brand); border-color: var(--brand); color:#fff; box-shadow: 0 6px 14px var(--ring);
-        }
-        .form-control-modern {
-            border-radius: .8rem; border:1px solid #e9ecef; background:#fff; font-size:1rem;
-        }
+        .btn-variant { border-radius: 999px; padding:.35rem .85rem; font-size:.9rem; transition: background .2s ease, color .2s ease, box-shadow .2s ease; }
+        .btn-check:checked + .btn-variant { background: var(--brand); border-color: var(--brand); color:#fff; box-shadow: 0 6px 14px var(--ring); }
+        .form-control-modern { border-radius: .8rem; border:1px solid #e9ecef; background:#fff; font-size:1rem; }
         .form-control-modern:focus { border-color: var(--brand); box-shadow: 0 0 0 .2rem var(--ring); }
         .quantity-group { width: 160px; }
         .quantity-group .form-control { border-left:0; border-right:0; border-radius:0; }
         .text-brand { color: var(--brand); }
         .text-muted { color: var(--muted); }
         .badge-soft-brand { background: rgba(var(--brand-rgb), .1); color: var(--brand); font-size:.85rem; }
-
-        /* =================== Modal tweak (theming) =================== */
         #qtyLimitModal .modal-content{ border:1px solid rgba(15,23,42,.06); }
         #qtyLimitModal .modal-title{ color: var(--brand); }
 
-        /* =================== Responsive Design =================== */
+        /* =================== Responsive =================== */
         @media (max-width: 991px) {
             .col-lg-6 { flex: 0 0 100%; max-width: 100%; }
             .product-gallery .main-image-swiper { height: 400px; }
@@ -363,7 +465,6 @@
             document.querySelectorAll('.variant-option:checked').forEach(radio => {
                 selectedOptions[radio.name] = radio.value;
             });
-
             if (Object.keys(selectedOptions).length < attributeGroupCount) return;
 
             const matchedVariant = variantsData.find(v => {
@@ -407,8 +508,7 @@
         function showQtyLimitModal() {
             const el = document.getElementById('qtyLimitModal');
             if (window.bootstrap && bootstrap.Modal) {
-                const m = bootstrap.Modal.getOrCreateInstance(el);
-                m.show();
+                bootstrap.Modal.getOrCreateInstance(el).show();
             } else {
                 alert('Bạn mua trên 5 sản phẩm. Vui lòng liên hệ với chúng tôi để được hướng dẫn và nhận thêm ưu đãi.');
             }
@@ -433,10 +533,7 @@
 
         addToCartBtn?.addEventListener('click', async function () {
             const qty = parseInt(quantitySelector.value || '1', 10);
-            if (qty > 5) { // > 5 thì bật modal và dừng
-                showQtyLimitModal();
-                return;
-            }
+            if (qty > 5) { showQtyLimitModal(); return; }
 
             this.disabled = true;
             const formData = new FormData(document.getElementById('action-form'));
@@ -449,23 +546,16 @@
                     cartBadge.textContent = result.cart_count ?? cartBadge.textContent;
                     cartBadge.style.display = parseInt(cartBadge.textContent || '0', 10) > 0 ? 'inline-block' : 'none';
                 }
-                if (window.Swal) {
-                    Swal.fire({ icon: 'success', title: 'Đã thêm vào giỏ!', showConfirmButton: false, timer: 1400, toast: true, position: 'top-end' });
-                }
+                if (window.Swal) Swal.fire({ icon:'success', title:'Đã thêm vào giỏ!', showConfirmButton:false, timer:1400, toast:true, position:'top-end' });
             } else {
-                if (window.Swal) {
-                    Swal.fire({ icon: 'error', title: 'Thất bại', text: result.message || 'Không thể thêm vào giỏ.' });
-                }
+                if (window.Swal) Swal.fire({ icon:'error', title:'Thất bại', text:result.message || 'Không thể thêm vào giỏ.' });
             }
             this.disabled = false;
         });
 
         buyNowBtn?.addEventListener('click', async function () {
             const qty = parseInt(quantitySelector.value || '1', 10);
-            if (qty > 5) { // > 5 thì bật modal và dừng
-                showQtyLimitModal();
-                return;
-            }
+            if (qty > 5) { showQtyLimitModal(); return; }
 
             this.disabled = true;
             const formData = new FormData(document.getElementById('action-form'));
@@ -474,9 +564,7 @@
             if (result.success && result.redirect_url) {
                 window.location.href = result.redirect_url;
             } else {
-                if (window.Swal) {
-                    Swal.fire({ icon: 'error', title: 'Thất bại', text: result.message || 'Không thể xử lý đơn hàng.' });
-                }
+                if (window.Swal) Swal.fire({ icon:'error', title:'Thất bại', text:result.message || 'Không thể xử lý đơn hàng.' });
                 this.disabled = false;
             }
         });
@@ -489,11 +577,7 @@
                 slidesPerView: 4,
                 freeMode: true,
                 watchSlidesProgress: true,
-                breakpoints: {
-                    0: { slidesPerView: 3 },
-                    576: { slidesPerView: 4 },
-                    992: { slidesPerView: 5 }
-                }
+                breakpoints: { 0:{slidesPerView:3}, 576:{slidesPerView:4}, 992:{slidesPerView:5} }
             }) : null;
 
             new Swiper('.main-image-swiper', {
@@ -504,8 +588,6 @@
         }
 
         // AOS init
-        if (typeof AOS !== 'undefined') {
-            AOS.init({ duration: 600, once: true, offset: 80 });
-        }
+        if (typeof AOS !== 'undefined') AOS.init({ duration: 600, once: true, offset: 80 });
     </script>
 @endpush
