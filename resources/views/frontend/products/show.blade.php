@@ -499,14 +499,14 @@
 
 @push('scripts-page')
     <script>
-        const variantsData = @json($product->variants);
+        const variantsData = {!! json_encode($product->variants) !!};
         const priceDisplay = document.getElementById('product-price-display');
         const skuDisplay = document.getElementById('product-sku');
         const selectedVariantInput = document.getElementById('selected-variant-id');
         const addToCartBtn = document.getElementById('add-to-cart-btn');
         const buyNowBtn = document.getElementById('buy-now-btn');
         const quantitySelector = document.getElementById('quantity-selector');
-        const attributeGroupCount = {{ count($attributeGroups) }};
+        const attributeGroupCount = parseInt("{{ count($attributeGroups) }}");
 
         function updateProductInfo() {
             const selectedOptions = {};
