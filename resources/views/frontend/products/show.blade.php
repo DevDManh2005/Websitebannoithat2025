@@ -22,13 +22,12 @@
 
 @php
     use Illuminate\Support\Str;
+    use Illuminate\Support\Facades\Route;
 
-    // Đếm review gốc
-    $rootCount = $product->approvedReviews->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'))->count();
-
-    // Chuẩn bị dữ liệu review + replies
+    // Lấy tất cả reviews đã duyệt, tách root reviews và build replies map
     $allApproved = $product->approvedReviews()->with('user')->latest()->get();
     $rootReviews = $allApproved->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'));
+    $rootCount = $rootReviews->count();
 
     $repliesMap = [];
     foreach ($allApproved as $r) {
@@ -40,27 +39,31 @@
         }
     }
 
-    // NOTE: an toàn khi lấy role (tránh gọi -> trên null)
--    $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']);
-+    $roleName = optional(optional(auth()->user())->role)->name ?? '';
-+    $isStaffOrAdmin = auth()->check() && in_array($roleName, ['admin','nhanvien'], true);
+    // Lấy role an toàn, kiểm tra staff/admin
+    $roleName = optional(optional(auth()->user())->role)->name ?? '';
+    $isStaffOrAdmin = auth()->check() && in_array($roleName, ['admin','nhanvien'], true);
 
--    $canReply = $isStaffOrAdmin || ($userHasPurchased ?? false);
-+    $canReply = $isStaffOrAdmin || ($userHasPurchased ?? false);
+    // Quyền được trả lời
+    $canReply = $isStaffOrAdmin || ($userHasPurchased ?? false);
     $currentUserId = auth()->id();
 
-    // Kiểm tra user đã đánh giá chưa (dùng để ẩn form gốc)
+    // Kiểm tra user đã đánh giá (để ẩn form gốc nếu cần)
     $hasReviewed = auth()->check() && $product->approvedReviews()->where('user_id', auth()->id())->exists();
 
--    // Chuẩn bị URL reply (ưu tiên named route 'reviews.reply')
--    if (Route::has('reviews.reply')) {
--        $replyUrl = route('reviews.reply', $product);
--    } else {
--        $replyUrl = action([\App\Http\Controllers\Frontend\ProductReviewController::class, 'reply'], ['product' => $product->id]);
--    }
-+    // LƯU Ý: partial hiện gọi route('reviews.reply', $review) trực tiếp,
-+    // nên không cần tạo $replyUrl ở đây. Nếu bạn muốn reply theo product,
-+    // hãy đồng bộ tên route trong routes/web.php.
+    // Chuẩn bị $related nếu controller không truyền $relatedProducts
+    $related = $relatedProducts ?? collect();
+    if ($related->isEmpty() && $product->categories->isNotEmpty()) {
+        $catIds = $product->categories->pluck('id')->toArray();
+        $related = \App\Models\Product::with(['images','variants'])
+            ->where('is_active', 1)
+            ->where('id', '!=', $product->id)
+            ->whereHas('categories', function($q) use ($catIds) {
+                $q->whereIn('categories.id', $catIds);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(4)
+            ->get();
+    }
 @endphp
         {{-- =================== NỘI DUNG CHÍNH =================== --}}
 
