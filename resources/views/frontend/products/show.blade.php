@@ -207,7 +207,6 @@
                         'repliesMap' => $repliesMap,
                         'canReply' => $canReply,
                         'currentUserId' => $currentUserId,
-                        'replyUrl' => $replyUrl,
                     ])
                 @empty
                     <p class="mb-0">Chưa có đánh giá nào cho sản phẩm này.</p>
