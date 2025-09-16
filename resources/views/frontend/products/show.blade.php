@@ -44,6 +44,22 @@
     $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']);
     $canReply = $isStaffOrAdmin || ($userHasPurchased ?? false);
     $currentUserId = auth()->id();
+
+    // NOTE: chuẩn bị $related nếu controller không truyền $relatedProducts
+    $related = $relatedProducts ?? collect();
+    if ($related->isEmpty() && $product->categories->isNotEmpty()) {
+        $catIds = $product->categories->pluck('id')->toArray();
+        // fallback: lấy tối đa 4 sản phẩm cùng category, đang active, không bao gồm chính sản phẩm
+        $related = \App\Models\Product::with(['images','variants'])
+            ->where('is_active', 1)
+            ->where('id', '!=', $product->id)
+            ->whereHas('categories', function($q) use ($catIds) {
+                $q->whereIn('categories.id', $catIds);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(4)
+            ->get();
+    }
 @endphp
 
     <div class="container my-5">
