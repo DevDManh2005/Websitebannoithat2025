@@ -1,4 +1,4 @@
-<?php
+
 @php
     /** Biến đầu vào:
      *  - $review (ProductReview model)
