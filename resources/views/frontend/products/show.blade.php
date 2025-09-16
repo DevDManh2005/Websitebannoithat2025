@@ -22,13 +22,10 @@
 
 @php
     use Illuminate\Support\Str;
-    use Illuminate\Support\Facades\Route;
 
-    // Lấy tất cả reviews đã duyệt, tách root reviews và build replies map
+    // Lấy reviews đã duyệt và tách root + replies map
     $allApproved = $product->approvedReviews()->with('user')->latest()->get();
     $rootReviews = $allApproved->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'));
-    $rootCount = $rootReviews->count();
-
     $repliesMap = [];
     foreach ($allApproved as $r) {
         if (Str::startsWith($r->review, '[reply:#')) {
@@ -39,18 +36,21 @@
         }
     }
 
-    // Lấy role an toàn, kiểm tra staff/admin
+    // role/permission an toàn
     $roleName = optional(optional(auth()->user())->role)->name ?? '';
     $isStaffOrAdmin = auth()->check() && in_array($roleName, ['admin','nhanvien'], true);
 
-    // Quyền được trả lời
+    // quyền reply
     $canReply = $isStaffOrAdmin || ($userHasPurchased ?? false);
     $currentUserId = auth()->id();
 
-    // Kiểm tra user đã đánh giá (để ẩn form gốc nếu cần)
-    $hasReviewed = auth()->check() && $product->approvedReviews()->where('user_id', auth()->id())->exists();
+    // Kiểm tra user đã có review gốc chưa (loại trừ replies)
+    $hasReviewed = auth()->check() && $product->approvedReviews()
+        ->where('user_id', auth()->id())
+        ->where('review', 'not like', '[reply:%')
+        ->exists();
 
-    // Chuẩn bị $related nếu controller không truyền $relatedProducts
+    // chuẩn bị related fallback (nếu cần)
     $related = $relatedProducts ?? collect();
     if ($related->isEmpty() && $product->categories->isNotEmpty()) {
         $catIds = $product->categories->pluck('id')->toArray();
@@ -196,37 +196,36 @@
             </div>
         </div>
 
-       {{-- =================== HÀNG 3: ĐÁNH GIÁ =================== --}}
-        <div class="row mt-4" data-aos="fade-up" id="reviews-section">
-            <div class="col-12">
-                <h4 class="mb-3">Đánh giá ({{ $rootReviews->count() }})</h4>
+        {{-- =================== HÀNG 3: ĐÁNH GIÁ =================== --}}
+    <div class="row mt-4" data-aos="fade-up" id="reviews-section">
+        <div class="col-12">
+            <h4 class="mb-3">Đánh giá ({{ $rootReviews->count() }})</h4>
 
-                @forelse($rootReviews as $review)
-                    @include('frontend.products.partials.review-item', [
-                        'review' => $review,
-                        'repliesMap' => $repliesMap,
-                        'canReply' => $canReply,
-                        'currentUserId' => $currentUserId,
-                    ])
-                @empty
-                    <p class="mb-0">Chưa có đánh giá nào cho sản phẩm này.</p>
-                @endforelse
+            @forelse($rootReviews as $review)
+                @include('frontend.products.partials.review-item', [
+                    'review' => $review,
+                    'repliesMap' => $repliesMap,
+                    'canReply' => $canReply,
+                    'currentUserId' => $currentUserId,
+                ])
+            @empty
+                <p class="mb-0">Chưa có đánh giá nào cho sản phẩm này.</p>
+            @endforelse
 
-                {{-- Form đánh giá gốc --}}
-                @auth
-                    @php $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']); @endphp
-                    @if(!$hasReviewed || $isStaffOrAdmin)
-                        @include('frontend.components.review-form', ['product' => $product])
-                    @else
-                        <div class="alert alert-info mt-4">Bạn đã đánh giá sản phẩm này. Bạn có thể chỉnh sửa hoặc xóa đánh giá của mình.</div>
-                    @endif
+            {{-- Form đánh giá gốc --}}
+            @auth
+                @if(!$hasReviewed || $isStaffOrAdmin)
+                    @include('frontend.components.review-form', ['product' => $product])
                 @else
-                    <div class="alert alert-info mt-4">
-                        Vui lòng <a href="{{ route('login.form') }}">đăng nhập</a> để đánh giá.
-                    </div>
-                @endauth
-            </div>
+                    <div class="alert alert-info mt-4">Bạn đã đánh giá sản phẩm này. Bạn có thể trả lời, sửa hoặc xóa đánh giá của mình.</div>
+                @endif
+            @else
+                <div class="alert alert-info mt-4">
+                    Vui lòng <a href="{{ route('login.form') }}">đăng nhập</a> để đánh giá.
+                </div>
+            @endauth
         </div>
+    </div>
 
         {{-- =================== HÀNG 4: SẢN PHẨM LIÊN QUAN =================== --}}
         @if ($related->isNotEmpty())
