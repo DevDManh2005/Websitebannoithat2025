@@ -1,28 +1,27 @@
 <?php
+
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Models\ProductReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use App\Models\Product;
-use App\Models\ProductReview;
 
 class ProductReviewController extends Controller
 {
-    protected array $bannedWords = [
-        'đồ ngu', 'ngu', 'ngu dốt', 'chửi', 'bậy',
-        'lừa đảo',
-    ];
+    /** Danh sách từ cấm (tùy chỉnh thêm/bớt) */
+    protected array $bannedWords = ['đồ ngu','chửi','bậy','xxx'];
 
+    /** Thay từ cấm bằng dấu * */
     protected function censor(string $text): string
     {
         foreach ($this->bannedWords as $w) {
             $w = trim($w);
             if ($w === '') continue;
-            $pattern = '/(?<!\p{L})' . preg_quote($w, '/') . '(?!\p{L})/iu';
-            $text = preg_replace_callback($pattern, function ($m) {
+            $pattern = '/'.preg_quote($w,'/').'/iu';
+            $text = preg_replace_callback($pattern, function($m){
                 $len = mb_strlen($m[0], 'UTF-8');
                 return str_repeat('*', $len);
             }, $text);
@@ -32,15 +31,15 @@ class ProductReviewController extends Controller
 
     protected function isStaffOrAdmin(): bool
     {
-        $role = optional(optional(Auth::user())->role)->name ?? '';
-        return Auth::check() && in_array($role, ['admin', 'nhanvien'], true);
+        $role = Auth::user()->role->name ?? '';
+        return in_array($role, ['admin','nhanvien'], true);
     }
 
+    /** ====== tiện ích lưu lịch sử vào file JSON ====== */
     protected function historyPath(ProductReview $review): string
     {
         return storage_path('app/reviews_history/'.$review->id.'.json');
     }
-
     protected function appendHistory(ProductReview $review, array $entry): void
     {
         $path = $this->historyPath($review);
@@ -49,161 +48,152 @@ class ProductReviewController extends Controller
 
         $now = now()->toIso8601String();
         $base = [
-            'ts'  => $now,
-            'by'  => ['id' => Auth::id(), 'name' => optional(Auth::user())->name ?? ''],
-            'rid' => $review->id,
-            'pid' => $review->product_id,
+            'ts'   => $now,
+            'by'   => ['id'=>Auth::id(), 'name'=>Auth::user()->name ?? ''],
+            'rid'  => $review->id,
+            'pid'  => $review->product_id,
         ];
-
         $data = [];
         if (file_exists($path)) {
             $json = @file_get_contents($path);
             $data = json_decode($json ?: '[]', true) ?: [];
         }
-
         $data[] = array_merge($base, $entry);
-        @file_put_contents($path, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        @file_put_contents($path, json_encode($data, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
     }
 
+    /** Gửi đánh giá gốc (user phải mua; admin/staff không bắt buộc) */
     public function store(Request $request, Product $product)
     {
         $user = Auth::user();
 
-        if ($user && method_exists($user, 'hasReviewedProduct') && $user->hasReviewedProduct($product->id)) {
+        if (method_exists($user, 'hasReviewedProduct') && $user->hasReviewedProduct($product->id)) {
             return back()->with('error', 'Bạn đã đánh giá sản phẩm này rồi.');
         }
 
         if (!$this->isStaffOrAdmin()) {
-            // Nếu user chưa đăng nhập -> báo lỗi yêu cầu đăng nhập
-            if (!$user) {
-                return back()->with('error', 'Vui lòng đăng nhập để đánh giá sản phẩm.');
-            }
             if (method_exists($user, 'hasPurchasedProduct') && !$user->hasPurchasedProduct($product->id)) {
-                return back()->with('error', 'Bạn chưa mua sản phẩm này nên không thể đánh giá.');
+                return back()->with('error', 'Bạn cần mua sản phẩm để đánh giá.');
             }
         }
 
         $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'review' => 'required|string|max:1000',
             'image'  => 'nullable|image|max:2048',
-            'review' => 'required|string',
-            'rating' => 'nullable|integer|min:1|max:5',
         ]);
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            // store on public disk so views can use asset('storage/...') consistently
-            $imagePath = $request->file('image')->store('reviews_images', 'public');
+            $imagePath = $request->file('image')->store('reviews', 'public');
         }
 
-        $data = [
+        ProductReview::create([
+            'user_id'    => $user->id,
             'product_id' => $product->id,
-            'user_id'    => Auth::id(),
-            'rating'     => $request->input('rating', 0),
-            'review'     => $this->censor($request->input('review', '')),
+            'rating'     => (int) $request->rating,
+            'review'     => $this->censor(trim($request->review)),
             'image'      => $imagePath,
-            'approved'   => $this->isStaffOrAdmin() ? 1 : 0,
-        ];
+            'status'     => 'approved', // ✅ hiển thị ngay
+        ]);
 
-        $review = ProductReview::create($data);
-        $this->appendHistory($review, ['action' => 'create', 'data' => $data]);
-
-        return back()->with('success', 'Cảm ơn bạn đã gửi đánh giá.');
+        return back()->with('success', 'Cảm ơn bạn đã gửi đánh giá!');
     }
 
-    /**
-     * Trả lời một đánh giá (route: POST /reviews/{review}/reply)
-     * IMPORTANT: ensure route param name is {review} and route name reviews.reply
-     */
+    /** Trả lời một đánh giá (Admin/Staff luôn được; User được nếu đã mua sản phẩm) */
     public function reply(Request $request, ProductReview $review)
     {
         $user = Auth::user();
-
-        $request->validate(['review' => 'required|string']);
-
-        $productId = $review->product_id;
-
-        if (!$this->isStaffOrAdmin()) {
-            if (!$user) {
-                return back()->with('error', 'Vui lòng đăng nhập để trả lời đánh giá.');
-            }
-            if (method_exists($user, 'hasPurchasedProduct') && !$user->hasPurchasedProduct($productId)) {
-                return back()->with('error', 'Bạn không có quyền trả lời đánh giá này.');
-            }
+        $canReply = $this->isStaffOrAdmin();
+        if (!$canReply && method_exists($user, 'hasPurchasedProduct')) {
+            $canReply = $user->hasPurchasedProduct($review->product_id);
         }
-
-        $censored = $this->censor($request->input('review', ''));
-        $storedReview = "[reply:#{$review->id}]{$censored}";
-
-        $data = [
-            'product_id' => $productId,
-            'user_id'    => Auth::id(),
-            'rating'     => 0,
-            'review'     => $storedReview,
-            'image'      => null,
-            'approved'   => $this->isStaffOrAdmin() ? 1 : 0,
-        ];
-
-        $reply = ProductReview::create($data);
-        $this->appendHistory($reply, ['action' => 'reply', 'parent' => $review->id, 'data' => $data]);
-
-        return back()->with('success', 'Đã gửi phản hồi.');
-    }
-
-    public function update(Request $request, ProductReview $review)
-    {
-        $userId = Auth::id();
-        $isOwner = $userId === $review->user_id;
-        if (!$isOwner && !$this->isStaffOrAdmin()) {
-            return back()->with('error', 'Bạn không có quyền sửa đánh giá này.');
+        if (!$canReply) {
+            return back()->with('error','Bạn cần mua sản phẩm để trả lời đánh giá này.');
         }
 
         $request->validate([
-            'review' => 'required|string',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'image'  => 'nullable|image|max:2048',
+            'content' => 'required|string|min:2|max:2000',
         ]);
 
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('reviews_images', 'public');
-            if ($review->image) {
-                @Storage::disk('public')->delete($review->image);
-            }
-            $review->image = $path;
-        }
+        $content = '[reply:#'.$review->id.'] ' . $this->censor(trim($request->content));
 
-        $raw = $request->input('review', '');
-        if (preg_match('/^\[reply:#\d+\]/', $review->review)) {
-            preg_match('/^(\[reply:#\d+\])(.+)$/s', $review->review, $parts);
-            $prefix = $parts[1] ?? '';
-            $review->review = $prefix . $this->censor($raw);
-        } else {
-            $review->review = $this->censor($raw);
-        }
+        ProductReview::create([
+            'user_id'    => $user->id,
+            'product_id' => $review->product_id,
+            'rating'     => 0,
+            'review'     => $content,
+            'image'      => null,
+            'status'     => 'approved',
+        ]);
 
-        if ($request->filled('rating')) {
-            $review->rating = $request->input('rating');
-        }
-
-        $review->save();
-        $this->appendHistory($review, ['action' => 'update', 'data' => ['review' => $review->review, 'rating' => $review->rating]]);
-
-        return back()->with('success', 'Đã cập nhật đánh giá.');
+        return back()->with('success','Đã gửi phản hồi.');
     }
 
+    /** Sửa đánh giá hoặc phản hồi (chủ sở hữu hoặc admin/staff) */
+    public function update(Request $request, ProductReview $review)
+    {
+        $user = Auth::user();
+        $can = ($review->user_id === $user->id) || $this->isStaffOrAdmin();
+        if (!$can) return back()->with('error','Bạn không có quyền sửa.');
+
+        $isReply = preg_match('/^\[reply:#\d+\]\s*/u', $review->review) === 1;
+
+        $rules = ['content' => 'required|string|min:2|max:2000'];
+        if (!$isReply) { $rules['rating'] = 'nullable|integer|min:1|max:5'; }
+        $data = $request->validate($rules);
+
+        $old = ['rating'=>$review->rating, 'review'=>$review->review];
+
+        $clean = $this->censor(trim($data['content']));
+        if ($isReply) {
+            $prefix = '';
+            if (preg_match('/^\[reply:#\d+\]\s*/u', $review->review, $m)) {
+                $prefix = $m[0];
+            }
+            $payload = ['review' => $prefix . $clean];
+        } else {
+            $payload = ['review' => $clean];
+            if (isset($data['rating'])) $payload['rating'] = (int) $data['rating'];
+        }
+
+        $review->update($payload);
+
+        $this->appendHistory($review, [
+            'action' => 'update',
+            'old'    => $old,
+            'new'    => ['rating'=>$review->rating, 'review'=>$review->review],
+        ]);
+
+        return back()->with('success','Đã cập nhật.');
+    }
+
+    /** Xoá đánh giá/ phản hồi (chủ sở hữu hoặc admin/staff) */
     public function destroy(ProductReview $review)
     {
-        $userId = Auth::id();
-        $isOwner = $userId === $review->user_id;
-        if (!$isOwner && !$this->isStaffOrAdmin()) {
-            return back()->with('error', 'Bạn không có quyền xoá đánh giá này.');
+        $user = Auth::user();
+        $can = ($review->user_id === $user->id) || $this->isStaffOrAdmin();
+        if (!$can) return back()->with('error','Bạn không có quyền xoá.');
+
+        // Nếu xoá review gốc, xoá luôn các reply theo tiền tố
+        if (preg_match('/^\[reply:#\d+\]/u', $review->review) !== 1) {
+            ProductReview::where('product_id', $review->product_id)
+                ->where('status','approved')
+                ->where('review', 'like', '[reply:#'.$review->id.']%')
+                ->delete();
         }
 
-        $this->appendHistory($review, ['action' => 'delete', 'data' => ['review' => $review->review, 'rating' => $review->rating ?? null]]);
         if ($review->image) {
-            @Storage::disk('public')->delete($review->image);
+            Storage::disk('public')->delete($review->image);
         }
+
+        $this->appendHistory($review, [
+            'action' => 'delete',
+            'old'    => ['rating'=>$review->rating, 'review'=>$review->review],
+        ]);
+
         $review->delete();
 
-        return back()->with('success', 'Đã xoá đánh giá.');
+        return back()->with('success','Đã xoá.');
     }
 }
