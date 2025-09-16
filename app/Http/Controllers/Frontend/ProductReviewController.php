@@ -1,4 +1,5 @@
 <?php
+<?php
 
 namespace App\Http\Controllers\Frontend;
 
@@ -14,8 +15,7 @@ class ProductReviewController extends Controller
 {
     protected array $bannedWords = [
         'đồ ngu', 'ngu', 'ngu dốt', 'chửi', 'bậy',
-        'lừa đảo', 'khốn', 'đm', 'đĩ', 'đéo',
-        'địt', 'cặc', 'xxx',
+        'lừa đảo',
     ];
 
     protected function censor(string $text): string
@@ -40,7 +40,7 @@ class ProductReviewController extends Controller
 
     protected function historyPath(ProductReview $review): string
     {
-        return \storage_path('app/reviews_history/'.$review->id.'.json');
+        return storage_path('app/reviews_history/'.$review->id.'.json');
     }
 
     protected function appendHistory(ProductReview $review, array $entry): void
@@ -49,7 +49,7 @@ class ProductReviewController extends Controller
         $dir  = dirname($path);
         if (!is_dir($dir)) @mkdir($dir, 0775, true);
 
-        $now = \now()->toIso8601String();
+        $now = now()->toIso8601String();
         $base = [
             'ts'  => $now,
             'by'  => ['id' => Auth::id(), 'name' => Auth::user()->name ?? ''],
@@ -72,12 +72,12 @@ class ProductReviewController extends Controller
         $user = Auth::user();
 
         if (method_exists($user, 'hasReviewedProduct') && $user->hasReviewedProduct($product->id)) {
-            return \back()->with('error', 'Bạn đã đánh giá sản phẩm này rồi.');
+            return back()->with('error', 'Bạn đã đánh giá sản phẩm này rồi.');
         }
 
         if (!$this->isStaffOrAdmin()) {
             if (method_exists($user, 'hasPurchasedProduct') && !$user->hasPurchasedProduct($product->id)) {
-                return \back()->with('error', 'Bạn chưa mua sản phẩm này nên không thể đánh giá.');
+                return back()->with('error', 'Bạn chưa mua sản phẩm này nên không thể đánh giá.');
             }
         }
 
@@ -104,30 +104,29 @@ class ProductReviewController extends Controller
         $review = ProductReview::create($data);
         $this->appendHistory($review, ['action' => 'create', 'data' => $data]);
 
-        return \back()->with('success', 'Cảm ơn bạn đã gửi đánh giá.');
+        return back()->with('success', 'Cảm ơn bạn đã gửi đánh giá.');
     }
 
     /**
-     * Trả lời một đánh giá (route đưa {review} => route('reviews.reply', $review))
+     * Trả lời một đánh giá (route: POST /reviews/{review}/reply)
+     * IMPORTANT: ensure route param name is {review} and route name reviews.reply
      */
-    public function reply(Request $request, ProductReview $parent)
+    public function reply(Request $request, ProductReview $review)
     {
         $user = Auth::user();
 
-        $request->validate([
-            'review' => 'required|string',
-        ]);
+        $request->validate(['review' => 'required|string']);
 
-        $productId = $parent->product_id;
+        $productId = $review->product_id;
 
         if (!$this->isStaffOrAdmin()) {
             if (method_exists($user, 'hasPurchasedProduct') && !$user->hasPurchasedProduct($productId)) {
-                return \back()->with('error', 'Bạn không có quyền trả lời đánh giá này.');
+                return back()->with('error', 'Bạn không có quyền trả lời đánh giá này.');
             }
         }
 
         $censored = $this->censor($request->input('review', ''));
-        $storedReview = "[reply:#{$parent->id}]{$censored}";
+        $storedReview = "[reply:#{$review->id}]{$censored}";
 
         $data = [
             'product_id' => $productId,
@@ -139,9 +138,9 @@ class ProductReviewController extends Controller
         ];
 
         $reply = ProductReview::create($data);
-        $this->appendHistory($reply, ['action' => 'reply', 'parent' => $parent->id, 'data' => $data]);
+        $this->appendHistory($reply, ['action' => 'reply', 'parent' => $review->id, 'data' => $data]);
 
-        return \back()->with('success', 'Đã gửi phản hồi.');
+        return back()->with('success', 'Đã gửi phản hồi.');
     }
 
     public function update(Request $request, ProductReview $review)
@@ -149,7 +148,7 @@ class ProductReviewController extends Controller
         $userId = Auth::id();
         $isOwner = $userId === $review->user_id;
         if (!$isOwner && !$this->isStaffOrAdmin()) {
-            return \back()->with('error', 'Bạn không có quyền sửa đánh giá này.');
+            return back()->with('error', 'Bạn không có quyền sửa đánh giá này.');
         }
 
         $request->validate([
@@ -175,18 +174,14 @@ class ProductReviewController extends Controller
             $review->review = $this->censor($raw);
         }
 
-        if ($request->filled('rating') && !$review->review) {
+        if ($request->filled('rating')) {
             $review->rating = $request->input('rating');
-        } else {
-            if ($request->filled('rating')) {
-                $review->rating = $request->input('rating');
-            }
         }
 
         $review->save();
         $this->appendHistory($review, ['action' => 'update', 'data' => ['review' => $review->review, 'rating' => $review->rating]]);
 
-        return \back()->with('success', 'Đã cập nhật đánh giá.');
+        return back()->with('success', 'Đã cập nhật đánh giá.');
     }
 
     public function destroy(ProductReview $review)
@@ -194,7 +189,7 @@ class ProductReviewController extends Controller
         $userId = Auth::id();
         $isOwner = $userId === $review->user_id;
         if (!$isOwner && !$this->isStaffOrAdmin()) {
-            return \back()->with('error', 'Bạn không có quyền xoá đánh giá này.');
+            return back()->with('error', 'Bạn không có quyền xoá đánh giá này.');
         }
 
         $this->appendHistory($review, ['action' => 'delete', 'data' => ['review' => $review->review, 'rating' => $review->rating ?? null]]);
@@ -203,6 +198,6 @@ class ProductReviewController extends Controller
         }
         $review->delete();
 
-        return \back()->with('success', 'Đã xoá đánh giá.');
+        return back()->with('success', 'Đã xoá đánh giá.');
     }
 }
