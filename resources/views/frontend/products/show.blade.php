@@ -21,44 +21,30 @@
     </div>
 
     @php
-        use Illuminate\Support\Str;
+    use Illuminate\Support\Str;
 
-        // Đếm chỉ review gốc (không tính phản hồi)
-        $rootCount = $product->approvedReviews->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'))->count();
+    // Đếm chỉ review gốc (không tính phản hồi)
+    $rootCount = $product->approvedReviews->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'))->count();
 
-        // Chuẩn bị dữ liệu review + replies
-        $allApproved = $product->approvedReviews()->with('user')->latest()->get();
-        $rootReviews = $allApproved->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'));
+    // Chuẩn bị dữ liệu review + replies
+    $allApproved = $product->approvedReviews()->with('user')->latest()->get();
+    $rootReviews = $allApproved->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'));
 
-        $repliesMap = [];
-        foreach ($allApproved as $r) {
-            if (Str::startsWith($r->review, '[reply:#')) {
-                if (preg_match('/^\[reply:#(\d+)\]\s*/u', $r->review, $m)) {
-                    $pid = (int) $m[1];
-                    $r->review = preg_replace('/^\[reply:#\d+\]\s*/u', '', $r->review); // bỏ prefix hiển thị
-                    $repliesMap[$pid] = $repliesMap[$pid] ?? [];
-                    $repliesMap[$pid][] = $r;
-                }
+    $repliesMap = [];
+    foreach ($allApproved as $r) {
+        if (Str::startsWith($r->review, '[reply:#')) {
+            if (preg_match('/^\[reply:#(\d+)\]/', $r->review, $m)) {
+                $parentId = (int) $m[1];
+                $repliesMap[$parentId][] = $r;
             }
         }
+    }
 
-        $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin', 'nhanvien']);
-        $canReplyGlobal = $isStaffOrAdmin || ($userHasPurchased ?? false);
-
-        // Chuẩn bị "Sản phẩm liên quan"
-        // Ưu tiên: nếu controller đã truyền $relatedProducts -> dùng.
-        // Nếu không có, fallback tự tìm theo category đầu tiên (giữ số query ở mức tối thiểu).
-        $related = isset($relatedProducts) ? $relatedProducts : collect();
-        if ($related->isEmpty() && $product->categories->isNotEmpty()) {
-            $catIds = $product->categories->pluck('id');
-            $related = \App\Models\Product::with(['images', 'variants'])
-                ->where('id', '!=', $product->id)
-                ->whereHas('categories', fn($q) => $q->whereIn('categories.id', $catIds))
-                ->latest()
-                ->take(8)
-                ->get();
-        }
-    @endphp
+    // NOTE: đảm bảo biến $canReply tồn tại cho view (dùng khi hiển thị form trả lời)
+    $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']);
+    $canReply = $isStaffOrAdmin || ($userHasPurchased ?? false);
+    $currentUserId = auth()->id();
+@endphp
 
     <div class="container my-5">
         {{-- =================== HÀNG 1: GALLERY + INFO/ACTIONS =================== --}}
