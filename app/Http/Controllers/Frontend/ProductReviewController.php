@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
@@ -51,7 +50,7 @@ class ProductReviewController extends Controller
         $now = now()->toIso8601String();
         $base = [
             'ts'  => $now,
-            'by'  => ['id' => Auth::id(), 'name' => Auth::user()->name ?? ''],
+            'by'  => ['id' => Auth::id(), 'name' => optional(Auth::user())->name ?? ''],
             'rid' => $review->id,
             'pid' => $review->product_id,
         ];
@@ -70,11 +69,15 @@ class ProductReviewController extends Controller
     {
         $user = Auth::user();
 
-        if (method_exists($user, 'hasReviewedProduct') && $user->hasReviewedProduct($product->id)) {
+        if ($user && method_exists($user, 'hasReviewedProduct') && $user->hasReviewedProduct($product->id)) {
             return back()->with('error', 'Bạn đã đánh giá sản phẩm này rồi.');
         }
 
         if (!$this->isStaffOrAdmin()) {
+            // Nếu user chưa đăng nhập -> báo lỗi yêu cầu đăng nhập
+            if (!$user) {
+                return back()->with('error', 'Vui lòng đăng nhập để đánh giá sản phẩm.');
+            }
             if (method_exists($user, 'hasPurchasedProduct') && !$user->hasPurchasedProduct($product->id)) {
                 return back()->with('error', 'Bạn chưa mua sản phẩm này nên không thể đánh giá.');
             }
@@ -88,7 +91,8 @@ class ProductReviewController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = Storage::putFile('public/reviews_images', $request->file('image'));
+            // store on public disk so views can use asset('storage/...') consistently
+            $imagePath = $request->file('image')->store('reviews_images', 'public');
         }
 
         $data = [
@@ -119,6 +123,9 @@ class ProductReviewController extends Controller
         $productId = $review->product_id;
 
         if (!$this->isStaffOrAdmin()) {
+            if (!$user) {
+                return back()->with('error', 'Vui lòng đăng nhập để trả lời đánh giá.');
+            }
             if (method_exists($user, 'hasPurchasedProduct') && !$user->hasPurchasedProduct($productId)) {
                 return back()->with('error', 'Bạn không có quyền trả lời đánh giá này.');
             }
@@ -157,9 +164,9 @@ class ProductReviewController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $path = Storage::putFile('public/reviews_images', $request->file('image'));
+            $path = $request->file('image')->store('reviews_images', 'public');
             if ($review->image) {
-                @Storage::delete($review->image);
+                @Storage::disk('public')->delete($review->image);
             }
             $review->image = $path;
         }
@@ -193,7 +200,7 @@ class ProductReviewController extends Controller
 
         $this->appendHistory($review, ['action' => 'delete', 'data' => ['review' => $review->review, 'rating' => $review->rating ?? null]]);
         if ($review->image) {
-            @Storage::delete($review->image);
+            @Storage::disk('public')->delete($review->image);
         }
         $review->delete();
 

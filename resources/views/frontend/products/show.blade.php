@@ -35,10 +35,13 @@
     $currentUserId = auth()->id();
 
     // Kiểm tra user đã có review gốc chưa (loại trừ replies)
-    $hasReviewed = auth()->check() && $product->approvedReviews()
-        ->where('user_id', auth()->id())
-        ->where('review', 'not like', '[reply:%')
-        ->exists();
+    $hasReviewed = false;
+    if (auth()->check()) {
+        $hasReviewed = $allApproved
+            ->where('user_id', auth()->id())
+            ->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'))
+            ->isNotEmpty();
+    }
 
     // chuẩn bị related fallback (nếu controller không truyền $relatedProducts)
     $related = $relatedProducts ?? collect();
