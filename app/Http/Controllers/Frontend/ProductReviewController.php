@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers\Frontend;
-
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductReview;
@@ -11,16 +9,20 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductReviewController extends Controller
 {
-    /** Danh sách từ cấm (tùy chỉnh thêm/bớt) */
-    protected array $bannedWords = ['đồ ngu','chửi','bậy','xxx'];
+   /** Danh sách từ cấm (tùy chỉnh thêm/bớt) */
+    protected array $bannedWords = [
+        'đồ ngu', 'ngu', 'ngu dốt', 'chửi', 'bậy',
+        'lừa đảo', // ví dụ các từ nhạy cảm
+    ];
 
-    /** Thay từ cấm bằng dấu * */
+    /** Thay từ cấm bằng dấu * (ưu tiên không thay phần trong từ khác) */
     protected function censor(string $text): string
     {
         foreach ($this->bannedWords as $w) {
             $w = trim($w);
             if ($w === '') continue;
-            $pattern = '/'.preg_quote($w,'/').'/iu';
+            // đảm bảo không thay phần của từ khác: kiểm tra biên giới chữ bằng \p{L}
+            $pattern = '/(?<!\p{L})' . preg_quote($w, '/') . '(?!\p{L})/iu';
             $text = preg_replace_callback($pattern, function($m){
                 $len = mb_strlen($m[0], 'UTF-8');
                 return str_repeat('*', $len);
