@@ -23,6 +23,7 @@ class RoutePermissionStaffSeeder extends Seeder
             ['route_name' => 'staff.orders.updateShippingInfo','module_name' => 'orders', 'action' => 'update'],
             ['route_name' => 'staff.orders.readyToShip',       'module_name' => 'orders', 'action' => 'ready_to_ship'],
             ['route_name' => 'staff.orders.codPaid',           'module_name' => 'orders', 'action' => 'cod_paid'],
+            ['route_name' => 'staff.notifications.new-orders', 'module_name' => 'orders', 'action' => 'view'],
 
             // REVIEWS
             ['route_name' => 'staff.reviews.index',            'module_name' => 'reviews', 'action' => 'view'],
