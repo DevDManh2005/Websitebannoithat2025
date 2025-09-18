@@ -174,3 +174,67 @@ class OrderController extends Controller
     return back()->with('success', 'Đã đánh dấu “đã thu COD” và đồng bộ kho.');
 }
 }
+class OrderPulseController extends Controller
+{
+    public function __invoke(Request $request)
+    {
+        // since: có thể là ms, s, hoặc ISO8601. Không có thì mặc định 60s gần nhất.
+        $sinceParam = $request->query('since');
+        $limit      = (int) $request->query('limit', 6);
+
+        if ($sinceParam === null || $sinceParam === '') {
+            $since = now()->subSeconds(60);
+        } elseif (ctype_digit((string) $sinceParam)) {
+            $ts    = (int) $sinceParam;
+            $since = Carbon::createFromTimestamp($ts > 1_000_000_000_000 ? (int) floor($ts / 1000) : $ts);
+        } else {
+            $since = Carbon::parse($sinceParam);
+        }
+
+        // Lấy đơn mới hơn mốc 'since'
+        $orders = Order::with('user')
+            ->where('created_at', '>', $since)
+            ->latest('id')
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'now_ts'    => now()->valueOf(), // ms
+            'new_count' => $orders->count(),
+            'items'     => $orders->map(function ($o) {
+                return [
+                    'id'    => $o->id,
+                    'code'  => (string) $o->order_code,
+                    'user'  => optional($o->user)->name ?? 'Khách',
+                    'total' => number_format($o->final_amount) . ' ₫',
+                    'when'  => optional($o->created_at)->format('H:i d/m'),
+                    'url'   => route('admin.orders.show', $o),
+                ];
+            }),
+        ]);
+    }
+     public function fetchNewOrders(Request $request)
+    {
+        $request->validate([
+            'last_check' => 'required|date_format:Y-m-d\TH:i:s.u\Z',
+        ]);
+
+        $lastCheckTime = $request->query('last_check');
+
+        $newOrders = Order::with('user:id,name')
+            ->where('created_at', '>', $lastCheckTime)
+            ->latest() // Sắp xếp để đơn mới nhất ở đầu
+            ->get([
+                'id',
+                'order_code',
+                'user_id',
+                'final_amount',
+                'created_at'
+            ]);
+
+        return response()->json([
+            'new_orders' => $newOrders,
+            'server_time' => now()->toIso8601String(), // Trả về thời gian server để client đồng bộ
+        ]);
+    }
+}
