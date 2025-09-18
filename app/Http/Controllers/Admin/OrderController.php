@@ -20,35 +20,35 @@ class OrderController extends Controller
     /**
      * Danh sách đơn + lọc theo trạng thái.
      */
-   public function index(Request $request): View
-{
-    $status = (string) $request->query('status', 'all');
-    // THÊM MỚI: Lấy giá trị từ ô tìm kiếm
-    $search = (string) $request->query('code');
+    public function index(Request $request): View
+    {
+        $status = (string) $request->query('status', 'all');
+        // THÊM MỚI: Lấy giá trị từ ô tìm kiếm
+        $search = (string) $request->query('code');
 
-    $orders = Order::with('user')
-        // Giữ nguyên logic lọc theo trạng thái
-        ->when($status !== 'all', fn ($q) => $q->where('status', $status))
+        $orders = Order::with('user')
+            // Giữ nguyên logic lọc theo trạng thái
+            ->when($status !== 'all', fn($q) => $q->where('status', $status))
 
-        // THÊM MỚI: Logic lọc theo mã đơn/tên khách hàng
-        ->when($search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('order_code', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($userQuery) use ($search) {
-                      $userQuery->where('name', 'like', "%{$search}%");
-                  });
-            });
-        })
-        
-        ->latest()
-        ->paginate(15)
-        ->appends($request->query());
+            // THÊM MỚI: Logic lọc theo mã đơn/tên khách hàng
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('order_code', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
 
-    return view('admins.orders.index', [
-        'orders'        => $orders,
-        'currentStatus' => $status,
-    ]);
-}
+            ->latest()
+            ->paginate(15)
+            ->appends($request->query());
+
+        return view('admins.orders.index', [
+            'orders'        => $orders,
+            'currentStatus' => $status,
+        ]);
+    }
 
     /**
      * Chi tiết đơn: thông tin người dùng, mặt hàng, giao hàng, thanh toán.
@@ -134,45 +134,45 @@ class OrderController extends Controller
     /**
      * Admin đánh dấu đã THU COD (chỉ cho đơn COD, chưa paid).
      */
-   public function markCodPaid(Order $order): RedirectResponse
-{
-    if (($order->payment_method ?? 'cod') !== 'cod') {
-        return back()->with('error', 'Chỉ áp dụng cho đơn thanh toán COD.');
-    }
-    if (in_array($order->status, ['cancelled', 'received'], true)) {
-        return back()->with('error', 'Đơn ở trạng thái hiện tại không thể thu COD.');
-    }
-
-    DB::transaction(function () use ($order) {
-        // Cập nhật trạng thái tiền của Order
-        $order->is_paid        = 1;
-        $order->payment_status = 'paid';
-        $order->paid_at        = now();
-        $order->payment_ref    = $order->payment_ref ?: ('COD-ADMIN-' . now()->format('YmdHis'));
-        $order->save();
-
-        // Cập nhật Payment bằng instance để kích hoạt Observer
-        $payment = $order->payment; // <-- lấy model instance
-        if ($payment) {
-            $payment->status         = 'paid';
-            $payment->transaction_id = $payment->transaction_id ?: $order->payment_ref;
-            $payment->save(); // <-- sẽ kích hoạt PaymentObserver -> deductForOrder()
-        } else {
-            // Phòng trường hợp hiếm: chưa có payment record
-            $payment = $order->payment()->create([
-                'method'         => 'cod',
-                'status'         => 'paid',
-                'transaction_id' => $order->payment_ref,
-            ]);
-
-            // Vì Observer chỉ lắng nghe "updated", còn đây là "created",
-            // ta gọi service trừ kho trực tiếp (idempotent nên an toàn):
-            app(\App\Services\InventoryService::class)->deductForOrder($order, auth()->id());
+    public function markCodPaid(Order $order): RedirectResponse
+    {
+        if (($order->payment_method ?? 'cod') !== 'cod') {
+            return back()->with('error', 'Chỉ áp dụng cho đơn thanh toán COD.');
         }
-    });
+        if (in_array($order->status, ['cancelled', 'received'], true)) {
+            return back()->with('error', 'Đơn ở trạng thái hiện tại không thể thu COD.');
+        }
 
-    return back()->with('success', 'Đã đánh dấu “đã thu COD” và đồng bộ kho.');
-}
+        DB::transaction(function () use ($order) {
+            // Cập nhật trạng thái tiền của Order
+            $order->is_paid        = 1;
+            $order->payment_status = 'paid';
+            $order->paid_at        = now();
+            $order->payment_ref    = $order->payment_ref ?: ('COD-ADMIN-' . now()->format('YmdHis'));
+            $order->save();
+
+            // Cập nhật Payment bằng instance để kích hoạt Observer
+            $payment = $order->payment; // <-- lấy model instance
+            if ($payment) {
+                $payment->status         = 'paid';
+                $payment->transaction_id = $payment->transaction_id ?: $order->payment_ref;
+                $payment->save(); // <-- sẽ kích hoạt PaymentObserver -> deductForOrder()
+            } else {
+                // Phòng trường hợp hiếm: chưa có payment record
+                $payment = $order->payment()->create([
+                    'method'         => 'cod',
+                    'status'         => 'paid',
+                    'transaction_id' => $order->payment_ref,
+                ]);
+
+                // Vì Observer chỉ lắng nghe "updated", còn đây là "created",
+                // ta gọi service trừ kho trực tiếp (idempotent nên an toàn):
+                app(\App\Services\InventoryService::class)->deductForOrder($order, auth()->id());
+            }
+        });
+
+        return back()->with('success', 'Đã đánh dấu “đã thu COD” và đồng bộ kho.');
+    }
 }
 class OrderPulseController extends Controller
 {
@@ -214,20 +214,20 @@ class OrderPulseController extends Controller
         ]);
     }
     public function fetchPendingOrders(Request $request)
-{
-    $pendingOrders = Order::with('user:id,name')
-        ->where('status', 'pending')
-        ->latest()
-        ->get([
-            'id',
-            'order_code',
-            'user_id',
-            'final_amount',
-            'created_at'
-        ]);
+    {
+        $pendingOrders = Order::withoutGlobalScopes()->with('user:id,name') // <-- THAY ĐỔI Ở ĐÂY
+            ->where('status', 'pending')
+            ->latest()
+            ->get([
+                'id',
+                'order_code',
+                'user_id',
+                'final_amount',
+                'created_at'
+            ]);
 
-    return response()->json([
-        'pending_orders' => $pendingOrders,
-    ]);
-}
+        return response()->json([
+            'pending_orders' => $pendingOrders,
+        ]);
+    }
 }
