@@ -946,29 +946,29 @@
         }
     </style>
     <script>
-        (function() {
-            // --- Cấu hình ---
-            const pollingInterval = 20000; // 20 giây
-            const soundSrc = '{{ asset('sounds/notification.mp3') }}';
-            const pendingOrderApiUrl =
-                '{{ auth()->user()->role->name === 'admin' ? route('admin.notifications.pending') : route('staff.notifications.pending') }}';
+(function() {
+    // --- Cấu hình ---
+    const pollingInterval = 20000;
+    const soundSrc = '{{ asset("sounds/notification.mp3") }}';
+    const pendingOrderApiUrl = '{{ auth()->user()->role->name === "admin" ? route("admin.notifications.pending") : route("staff.notifications.pending") }}';
 
-            // --- Biến trạng thái (để theo dõi đơn nào đã thông báo) ---
-            let notifiedOrderIds = new Set();
-            const notificationSound = new Audio(soundSrc);
+    // --- Biến trạng thái (sử dụng localStorage để ghi nhớ toast đã hiển thị) ---
+    // ✅ THAY ĐỔI 1: Tải danh sách ID đã thông báo từ localStorage khi bắt đầu
+    let notifiedOrderIds = new Set(JSON.parse(localStorage.getItem('notifiedOrderIds_v1')) || []);
+    const notificationSound = new Audio(soundSrc);
 
-            // --- DOM Elements ---
-            const badge = document.getElementById('notification-badge');
-            const listContainer = document.getElementById('notification-list');
-            const noItemPlaceholder = document.getElementById('no-notification-item');
-            const toastContainer = document.querySelector('.toast-container');
+    // --- DOM Elements ---
+    const badge = document.getElementById('notification-badge');
+    const listContainer = document.getElementById('notification-list');
+    const noItemPlaceholder = document.getElementById('no-notification-item');
+    const toastContainer = document.querySelector('.toast-container');
 
-            // --- Hàm hiển thị Toast ---
-            function showNotificationToast(order) {
-                const toastId = `toast-${order.id}`;
-                if (document.getElementById(toastId)) return; // Không hiện toast nếu đã có
+    // --- Hàm hiển thị Toast ---
+    function showNotificationToast(order) {
+        const toastId = `toast-${order.id}`;
+        if (document.getElementById(toastId)) return;
 
-                const toastHTML = `
+        const toastHTML = `
             <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
                 <div class="toast-header">
                     <i class="bi bi-receipt-cutoff text-primary me-2"></i>
@@ -980,38 +980,33 @@
                     Khách hàng <strong>${order.user.name}</strong> vừa đặt đơn <strong>#${order.order_code}</strong>.
                 </div>
             </div>`;
-                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-                const toast = new bootstrap.Toast(document.getElementById(toastId), {
-                    delay: 2000
-                });
-                toast.show();
+        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+        const toast = new bootstrap.Toast(document.getElementById(toastId), { delay: 2000 });
+        toast.show();
+    }
+
+    // --- Hàm cập nhật toàn bộ danh sách và badge ---
+    function updateNotificationList(pendingOrders) {
+        if (pendingOrders.length > 0) {
+            badge.textContent = pendingOrders.length;
+            badge.style.display = 'block';
+            noItemPlaceholder.style.display = 'none';
+        } else {
+            badge.style.display = 'none';
+            noItemPlaceholder.style.display = 'block';
+        }
+
+        listContainer.querySelectorAll('li[data-order-id]').forEach(item => {
+            const orderId = item.dataset.orderId;
+            if (!pendingOrders.some(o => o.id.toString() === orderId)) {
+                item.remove();
             }
+        });
 
-            // --- Hàm cập nhật toàn bộ danh sách và badge ---
-            function updateNotificationList(pendingOrders) {
-                // Cập nhật badge
-                if (pendingOrders.length > 0) {
-                    badge.textContent = pendingOrders.length;
-                    badge.style.display = 'block';
-                    noItemPlaceholder.style.display = 'none';
-                } else {
-                    badge.style.display = 'none';
-                    noItemPlaceholder.style.display = 'block';
-                }
-
-                // Xóa các mục không còn trong danh sách chờ
-                listContainer.querySelectorAll('li[data-order-id]').forEach(item => {
-                    const orderId = item.dataset.orderId;
-                    if (!pendingOrders.some(o => o.id.toString() === orderId)) {
-                        item.remove();
-                    }
-                });
-
-                // Thêm/cập nhật các mục trong danh sách chờ
-                pendingOrders.forEach(order => {
-                    if (!listContainer.querySelector(`li[data-order-id="${order.id}"]`)) {
-                        const orderUrl = `{{ url(auth()->user()->role->name . '/orders') }}/${order.id}`;
-                        const listItemHTML = `
+        pendingOrders.forEach(order => {
+            if (!listContainer.querySelector(`li[data-order-id="${order.id}"]`)) {
+                const orderUrl = `{{ url(auth()->user()->role->name . '/orders') }}/${order.id}`;
+                const listItemHTML = `
                     <li data-order-id="${order.id}">
                         <a class="dropdown-item py-2" href="${orderUrl}">
                             <div class="small text-wrap">
@@ -1020,55 +1015,54 @@
                             <div class="xsmall text-muted">${new Date(order.created_at).toLocaleString('vi-VN')}</div>
                         </a>
                     </li>`;
-                        listContainer.insertAdjacentHTML('afterbegin', listItemHTML);
-                    }
-                });
+                listContainer.insertAdjacentHTML('afterbegin', listItemHTML);
             }
+        });
+    }
 
-            // --- Hàm chính để kiểm tra ---
-            async function checkPendingOrders() {
-                try {
-                    const response = await fetch(pendingOrderApiUrl);
-                    if (!response.ok) return;
+    // --- Hàm chính để kiểm tra ---
+    async function checkPendingOrders() {
+        try {
+            const response = await fetch(pendingOrderApiUrl);
+            if (!response.ok) return;
 
-                    const data = await response.json();
-                    const pendingOrders = data.pending_orders || [];
-
-                    // 1. Phát hiện đơn hàng MỚI (chưa từng thông báo)
-                    let hasNewOrder = false;
-                    pendingOrders.forEach(order => {
-                        if (!notifiedOrderIds.has(order.id)) {
-                            showNotificationToast(order);
-                            notifiedOrderIds.add(order.id);
-                            hasNewOrder = true;
-                        }
-                    });
-
-                    // Nếu có đơn mới, phát âm thanh 1 lần duy nhất
-                    if (hasNewOrder) {
-                        notificationSound.play().catch(e => console.error("Audio play failed:", e));
-                    }
-
-                    // 2. Cập nhật lại toàn bộ ID đã thông báo để đồng bộ
-                    const currentPendingIds = new Set(pendingOrders.map(o => o.id));
-                    notifiedOrderIds = new Set([...notifiedOrderIds].filter(id => currentPendingIds.has(id)));
-
-                    // 3. Cập nhật lại toàn bộ UI
-                    updateNotificationList(pendingOrders);
-
-                } catch (error) {
-                    console.error('Error fetching pending orders:', error);
+            const data = await response.json();
+            const pendingOrders = data.pending_orders || [];
+            
+            let hasNewOrderForThisSession = false;
+            pendingOrders.forEach(order => {
+                if (!notifiedOrderIds.has(order.id)) {
+                    showNotificationToast(order);
+                    notifiedOrderIds.add(order.id);
+                    
+                    // ✅ THAY ĐỔI 2: Lưu lại ID mới vào localStorage
+                    localStorage.setItem('notifiedOrderIds_v1', JSON.stringify([...notifiedOrderIds]));
+                    
+                    hasNewOrderForThisSession = true;
                 }
-            }
+            });
 
-            // --- Khởi chạy ---
-            // Chạy lần đầu khi tải trang
-            checkPendingOrders();
-            // Sau đó chạy định kỳ
-            setInterval(checkPendingOrders, pollingInterval);
-            console.log('Persistent notification polling started.');
-        })();
-    </script>
+            if (hasNewOrderForThisSession) {
+                notificationSound.play().catch(e => console.error("Audio play failed:", e));
+            }
+            
+            const currentPendingIds = new Set(pendingOrders.map(o => o.id));
+            notifiedOrderIds = new Set([...notifiedOrderIds].filter(id => currentPendingIds.has(id)));
+            localStorage.setItem('notifiedOrderIds_v1', JSON.stringify([...notifiedOrderIds]));
+
+            updateNotificationList(pendingOrders);
+
+        } catch (error) {
+            console.error('Error fetching pending orders:', error);
+        }
+    }
+
+    // --- Khởi chạy ---
+    checkPendingOrders();
+    setInterval(checkPendingOrders, pollingInterval);
+    console.log('Persistent toast notification polling started.');
+})();
+</script>
     @stack('scripts')
 </body>
 

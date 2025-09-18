@@ -1203,12 +1203,13 @@
 <script>
 (function() {
     // --- Cấu hình ---
-    const pollingInterval = 20000; // 20 giây
+    const pollingInterval = 20000;
     const soundSrc = '{{ asset("sounds/notification.mp3") }}';
     const pendingOrderApiUrl = '{{ auth()->user()->role->name === "admin" ? route("admin.notifications.pending") : route("staff.notifications.pending") }}';
 
-    // --- Biến trạng thái (để theo dõi đơn nào đã thông báo) ---
-    let notifiedOrderIds = new Set();
+    // --- Biến trạng thái (sử dụng localStorage để ghi nhớ toast đã hiển thị) ---
+    // ✅ THAY ĐỔI 1: Tải danh sách ID đã thông báo từ localStorage khi bắt đầu
+    let notifiedOrderIds = new Set(JSON.parse(localStorage.getItem('notifiedOrderIds_v1')) || []);
     const notificationSound = new Audio(soundSrc);
 
     // --- DOM Elements ---
@@ -1220,7 +1221,7 @@
     // --- Hàm hiển thị Toast ---
     function showNotificationToast(order) {
         const toastId = `toast-${order.id}`;
-        if (document.getElementById(toastId)) return; // Không hiện toast nếu đã có
+        if (document.getElementById(toastId)) return;
 
         const toastHTML = `
             <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
@@ -1241,7 +1242,6 @@
 
     // --- Hàm cập nhật toàn bộ danh sách và badge ---
     function updateNotificationList(pendingOrders) {
-        // Cập nhật badge
         if (pendingOrders.length > 0) {
             badge.textContent = pendingOrders.length;
             badge.style.display = 'block';
@@ -1251,7 +1251,6 @@
             noItemPlaceholder.style.display = 'block';
         }
 
-        // Xóa các mục không còn trong danh sách chờ
         listContainer.querySelectorAll('li[data-order-id]').forEach(item => {
             const orderId = item.dataset.orderId;
             if (!pendingOrders.some(o => o.id.toString() === orderId)) {
@@ -1259,7 +1258,6 @@
             }
         });
 
-        // Thêm/cập nhật các mục trong danh sách chờ
         pendingOrders.forEach(order => {
             if (!listContainer.querySelector(`li[data-order-id="${order.id}"]`)) {
                 const orderUrl = `{{ url(auth()->user()->role->name . '/orders') }}/${order.id}`;
@@ -1285,27 +1283,28 @@
 
             const data = await response.json();
             const pendingOrders = data.pending_orders || [];
-
-            // 1. Phát hiện đơn hàng MỚI (chưa từng thông báo)
-            let hasNewOrder = false;
+            
+            let hasNewOrderForThisSession = false;
             pendingOrders.forEach(order => {
                 if (!notifiedOrderIds.has(order.id)) {
                     showNotificationToast(order);
                     notifiedOrderIds.add(order.id);
-                    hasNewOrder = true;
+                    
+                    // ✅ THAY ĐỔI 2: Lưu lại ID mới vào localStorage
+                    localStorage.setItem('notifiedOrderIds_v1', JSON.stringify([...notifiedOrderIds]));
+                    
+                    hasNewOrderForThisSession = true;
                 }
             });
 
-            // Nếu có đơn mới, phát âm thanh 1 lần duy nhất
-            if (hasNewOrder) {
+            if (hasNewOrderForThisSession) {
                 notificationSound.play().catch(e => console.error("Audio play failed:", e));
             }
-
-            // 2. Cập nhật lại toàn bộ ID đã thông báo để đồng bộ
+            
             const currentPendingIds = new Set(pendingOrders.map(o => o.id));
             notifiedOrderIds = new Set([...notifiedOrderIds].filter(id => currentPendingIds.has(id)));
+            localStorage.setItem('notifiedOrderIds_v1', JSON.stringify([...notifiedOrderIds]));
 
-            // 3. Cập nhật lại toàn bộ UI
             updateNotificationList(pendingOrders);
 
         } catch (error) {
@@ -1314,11 +1313,9 @@
     }
 
     // --- Khởi chạy ---
-    // Chạy lần đầu khi tải trang
     checkPendingOrders();
-    // Sau đó chạy định kỳ
     setInterval(checkPendingOrders, pollingInterval);
-    console.log('Persistent notification polling started.');
+    console.log('Persistent toast notification polling started.');
 })();
 </script>
 @stack('scripts')
