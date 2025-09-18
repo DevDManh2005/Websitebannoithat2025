@@ -206,7 +206,7 @@ Route::prefix('admin')
             Route::post('/{order}/ready-to-ship', [AdminOrderController::class, 'readyToShip'])->name('ready-to-ship');
             Route::patch('/{order}/cod-paid', [AdminOrderController::class, 'markCodPaid'])->name('cod-paid');
         });
-        Route::get('/notifications/new-orders', [\App\Http\Controllers\Admin\OrderController::class, 'fetchNewOrders'])->name('notifications.new'); // <-- THÊM DÒNG NÀY
+        Route::get('/notifications/pending-orders', [\App\Http\Controllers\Admin\OrderController::class, 'fetchPendingOrders'])->name('notifications.pending'); // <-- THÊM DÒNG NÀY
 
         // Đánh giá SP
         Route::prefix('reviews')->name('reviews.')->group(function () {
@@ -271,7 +271,7 @@ Route::prefix('staff')
         Route::get('/dashboard', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])
             ->name('dashboard');
         /* ========== KINH DOANH ========== */
-        Route::get('/notifications/new-orders', [\App\Http\Controllers\Admin\OrderController::class, 'fetchNewOrders'])->name('notifications.new'); // <-- THÊM DÒNG NÀY
+        Route::get('/notifications/pending-orders', [\App\Http\Controllers\Admin\OrderController::class, 'fetchPendingOrders'])->name('notifications.pending'); // <-- THÊM DÒNG NÀY
         // Orders (tái dùng Admin\OrderController) — giữ camelCase cho readyToShip/codPaid
         Route::prefix('orders')->name('orders.')->group(function () {
             Route::get('/', [AdminOrderController::class, 'index'])->name('index');

@@ -516,40 +516,41 @@
                     </div>
 
                     <ul class="navbar-nav ms-auto align-items-center gap-2">
+                        <li class="nav-item d-none d-md-inline">
+                            <span class="text-muted small me-2">Phím tắt</span>
+                            <span class="kbd">Ctrl</span><span class="mx-1">+</span><span class="kbd">/</span>
+                            <span class="mx-2">•</span>
+                            <span class="kbd">Ctrl</span><span class="mx-1">+</span><span class="kbd">K</span>
+                        </li>
                         {{-- Notification Dropdown --}}
                         <li class="nav-item dropdown">
                             <a class="nav-link" href="#" id="notificationDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
+                                data-bs-toggle="dropdown" aria-expanded="false" title="Đơn hàng chờ xử lý">
                                 <span class="position-relative">
                                     <i class="bi bi-bell fs-5"></i>
+                                    {{-- Badge này sẽ do JS quản lý --}}
                                     <span
                                         class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                        id="notification-badge" style="display: none;">0</span>
+                                        id="notification-badge" style="display: none;"></span>
                                 </span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationDropdown"
                                 style="width: 350px;">
-                                <li class="px-3 py-2 d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Thông báo mới</h6>
+                                <li class="px-3 py-2">
+                                    <h6 class="mb-0">Đơn hàng chờ xử lý</h6>
                                 </li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
+                                {{-- Danh sách này sẽ do JS quản lý --}}
                                 <div id="notification-list" style="max-height: 400px; overflow-y: auto;">
-                                    <li class="text-center text-muted p-3" id="no-notification-item">Không có thông báo
-                                        mới.</li>
+                                    <li class="text-center text-muted p-3" id="no-notification-item">
+                                        <i class="bi bi-check2-circle fs-3 d-block mb-1 text-success"></i>
+                                        Không có đơn hàng nào cần xử lý.
+                                    </li>
                                 </div>
                             </ul>
                         </li>
-                        <li class="nav-item d-none d-md-inline">
-                            <span class="text-muted small me-2">Phím tắt</span>
-                            <span class="kbd">Ctrl</span><span class="mx-1">+</span><span
-                                class="kbd">/</span>
-                            <span class="mx-2">•</span>
-                            <span class="kbd">Ctrl</span><span class="mx-1">+</span><span
-                                class="kbd">K</span>
-                        </li>
-
                         {{-- User Dropdown --}}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
@@ -903,117 +904,7 @@
             });
         })();
     </script>
-    {{-- ======================================================= --}}
-    {{-- THÊM MỚI: LOGIC REAL-TIME NOTIFICATION BẰNG POLLING --}}
-    {{-- ======================================================= --}}
-    <script>
-        (function() {
-            // --- Cấu hình ---
-            const pollingInterval = 20000; // 20 giây
-            const soundSrc = '{{ asset('sounds/notification.mp3') }}'; // Đường dẫn tới file âm báo
-            const newOrderApiUrl =
-                '{{ auth()->user()->role->name === 'admin' ? route('admin.notifications.new') : route('staff.notifications.new') }}';
 
-            // --- Biến trạng thái ---
-            let lastCheckTimestamp = '{{ now()->toIso8601String() }}';
-            let notificationCount = 0;
-            const notificationSound = new Audio(soundSrc);
-
-            // --- DOM Elements ---
-            const badge = document.getElementById('notification-badge');
-            const list = document.getElementById('notification-list');
-            const noItem = document.getElementById('no-notification-item');
-            const toastContainer = document.querySelector('.toast-container');
-            const dropdownToggle = document.getElementById('notificationDropdown');
-
-            // --- Hàm xử lý ---
-
-            // 1. Hàm hiển thị Toast
-            function showNotificationToast(order) {
-                const toastId = `toast-${order.id}`;
-                const toastHTML = `
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
-                <div class="toast-header">
-                    <i class="bi bi-receipt-cutoff text-primary me-2"></i>
-                    <strong class="me-auto">Đơn hàng mới!</strong>
-                    <small>vài giây trước</small>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    Khách hàng <strong>${order.user.name}</strong> vừa đặt đơn <strong>#${order.order_code}</strong>.
-                </div>
-            </div>
-        `;
-                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-                const toastEl = document.getElementById(toastId);
-                const toast = new bootstrap.Toast(toastEl, {
-                    delay: 10000
-                });
-                toast.show();
-            }
-
-            // 2. Hàm cập nhật UI (Badge và List)
-            function updateNotificationUI(order) {
-                // Cập nhật Badge
-                notificationCount++;
-                badge.textContent = notificationCount;
-                badge.style.display = 'block';
-
-                // Xóa thông báo "Không có" nếu có
-                if (noItem) noItem.style.display = 'none';
-
-                // Thêm vào danh sách
-                const orderUrl = `{{ url(auth()->user()->role->name . '/orders') }}/${order.id}`;
-                const listItemHTML = `
-            <li>
-                <a class="dropdown-item py-2" href="${orderUrl}">
-                    <div class="small text-wrap">
-                        KH <strong>${order.user.name}</strong> vừa đặt đơn <strong>#${order.order_code}</strong>.
-                    </div>
-                    <div class="xsmall text-muted">${new Date(order.created_at).toLocaleString('vi-VN')}</div>
-                </a>
-            </li>
-        `;
-                list.insertAdjacentHTML('afterbegin', listItemHTML); // Thêm vào đầu danh sách
-            }
-
-            // 3. Hàm chính để kiểm tra đơn hàng mới
-            async function checkNewOrders() {
-                try {
-                    const response = await fetch(`${newOrderApiUrl}?last_check=${lastCheckTimestamp}`);
-                    if (!response.ok) return;
-
-                    const data = await response.json();
-                    const newOrders = data.new_orders || [];
-
-                    // Cập nhật timestamp cho lần kiểm tra tiếp theo
-                    lastCheckTimestamp = data.server_time;
-
-                    if (newOrders.length > 0) {
-                        newOrders.forEach(order => {
-                            updateNotificationUI(order);
-                            showNotificationToast(order);
-                        });
-                        notificationSound.play().catch(e => console.error("Audio play failed:", e));
-                    }
-                } catch (error) {
-                    console.error('Error fetching new orders:', error);
-                }
-            }
-
-            // 4. Reset badge khi người dùng click vào chuông
-            dropdownToggle.addEventListener('show.bs.dropdown', () => {
-                notificationCount = 0;
-                badge.style.display = 'none';
-                badge.textContent = '0';
-            });
-
-
-            // --- Khởi chạy ---
-            setInterval(checkNewOrders, pollingInterval);
-            console.log('Notification polling started.');
-        })();
-    </script>
     {{-- KILL-SWITCH pseudo-element lạ trên phân trang (nếu có) --}}
     <style id="kill-pagination-arrows">
         .pagination::before,
@@ -1054,7 +945,130 @@
             position: static !important
         }
     </style>
+    <script>
+        (function() {
+            // --- Cấu hình ---
+            const pollingInterval = 20000; // 20 giây
+            const soundSrc = '{{ asset('sounds/notification.mp3') }}';
+            const pendingOrderApiUrl =
+                '{{ auth()->user()->role->name === 'admin' ? route('admin.notifications.pending') : route('staff.notifications.pending') }}';
 
+            // --- Biến trạng thái (để theo dõi đơn nào đã thông báo) ---
+            let notifiedOrderIds = new Set();
+            const notificationSound = new Audio(soundSrc);
+
+            // --- DOM Elements ---
+            const badge = document.getElementById('notification-badge');
+            const listContainer = document.getElementById('notification-list');
+            const noItemPlaceholder = document.getElementById('no-notification-item');
+            const toastContainer = document.querySelector('.toast-container');
+
+            // --- Hàm hiển thị Toast ---
+            function showNotificationToast(order) {
+                const toastId = `toast-${order.id}`;
+                if (document.getElementById(toastId)) return; // Không hiện toast nếu đã có
+
+                const toastHTML = `
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
+                <div class="toast-header">
+                    <i class="bi bi-receipt-cutoff text-primary me-2"></i>
+                    <strong class="me-auto">Đơn hàng mới!</strong>
+                    <small>vài giây trước</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Khách hàng <strong>${order.user.name}</strong> vừa đặt đơn <strong>#${order.order_code}</strong>.
+                </div>
+            </div>`;
+                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+                const toast = new bootstrap.Toast(document.getElementById(toastId), {
+                    delay: 15000
+                });
+                toast.show();
+            }
+
+            // --- Hàm cập nhật toàn bộ danh sách và badge ---
+            function updateNotificationList(pendingOrders) {
+                // Cập nhật badge
+                if (pendingOrders.length > 0) {
+                    badge.textContent = pendingOrders.length;
+                    badge.style.display = 'block';
+                    noItemPlaceholder.style.display = 'none';
+                } else {
+                    badge.style.display = 'none';
+                    noItemPlaceholder.style.display = 'block';
+                }
+
+                // Xóa các mục không còn trong danh sách chờ
+                listContainer.querySelectorAll('li[data-order-id]').forEach(item => {
+                    const orderId = item.dataset.orderId;
+                    if (!pendingOrders.some(o => o.id.toString() === orderId)) {
+                        item.remove();
+                    }
+                });
+
+                // Thêm/cập nhật các mục trong danh sách chờ
+                pendingOrders.forEach(order => {
+                    if (!listContainer.querySelector(`li[data-order-id="${order.id}"]`)) {
+                        const orderUrl = `{{ url(auth()->user()->role->name . '/orders') }}/${order.id}`;
+                        const listItemHTML = `
+                    <li data-order-id="${order.id}">
+                        <a class="dropdown-item py-2" href="${orderUrl}">
+                            <div class="small text-wrap">
+                                Đơn <strong>#${order.order_code}</strong> từ KH <strong>${order.user.name}</strong>
+                            </div>
+                            <div class="xsmall text-muted">${new Date(order.created_at).toLocaleString('vi-VN')}</div>
+                        </a>
+                    </li>`;
+                        listContainer.insertAdjacentHTML('afterbegin', listItemHTML);
+                    }
+                });
+            }
+
+            // --- Hàm chính để kiểm tra ---
+            async function checkPendingOrders() {
+                try {
+                    const response = await fetch(pendingOrderApiUrl);
+                    if (!response.ok) return;
+
+                    const data = await response.json();
+                    const pendingOrders = data.pending_orders || [];
+
+                    // 1. Phát hiện đơn hàng MỚI (chưa từng thông báo)
+                    let hasNewOrder = false;
+                    pendingOrders.forEach(order => {
+                        if (!notifiedOrderIds.has(order.id)) {
+                            showNotificationToast(order);
+                            notifiedOrderIds.add(order.id);
+                            hasNewOrder = true;
+                        }
+                    });
+
+                    // Nếu có đơn mới, phát âm thanh 1 lần duy nhất
+                    if (hasNewOrder) {
+                        notificationSound.play().catch(e => console.error("Audio play failed:", e));
+                    }
+
+                    // 2. Cập nhật lại toàn bộ ID đã thông báo để đồng bộ
+                    const currentPendingIds = new Set(pendingOrders.map(o => o.id));
+                    notifiedOrderIds = new Set([...notifiedOrderIds].filter(id => currentPendingIds.has(id)));
+
+                    // 3. Cập nhật lại toàn bộ UI
+                    updateNotificationList(pendingOrders);
+
+                } catch (error) {
+                    console.error('Error fetching pending orders:', error);
+                }
+            }
+
+            // --- Khởi chạy ---
+            // Chạy lần đầu khi tải trang
+            checkPendingOrders();
+            // Sau đó chạy định kỳ
+            setInterval(checkPendingOrders, pollingInterval);
+            console.log('Persistent notification polling started.');
+        })();
+    </script>
     @stack('scripts')
 </body>
 

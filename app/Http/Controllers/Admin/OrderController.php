@@ -213,28 +213,21 @@ class OrderPulseController extends Controller
             }),
         ]);
     }
-     public function fetchNewOrders(Request $request)
-    {
-        $request->validate([
-            'last_check' => 'required|date_format:Y-m-d\TH:i:s.u\Z',
+    public function fetchPendingOrders(Request $request)
+{
+    $pendingOrders = Order::with('user:id,name')
+        ->where('status', 'pending')
+        ->latest()
+        ->get([
+            'id',
+            'order_code',
+            'user_id',
+            'final_amount',
+            'created_at'
         ]);
 
-        $lastCheckTime = $request->query('last_check');
-
-        $newOrders = Order::with('user:id,name')
-            ->where('created_at', '>', $lastCheckTime)
-            ->latest() // Sắp xếp để đơn mới nhất ở đầu
-            ->get([
-                'id',
-                'order_code',
-                'user_id',
-                'final_amount',
-                'created_at'
-            ]);
-
-        return response()->json([
-            'new_orders' => $newOrders,
-            'server_time' => now()->toIso8601String(), // Trả về thời gian server để client đồng bộ
-        ]);
-    }
+    return response()->json([
+        'pending_orders' => $pendingOrders,
+    ]);
+}
 }
