@@ -11,26 +11,22 @@ use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    /**
-     * Quản trị đơn hàng nội bộ (không tích hợp đơn vị vận chuyển bên thứ ba).
-     * Chức năng: liệt kê/lọc, xem chi tiết, cập nhật trạng thái, cập nhật địa chỉ,
-     * đánh dấu sẵn sàng giao (nội bộ), và đánh dấu đã thu COD.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Các phương thức quản lý chính (CRUD)
+    |--------------------------------------------------------------------------
+    */
 
     /**
-     * Danh sách đơn + lọc theo trạng thái.
+     * Hiển thị danh sách đơn hàng có phân trang và lọc.
      */
     public function index(Request $request): View
     {
         $status = (string) $request->query('status', 'all');
-        // THÊM MỚI: Lấy giá trị từ ô tìm kiếm
         $search = (string) $request->query('code');
 
         $orders = Order::with('user')
-            // Giữ nguyên logic lọc theo trạng thái
             ->when($status !== 'all', fn($q) => $q->where('status', $status))
-
-            // THÊM MỚI: Logic lọc theo mã đơn/tên khách hàng
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('order_code', 'like', "%{$search}%")
@@ -39,7 +35,6 @@ class OrderController extends Controller
                         });
                 });
             })
-
             ->latest()
             ->paginate(15)
             ->appends($request->query());
@@ -51,7 +46,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Chi tiết đơn: thông tin người dùng, mặt hàng, giao hàng, thanh toán.
+     * Hiển thị chi tiết một đơn hàng.
      */
     public function show(Order $order): View
     {
@@ -65,9 +60,14 @@ class OrderController extends Controller
         return view('admins.orders.show', compact('order'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Các phương thức xử lý hành động (Actions)
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Cập nhật trạng thái đơn (nội bộ).
-     * Ghi chú: "received" là do khách hàng xác nhận, admin không set.
+     * Cập nhật trạng thái đơn hàng.
      */
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
@@ -85,7 +85,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Cập nhật thông tin giao hàng (nội bộ).
+     * Cập nhật thông tin giao hàng.
      */
     public function updateShippingInfo(Request $request, Order $order): RedirectResponse
     {
@@ -110,9 +110,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Đánh dấu "sẵn sàng giao" theo quy trình nội bộ:
-     * - Tạo/giữ mã tracking nội bộ.
-     * - Đổi shipment.status & order.status -> "shipping".
+     * Đánh dấu "sẵn sàng giao" trong quy trình nội bộ.
      */
     public function readyToShip(Order $order): RedirectResponse
     {
@@ -122,7 +120,7 @@ class OrderController extends Controller
             $order->shipment->update([
                 'tracking_code' => $order->shipment->tracking_code
                     ?: ('LOCAL-' . now()->format('YmdHis') . '-' . $order->id),
-                'status' => 'shipping', // waiting|shipping|delivered|failed
+                'status' => 'shipping',
             ]);
         }
 
@@ -132,90 +130,57 @@ class OrderController extends Controller
     }
 
     /**
-     * Admin đánh dấu đã THU COD (chỉ cho đơn COD, chưa paid).
+     * Admin đánh dấu đã thu tiền COD.
      */
     public function markCodPaid(Order $order): RedirectResponse
     {
         if (($order->payment_method ?? 'cod') !== 'cod') {
             return back()->with('error', 'Chỉ áp dụng cho đơn thanh toán COD.');
         }
+
         if (in_array($order->status, ['cancelled', 'received'], true)) {
             return back()->with('error', 'Đơn ở trạng thái hiện tại không thể thu COD.');
         }
 
         DB::transaction(function () use ($order) {
-            // Cập nhật trạng thái tiền của Order
-            $order->is_paid        = 1;
-            $order->payment_status = 'paid';
-            $order->paid_at        = now();
-            $order->payment_ref    = $order->payment_ref ?: ('COD-ADMIN-' . now()->format('YmdHis'));
-            $order->save();
+            $order->update([
+                'is_paid'        => true,
+                'payment_status' => 'paid',
+                'paid_at'        => now(),
+                'payment_ref'    => $order->payment_ref ?: ('COD-ADMIN-' . now()->format('YmdHis')),
+            ]);
 
-            // Cập nhật Payment bằng instance để kích hoạt Observer
-            $payment = $order->payment; // <-- lấy model instance
-            if ($payment) {
-                $payment->status         = 'paid';
-                $payment->transaction_id = $payment->transaction_id ?: $order->payment_ref;
-                $payment->save(); // <-- sẽ kích hoạt PaymentObserver -> deductForOrder()
+            if ($order->payment) {
+                $order->payment->update([
+                    'status'         => 'paid',
+                    'transaction_id' => $order->payment->transaction_id ?: $order->payment_ref,
+                ]);
             } else {
-                // Phòng trường hợp hiếm: chưa có payment record
-                $payment = $order->payment()->create([
+                $order->payment()->create([
                     'method'         => 'cod',
                     'status'         => 'paid',
                     'transaction_id' => $order->payment_ref,
                 ]);
-
-                // Vì Observer chỉ lắng nghe "updated", còn đây là "created",
-                // ta gọi service trừ kho trực tiếp (idempotent nên an toàn):
-                app(\App\Services\InventoryService::class)->deductForOrder($order, auth()->id());
+                // Nếu bạn có service để xử lý trừ kho, hãy gọi nó ở đây
+                // app(\App\Services\InventoryService::class)->deductForOrder($order, auth()->id());
             }
         });
 
         return back()->with('success', 'Đã đánh dấu “đã thu COD” và đồng bộ kho.');
     }
-}
-class OrderPulseController extends Controller
-{
-    public function __invoke(Request $request)
-    {
-        // since: có thể là ms, s, hoặc ISO8601. Không có thì mặc định 60s gần nhất.
-        $sinceParam = $request->query('since');
-        $limit      = (int) $request->query('limit', 6);
 
-        if ($sinceParam === null || $sinceParam === '') {
-            $since = now()->subSeconds(60);
-        } elseif (ctype_digit((string) $sinceParam)) {
-            $ts    = (int) $sinceParam;
-            $since = Carbon::createFromTimestamp($ts > 1_000_000_000_000 ? (int) floor($ts / 1000) : $ts);
-        } else {
-            $since = Carbon::parse($sinceParam);
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | Các phương thức API cho Frontend (AJAX)
+    |--------------------------------------------------------------------------
+    */
 
-        // Lấy đơn mới hơn mốc 'since'
-        $orders = Order::with('user')
-            ->where('created_at', '>', $since)
-            ->latest('id')
-            ->limit($limit)
-            ->get();
-
-        return response()->json([
-            'now_ts'    => now()->valueOf(), // ms
-            'new_count' => $orders->count(),
-            'items'     => $orders->map(function ($o) {
-                return [
-                    'id'    => $o->id,
-                    'code'  => (string) $o->order_code,
-                    'user'  => optional($o->user)->name ?? 'Khách',
-                    'total' => number_format($o->final_amount) . ' ₫',
-                    'when'  => optional($o->created_at)->format('H:i d/m'),
-                    'url'   => route('admin.orders.show', $o),
-                ];
-            }),
-        ]);
-    }
+    /**
+     * API endpoint để lấy TẤT CẢ các đơn hàng đang chờ xử lý.
+     */
     public function fetchPendingOrders(Request $request)
     {
-        $pendingOrders = Order::withoutGlobalScopes()->with('user:id,name') // <-- THAY ĐỔI Ở ĐÂY
+        $pendingOrders = Order::withoutGlobalScopes()->with('user')
             ->where('status', 'pending')
             ->latest()
             ->get([
