@@ -982,7 +982,7 @@
             </div>`;
                 toastContainer.insertAdjacentHTML('beforeend', toastHTML);
                 const toast = new bootstrap.Toast(document.getElementById(toastId), {
-                    delay: 15000
+                    delay: 2000
                 });
                 toast.show();
             }
