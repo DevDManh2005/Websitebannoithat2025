@@ -64,7 +64,7 @@
           <div class="input-group input-group-lg rounded-4 shadow-sm-soft">
             <span class="input-group-text bg-white border-end-0"><i class="bi bi-lock"></i></span>
             <input id="pwd" type="password" name="password" class="form-control border-start-0"
-                   placeholder="Tối thiểu 8 ký tự" required minlength="8">
+                   placeholder="Tối thiểu 9 ký tự" required minlength="9">
             <button type="button" id="togglePwd" class="input-group-text bg-white border-start-0 eye-btn">
               <i class="bi bi-eye"></i>
             </button>
