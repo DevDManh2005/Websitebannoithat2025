@@ -126,83 +126,109 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const typeEl   = document.getElementById('type');
-  const valueEl  = document.getElementById('value');
-  const helpEl   = document.getElementById('valueHelp');
-  const unitEl   = document.getElementById('valueUnit');
-  const btnGen   = document.getElementById('btnGenCode');
-  const codeEl   = document.getElementById('code');
-  const MAX_PERCENT = 50;
+    const typeEl = document.getElementById('type');
+    const valueEl = document.getElementById('value');
+    const helpEl = document.getElementById('valueHelp');
+    const unitEl = document.getElementById('valueUnit');
+    const btnGen = document.getElementById('btnGenCode');
+    const codeEl = document.getElementById('code');
+    const MAX_PERCENT = 50;
 
-  function showToast(message, icon='warning'){
-    if (window.Swal) {
-      Swal.fire({ toast:true, icon, title:message, timer:1700, showConfirmButton:false, position:'top-end' });
-    } else { alert(message); }
-  }
+    // MỚI: Lấy thêm element của ô "Giá trị đơn hàng tối thiểu"
+    const minOrderAmountEl = document.getElementById('min_order_amount');
 
-  function syncValueUI(){
-    const isPercent = typeEl.value === 'percent';
-    unitEl.textContent = isPercent ? '%' : '₫';
-    helpEl.textContent = isPercent
-      ? 'Nhập giá trị từ 0 đến 50 (ví dụ: 10 = giảm 10%).'
-      : 'Nhập số tiền giảm cố định (đơn vị VNĐ). Ví dụ: 50000.';
-    valueEl.setAttribute('min','0');
-    valueEl.setAttribute('step', isPercent ? '1' : '1000');
-    if(isPercent){
-      valueEl.setAttribute('max', String(MAX_PERCENT));
-      const v = parseFloat(valueEl.value || '0');
-      if(v > MAX_PERCENT){ valueEl.value = MAX_PERCENT; showToast('Mức giảm theo % không được vượt quá 50%'); }
-    }else{
-      valueEl.removeAttribute('max');
+    function showToast(message, icon = 'warning') {
+        if (window.Swal) {
+            Swal.fire({ toast: true, icon, title: message, timer: 2500, showConfirmButton: false, position: 'top-end' });
+        } else { alert(message); }
     }
-  }
 
-  ['change','keyup','blur'].forEach(evt=>{
-    valueEl.addEventListener(evt, ()=>{
-      if(typeEl.value === 'percent'){
-        let v = parseFloat(valueEl.value || '0');
-        if(v > MAX_PERCENT){ valueEl.value = MAX_PERCENT; showToast('Mức giảm theo % không được vượt quá 50%'); }
-        if(v < 0){ valueEl.value = 0; }
-      }else{
-        let v = parseFloat(valueEl.value || '0');
-        if(v < 0){ valueEl.value = 0; }
-      }
+    // MỚI: Hàm kiểm tra logic "tối thiểu > giá trị giảm"
+    function validateMinOrderAmount() {
+        // Chỉ áp dụng khi là loại "Giảm giá cố định"
+        if (typeEl.value !== 'fixed') {
+            return;
+        }
+
+        const voucherValue = parseFloat(valueEl.value || '0');
+        const minOrderValue = parseFloat(minOrderAmountEl.value || '0');
+
+        // Nếu có đặt giá trị tối thiểu và nó không lớn hơn mức giảm giá -> cảnh báo
+        if (minOrderValue > 0 && minOrderValue <= voucherValue) {
+            showToast('Giá trị đơn hàng tối thiểu phải lớn hơn mức giảm giá.');
+            // Bạn có thể thêm logic tự động sửa, ví dụ: minOrderAmountEl.value = '';
+        }
+    }
+
+    function syncValueUI() {
+        const isPercent = typeEl.value === 'percent';
+        unitEl.textContent = isPercent ? '%' : '₫';
+        helpEl.textContent = isPercent
+            ? 'Nhập giá trị từ 0 đến 50 (ví dụ: 10 = giảm 10%).'
+            : 'Nhập số tiền giảm cố định (đơn vị VNĐ). Ví dụ: 50000.';
+        valueEl.setAttribute('min', '0');
+        valueEl.setAttribute('step', isPercent ? '1' : '1000');
+        if (isPercent) {
+            valueEl.setAttribute('max', String(MAX_PERCENT));
+            const v = parseFloat(valueEl.value || '0');
+            if (v > MAX_PERCENT) { valueEl.value = MAX_PERCENT; showToast('Mức giảm theo % không được vượt quá 50%'); }
+        } else {
+            valueEl.removeAttribute('max');
+        }
+        // MỚI: Gọi hàm validate mỗi khi UI thay đổi
+        validateMinOrderAmount();
+    }
+
+    ['change', 'keyup', 'blur'].forEach(evt => {
+        valueEl.addEventListener(evt, () => {
+            if (typeEl.value === 'percent') {
+                let v = parseFloat(valueEl.value || '0');
+                if (v > MAX_PERCENT) { valueEl.value = MAX_PERCENT; showToast('Mức giảm theo % không được vượt quá 50%'); }
+                if (v < 0) { valueEl.value = 0; }
+            } else {
+                let v = parseFloat(valueEl.value || '0');
+                if (v < 0) { valueEl.value = 0; }
+            }
+            // MỚI: Gọi hàm validate khi giá trị voucher thay đổi
+            validateMinOrderAmount();
+        });
     });
-  });
 
-  typeEl.addEventListener('change', syncValueUI);
-  syncValueUI();
+    // MỚI: Thêm listener cho ô giá trị tối thiểu
+    minOrderAmountEl.addEventListener('change', validateMinOrderAmount);
+    minOrderAmountEl.addEventListener('keyup', validateMinOrderAmount);
 
-  btnGen?.addEventListener('click', ()=>{
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let res = [];
-    for(let i=0;i<8;i++){ res.push(chars[Math.floor(Math.random()*chars.length)]); }
-    const code = res.join('');
-    codeEl.value = code;
-    showToast('Đã tạo mã: '+code, 'success');
-  });
+    typeEl.addEventListener('change', syncValueUI);
+    syncValueUI();
 
-  // Validate thời gian
-  const startEl = document.getElementById('start_at');
-  const endEl   = document.getElementById('end_at');
-  [startEl,endEl].forEach(el=> el?.addEventListener('change', ()=>{
-    if(startEl?.value && endEl?.value){
-      const s = new Date(startEl.value);
-      const e = new Date(endEl.value);
-      if(e < s){
-        endEl.value = startEl.value;
-        showToast('Ngày kết thúc phải sau ngày bắt đầu');
-      }
-    }
-  }));
+    btnGen?.addEventListener('click', () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let res = [];
+        for (let i = 0; i < 8; i++) { res.push(chars[Math.floor(Math.random() * chars.length)]); }
+        const code = res.join('');
+        codeEl.value = code;
+        showToast('Đã tạo mã: ' + code, 'success');
+    });
 
-  // Thông báo submit / lỗi (nếu có)
-  @if (session('success'))
-    if (window.Swal) Swal.fire({toast:true, icon:'success', title:@json(session('success')), timer:2000, showConfirmButton:false, position:'top-end'});
-  @endif
-  @if ($errors->any())
-    if (window.Swal) Swal.fire({icon:'error', title:'Dữ liệu chưa hợp lệ', html:`{!! collect($errors->all())->map(fn($e)=>'<div class="text-start">• '.e($e).'</div>')->implode('') !!}`});
-  @endif
+    const startEl = document.getElementById('start_at');
+    const endEl = document.getElementById('end_at');
+    [startEl, endEl].forEach(el => el?.addEventListener('change', () => {
+        if (startEl?.value && endEl?.value) {
+            const s = new Date(startEl.value);
+            const e = new Date(endEl.value);
+            if (e < s) {
+                endEl.value = startEl.value;
+                showToast('Ngày kết thúc phải sau ngày bắt đầu');
+            }
+        }
+    }));
+
+    @if (session('success'))
+        if (window.Swal) Swal.fire({ toast: true, icon: 'success', title: @json(session('success')), timer: 2000, showConfirmButton: false, position: 'top-end' });
+    @endif
+    @if ($errors->any())
+        if (window.Swal) Swal.fire({ icon: 'error', title: 'Dữ liệu chưa hợp lệ', html: `{!! collect($errors->all())->map(fn($e)=>'<div class="text-start">• '.e($e).'</div>')->implode('') !!}` });
+    @endif
 });
 </script>
 @endpush

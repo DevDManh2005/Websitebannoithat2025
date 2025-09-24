@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreVoucherRequest; // THAY ĐỔI: Sử dụng Form Request mới
 use App\Models\Voucher;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+// use Illuminate\Http\Request; // Không cần dùng trực tiếp trong store/update nữa
+// use Illuminate\Support\Facades\Validator; // Bỏ đi vì đã chuyển validation sang Form Request
 
 class VoucherController extends Controller
 {
@@ -20,27 +21,14 @@ class VoucherController extends Controller
         return view('admins.vouchers.create');
     }
 
-    public function store(Request $request)
+    /**
+     * THAY ĐỔI: Sử dụng StoreVoucherRequest để tự động validate
+     */
+    public function store(StoreVoucherRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'code'             => 'required|string|unique:vouchers,code',
-            'type'             => 'required|in:percent,fixed',
-            'value'            => 'required|numeric|min:0',
-            'min_order_amount' => 'nullable|numeric|min:0',
-            'usage_limit'      => 'nullable|integer|min:1',
-            'start_at'         => 'nullable|date',
-            'end_at'           => 'nullable|date|after_or_equal:start_at',
-            'is_active'        => 'boolean',
-        ], [
-            'value.max' => 'Mức giảm theo phần trăm chỉ được tối đa 50%.',
-        ]);
-
-        $validator->sometimes('value', 'max:50', function ($input) {
-            return $input->type === 'percent';
-        });
-
-        $data = $validator->validate();
-        $data['is_active'] = $request->boolean('is_active');
+        // Dữ liệu đã được validate tự động bởi StoreVoucherRequest
+        // Nếu validate thất bại, Laravel sẽ tự động redirect về trang trước kèm theo lỗi
+        $data = $request->validated();
 
         Voucher::create($data);
 
@@ -52,27 +40,14 @@ class VoucherController extends Controller
         return view('admins.vouchers.edit', compact('voucher'));
     }
 
-    public function update(Request $request, Voucher $voucher)
+    /**
+     * THAY ĐỔI: Sử dụng StoreVoucherRequest cho cả hàm update
+     */
+    public function update(StoreVoucherRequest $request, Voucher $voucher)
     {
-        $validator = Validator::make($request->all(), [
-            'code'             => 'required|string|unique:vouchers,code,' . $voucher->id,
-            'type'             => 'required|in:percent,fixed',
-            'value'            => 'required|numeric|min:0',
-            'min_order_amount' => 'nullable|numeric|min:0',
-            'usage_limit'      => 'nullable|integer|min:1',
-            'start_at'         => 'nullable|date',
-            'end_at'           => 'nullable|date|after_or_equal:start_at',
-            'is_active'        => 'boolean',
-        ], [
-            'value.max' => 'Mức giảm theo phần trăm chỉ được tối đa 50%.',
-        ]);
+        // Tương tự hàm store, dữ liệu đã được validate
+        $data = $request->validated();
 
-        $validator->sometimes('value', 'max:50', function ($input) {
-            return $input->type === 'percent';
-        });
-
-        $data = $validator->validate();
-        $data['is_active'] = $request->boolean('is_active');
         $voucher->update($data);
 
         return redirect()->route('admin.vouchers.index')->with('success', 'Cập nhật voucher thành công.');
