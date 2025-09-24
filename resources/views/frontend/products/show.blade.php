@@ -23,31 +23,62 @@
     @php
         use Illuminate\Support\Str;
 
-        // Đếm chỉ review gốc (không tính phản hồi)
-        $rootCount = $product->approvedReviews->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'))->count();
-
-        // Chuẩn bị dữ liệu review + replies
+        // Lấy tất cả review đã duyệt, tải sẵn user
         $allApproved = $product->approvedReviews()->with('user')->latest()->get();
-        $rootReviews = $allApproved->filter(fn($r) => !Str::startsWith($r->review, '[reply:#'));
 
-        $repliesMap = [];
-        foreach ($allApproved as $r) {
-            if (Str::startsWith($r->review, '[reply:#')) {
-                if (preg_match('/^\[reply:#(\d+)\]\s*/u', $r->review, $m)) {
-                    $pid = (int) $m[1];
-                    $r->review = preg_replace('/^\[reply:#\d+\]\s*/u', '', $r->review); // bỏ prefix hiển thị
-                    $repliesMap[$pid] = $repliesMap[$pid] ?? [];
-                    $repliesMap[$pid][] = $r;
-                }
+        $reviewsById = $allApproved->keyBy('id');
+        $rootReviews = [];
+        $repliesByParent = [];
+
+        foreach ($allApproved as $review) {
+            $content = $review->review;
+            $isReply = false;
+
+            // Xử lý reply cấp 2: [reply:#ROOT_ID:#PARENT_REPLY_ID]
+            if (preg_match('/^\[reply:#(\d+):#(\d+)\]\s*/u', $content, $matches)) {
+                $rootId = (int) $matches[1];
+                $parentId = (int) $matches[2];
+                $review->review_content = preg_replace('/^\[reply:#\d+:#\d+\]\s*/u', '', $content);
+                $repliesByParent[$parentId][] = $review;
+                $isReply = true;
+            }
+            // Xử lý reply cấp 1: [reply:#ROOT_ID]
+            elseif (preg_match('/^\[reply:#(\d+)\]\s*/u', $content, $matches)) {
+                $parentId = (int) $matches[1];
+                $review->review_content = preg_replace('/^\[reply:#\d+\]\s*/u', '', $content);
+                $repliesByParent[$parentId][] = $review;
+                $isReply = true;
+            }
+
+            if (!$isReply) {
+                $review->review_content = $content;
+                $rootReviews[] = $review;
             }
         }
 
-        $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin', 'nhanvien']);
+        $rootCount = count($rootReviews);
+
+        // Hàm đệ quy để render các cấp reply, dùng component
+        if (!function_exists('render_replies')) {
+            function render_replies($parentId, $repliesByParent, $canReplyGlobal) {
+                if (!isset($repliesByParent[$parentId])) return;
+
+                echo '<div class="mt-3 ps-3 border-start">';
+                foreach ($repliesByParent[$parentId] as $reply) {
+                    echo view('frontend.components.review-reply', [
+                        'reply' => $reply,
+                        'repliesByParent' => $repliesByParent,
+                        'canReplyGlobal' => $canReplyGlobal,
+                    ])->render();
+                }
+                echo '</div>';
+            }
+        }
+
+        $isStaffOrAdmin = auth()->check() && in_array(auth()->user()->role->name ?? '', ['admin', 'nhanvien']);
         $canReplyGlobal = $isStaffOrAdmin || ($userHasPurchased ?? false);
 
         // Chuẩn bị "Sản phẩm liên quan"
-        // Ưu tiên: nếu controller đã truyền $relatedProducts -> dùng.
-        // Nếu không có, fallback tự tìm theo category đầu tiên (giữ số query ở mức tối thiểu).
         $related = isset($relatedProducts) ? $relatedProducts : collect();
         if ($related->isEmpty() && $product->categories->isNotEmpty()) {
             $catIds = $product->categories->pluck('id');
@@ -188,8 +219,7 @@
                 </div>
             </div>
         </div>
-
-        {{-- =================== HÀNG 3: ĐÁNH GIÁ =================== --}}
+       {{-- =================== HÀNG 3: ĐÁNH GIÁ =================== --}}
         <div class="row mt-4" data-aos="fade-up" id="reviews-section">
             <div class="col-12">
                 <div class="card-glass p-4 rounded-4">
@@ -202,27 +232,35 @@
                                     class="rounded-circle border" width="48" height="48">
                             </div>
                             <div class="flex-grow-1">
-                                {{-- Sao ở trên --}}
                                 <div class="d-flex align-items-center gap-1 mb-1">
                                     @for ($i = 1; $i <= 5; $i++)
                                         <i
                                             class="bi {{ $i <= (int) $review->rating ? 'bi-star-fill text-warning' : 'bi-star text-secondary' }}"></i>
                                     @endfor
                                 </div>
-                                {{-- Tên dưới (ngang avatar) --}}
                                 <div class="d-flex align-items-center mb-1">
                                     <strong>{{ $review->user->name ?? '—' }}</strong>
                                     <small class="text-muted ms-2">{{ $review->created_at?->format('d/m/Y H:i') }}</small>
                                 </div>
 
-                                <div class="mb-2">{!! nl2br(e($review->review)) !!}</div>
+                                <div class="mb-2">{!! nl2br(e($review->review_content)) !!}</div>
+
+                                @if (!empty($review->images))
+                                    <div class="review-images d-flex flex-wrap gap-2 mt-2">
+                                        @foreach($review->images as $imageUrl)
+                                            <a href="{{ $imageUrl }}" data-fancybox="review-{{ $review->id }}">
+                                                <img src="{{ $imageUrl }}" alt="Review image"
+                                                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @endif
 
                                 @auth
                                     @php
-                                        $isOwner = auth()->id() === $review->user_id;
-                                        $canReply = $canReplyGlobal;
+                                        $isOwner = (int) auth()->id() === (int) $review->user_id;
                                     @endphp
-                                    <div class="d-flex flex-wrap gap-2 small">
+                                    <div class="d-flex flex-wrap gap-2 small mt-2">
                                         @if ($isOwner)
                                             <a class="link-secondary" data-bs-toggle="collapse"
                                                 href="#edit-review-{{ $review->id }}">Sửa</a>
@@ -234,13 +272,12 @@
                                                     class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
                                             </form>
                                         @endif
-                                        @if ($canReply)
+                                        @if ($canReplyGlobal)
                                             <a class="link-secondary" data-bs-toggle="collapse"
                                                 href="#reply-review-{{ $review->id }}">Trả lời</a>
                                         @endif
                                     </div>
 
-                                    {{-- Edit review --}}
                                     @if ($isOwner)
                                         <div class="collapse mt-2" id="edit-review-{{ $review->id }}">
                                             <form method="POST" action="{{ route('reviews.update', $review) }}">
@@ -252,13 +289,13 @@
                                                             @for ($i = 5; $i >= 1; $i--)
                                                                 <option value="{{ $i }}"
                                                                     {{ (int) $review->rating === $i ? 'selected' : '' }}>
-                                                                    {{ $i }}</option>
+                                                                    {{ $i }} sao</option>
                                                             @endfor
                                                         </select>
                                                     </div>
                                                     <div class="col-12 col-md-9">
                                                         <label class="form-label small">Nội dung</label>
-                                                        <textarea name="content" rows="2" class="form-control">{{ $review->review }}</textarea>
+                                                        <textarea name="content" rows="2" class="form-control">{{ $review->review_content }}</textarea>
                                                     </div>
                                                     <div class="col-12">
                                                         <button class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
@@ -268,8 +305,7 @@
                                         </div>
                                     @endif
 
-                                    {{-- Reply form --}}
-                                    @if ($canReply)
+                                    @if ($canReplyGlobal)
                                         <div class="collapse mt-2" id="reply-review-{{ $review->id }}">
                                             <form method="POST" action="{{ route('reviews.reply', $review) }}">
                                                 @csrf
@@ -279,8 +315,7 @@
                                                         <textarea name="content" rows="2" class="form-control" placeholder="Nhập nội dung phản hồi..."></textarea>
                                                     </div>
                                                     <div class="col-12">
-                                                        <button class="btn btn-sm btn-outline-brand rounded-pill mt-1">Gửi phản
-                                                            hồi</button>
+                                                        <button class="btn btn-sm btn-outline-brand rounded-pill mt-1">Gửi phản hồi</button>
                                                     </div>
                                                 </div>
                                             </form>
@@ -288,64 +323,18 @@
                                     @endif
                                 @endauth
 
-                                {{-- Replies --}}
-                                @if (!empty($repliesMap[$review->id] ?? []))
-                                    <div class="mt-3 ps-3 border-start">
-                                        @foreach ($repliesMap[$review->id] as $rep)
-                                            <div class="d-flex gap-2 mb-2">
-                                                <div class="flex-shrink-0">
-                                                    <img src="https://i.pravatar.cc/64?u={{ $rep->user_id }}"
-                                                        class="rounded-circle border" width="32" height="32"
-                                                        alt="avatar">
-                                                </div>
-                                                <div class="flex-grow-1">
-                                                    <div class="d-flex align-items-center">
-                                                        <strong>{{ $rep->user->name ?? '—' }}</strong>
-                                                        <span class="badge bg-light text-muted ms-2">Phản hồi</span>
-                                                        <small
-                                                            class="text-muted ms-2">{{ $rep->created_at?->format('d/m/Y H:i') }}</small>
-                                                    </div>
-                                                    <div>{!! nl2br(e($rep->review)) !!}</div>
-
-                                                    @auth
-                                                        @php $repOwner = auth()->id() === $rep->user_id; @endphp
-                                                        @if ($repOwner)
-                                                            <div class="small mt-1">
-                                                                <a class="link-secondary" data-bs-toggle="collapse"
-                                                                    href="#edit-reply-{{ $rep->id }}">Sửa</a>
-                                                                <form class="d-inline" method="POST"
-                                                                    action="{{ route('reviews.destroy', $rep) }}"
-                                                                    onsubmit="return confirm('Xoá phản hồi này?')">
-                                                                    @csrf @method('DELETE')
-                                                                    <button type="submit"
-                                                                        class="btn btn-link link-danger p-0 align-baseline">Xoá</button>
-                                                                </form>
-                                                            </div>
-                                                            <div class="collapse mt-1" id="edit-reply-{{ $rep->id }}">
-                                                                <form method="POST"
-                                                                    action="{{ route('reviews.update', $rep) }}">
-                                                                    @csrf @method('PATCH')
-                                                                    <textarea name="content" rows="2" class="form-control">{{ $rep->review }}</textarea>
-                                                                    <button
-                                                                        class="btn btn-sm btn-brand rounded-pill mt-1">Lưu</button>
-                                                                </form>
-                                                            </div>
-                                                        @endif
-                                                    @endauth
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @endif
+                                {{-- Render replies --}}
+                                @php
+                                    render_replies($review->id, $repliesByParent, $canReplyGlobal);
+                                @endphp
                             </div>
                         </div>
                     @empty
                         <p class="mb-0">Chưa có đánh giá nào cho sản phẩm này.</p>
                     @endforelse
 
-                    {{-- Form đánh giá gốc (user đã mua hoặc admin/staff) --}}
+                    {{-- Form đánh giá gốc --}}
                     @auth
-                        @php $isStaffOrAdmin = in_array(auth()->user()->role->name ?? '', ['admin','nhanvien']); @endphp
                         @if ($userHasPurchased || $isStaffOrAdmin)
                             @include('frontend.components.review-form', ['product' => $product])
                         @else
