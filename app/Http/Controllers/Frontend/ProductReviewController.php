@@ -78,14 +78,17 @@ class ProductReviewController extends Controller
         }
 
         $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
-            'review' => 'required|string|max:1000',
-            'image'  => 'nullable|image|max:2048',
+            'rating'   => 'required|integer|min:1|max:5',
+            'review'   => 'required|string|max:1000',
+            'images'   => 'nullable|array|max:5', // Cho phép mảng ảnh, tối đa 5
+            'images.*' => 'image|max:2048',     // Validate từng ảnh
         ]);
 
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('reviews', 'public');
+        $imagePaths = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $imagePaths[] = $file->store('reviews', 'public');
+            }
         }
 
         ProductReview::create([
@@ -93,8 +96,8 @@ class ProductReviewController extends Controller
             'product_id' => $product->id,
             'rating'     => (int) $request->rating,
             'review'     => $this->censor(trim($request->review)),
-            'image'      => $imagePath,
-            'status'     => 'approved', // ✅ hiển thị ngay
+            'image'      => implode(',', $imagePaths), // Lưu chuỗi các đường dẫn
+            'status'     => 'approved',
         ]);
 
         return back()->with('success', 'Cảm ơn bạn đã gửi đánh giá!');
@@ -114,9 +117,27 @@ class ProductReviewController extends Controller
 
         $request->validate([
             'content' => 'required|string|min:2|max:2000',
+            'parent_reply_id' => 'nullable|integer|exists:product_reviews,id' // Thêm validation
         ]);
 
-        $content = '[reply:#'.$review->id.'] ' . $this->censor(trim($request->content));
+        $contentPrefix = '';
+        $rootReviewId = $review->id;
+
+        // Nếu review đang được trả lời cũng là một reply, ta cần tìm ID gốc của nó
+        if (preg_match('/^\[reply:#(\d+)/u', $review->review, $matches)) {
+            $rootReviewId = $matches[1];
+        }
+
+        // Tạo prefix cho reply cấp 2 (trả lời một reply)
+        if ($request->filled('parent_reply_id')) {
+            $contentPrefix = '[reply:#' . $rootReviewId . ':#'. $request->parent_reply_id .'] ';
+        }
+        // Tạo prefix cho reply cấp 1 (trả lời review gốc)
+        else {
+            $contentPrefix = '[reply:#' . $rootReviewId . '] ';
+        }
+
+        $content = $contentPrefix . $this->censor(trim($request->content));
 
         ProductReview::create([
             'user_id'    => $user->id,
@@ -137,7 +158,7 @@ class ProductReviewController extends Controller
         $can = ($review->user_id === $user->id) || $this->isStaffOrAdmin();
         if (!$can) return back()->with('error','Bạn không có quyền sửa.');
 
-        $isReply = preg_match('/^\[reply:#\d+\]\s*/u', $review->review) === 1;
+        $isReply = preg_match('/^\[reply:#\d+\]/u', $review->review) === 1;
 
         $rules = ['content' => 'required|string|min:2|max:2000'];
         if (!$isReply) { $rules['rating'] = 'nullable|integer|min:1|max:5'; }
@@ -146,15 +167,14 @@ class ProductReviewController extends Controller
         $old = ['rating'=>$review->rating, 'review'=>$review->review];
 
         $clean = $this->censor(trim($data['content']));
-        if ($isReply) {
-            $prefix = '';
-            if (preg_match('/^\[reply:#\d+\]\s*/u', $review->review, $m)) {
-                $prefix = $m[0];
-            }
-            $payload = ['review' => $prefix . $clean];
-        } else {
-            $payload = ['review' => $clean];
-            if (isset($data['rating'])) $payload['rating'] = (int) $data['rating'];
+        $prefix = '';
+        if (preg_match('/^(\[reply:#\d+(?::#\d+)?\]\s*)/u', $review->review, $m)) {
+            $prefix = $m[0];
+        }
+
+        $payload = ['review' => $prefix . $clean];
+        if (!$isReply && isset($data['rating'])) {
+            $payload['rating'] = (int) $data['rating'];
         }
 
         $review->update($payload);
@@ -184,7 +204,8 @@ class ProductReviewController extends Controller
         }
 
         if ($review->image) {
-            Storage::disk('public')->delete($review->image);
+            $imagePaths = explode(',', $review->image);
+            Storage::disk('public')->delete($imagePaths);
         }
 
         $this->appendHistory($review, [
